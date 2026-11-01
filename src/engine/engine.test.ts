@@ -196,3 +196,12 @@ describe('demo data', () => {
     expect(cleared.events).toHaveLength(0);
   });
 });
+
+describe('display stage', () => {
+  it('never shows a creature below the best stage it reached when the XP table changes', async () => {
+    const { displayStage } = await import('./progression');
+    const harder = { levelXp: [0, 100, 300, 500, 700, 900, 1100, 1300, 1500, 2000], evolutionLevels: DEFAULT_EVOLUTION_LEVELS };
+    expect(stageForXp(130, harder)).toBe(1);
+    expect(displayStage({ xp: 130, bestStage: 2 }, harder)).toBe(2);
+  });
+});

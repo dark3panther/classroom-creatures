@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
 import { getSpecies } from '../data/species';
-import { levelProgress, nextEvolution, stageForXp } from '../engine/progression';
+import { displayStage, levelProgress, nextEvolution } from '../engine/progression';
 import { useStore } from '../store/store';
 import type { Settings, Student } from '../types';
 
 export function studentView(s: Student, settings: Pick<Settings, 'levelXp' | 'evolutionLevels'>) {
   const species = getSpecies(s.speciesId);
   const prog = levelProgress(s.xp, settings.levelXp);
-  const stage = stageForXp(s.xp, settings);
+  const stage = displayStage(s, settings);
   return { species, prog, stage, level: prog.level, next: nextEvolution(s.xp, settings) };
 }
 

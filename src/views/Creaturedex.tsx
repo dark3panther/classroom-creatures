@@ -5,7 +5,7 @@ import { CreatureSvg } from '../creatures/CreatureSvg';
 import { Habitat } from '../creatures/Habitat';
 import { ELEMENT_ORDER, ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import { SPECIES } from '../data/species';
-import { stageForXp } from '../engine/progression';
+import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
 import { useCurrentClass, useStore } from '../store/store';
@@ -49,7 +49,7 @@ export function Creaturedex() {
           return (
             <button key={sp.id} onClick={() => setOpen(sp)} className="paper overflow-hidden text-left transition hover:-translate-y-1">
               <Habitat element={sp.element} className="m-2 mb-0 h-40" rounded="rounded-[1.1rem]">
-                <CreatureSvg species={sp} stage={own.length ? Math.max(...own.map((o) => stageForXp(o.xp, settings))) as Stage : 1} className={`mx-auto h-full w-[80%] idle-${sp.idle}`} />
+                <CreatureSvg species={sp} stage={own.length ? Math.max(...own.map((o) => displayStage(o, settings))) as Stage : 1} className={`mx-auto h-full w-[80%] idle-${sp.idle}`} />
                 {own.length > 0 && <span className="chip absolute right-2 top-2 bg-white/85 text-ink">In class ×{own.length}</span>}
               </Habitat>
               <div className="p-3">

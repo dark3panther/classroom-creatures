@@ -41,7 +41,7 @@ export function Toasts() {
             className="pointer-events-auto flex items-center gap-3 rounded-full bg-night-950/95 py-2 pl-5 pr-2 shadow-2xl ring-1 ring-white/15" role="status">
             <span className="text-xl" aria-hidden>{last.icon}</span>
             <span className="font-bold">
-              {last.label} <span className="text-sun">{last.xp > 0 ? '+' : ''}{last.xp} XP</span>
+              {last.label} <span className="text-sun">{last.xp === 0 ? 'reminder noted' : `${last.xp > 0 ? '+' : ''}${last.xp} XP`}</span>
               <span className="text-white/70"> · {last.count === 1 ? '1 student' : `${last.count} students`}</span>
             </span>
             <button className="btn btn-light !py-1.5 !text-sm" onClick={() => undo(last.batchId)}>↶ Undo</button>

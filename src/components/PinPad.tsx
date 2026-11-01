@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { getSpecies } from '../data/species';
 import { checkPin } from '../engine/pin';
@@ -27,6 +27,17 @@ export function LockScreen() {
   };
   const fail = () => { setShake((s) => s + 1); setPin(''); setError('That PIN is not right. Try again.'); };
   const submit = async () => { if (await checkPin(pin, hash)) { setLocked(false); setPin(''); } else fail(); };
+  const keys = useRef({ press, submit, back: () => setPin((p) => p.slice(0, -1)) });
+  keys.current = { press, submit, back: () => setPin((p) => p.slice(0, -1)) };
+  useEffect(() => {
+    const on = (e: KeyboardEvent) => {
+      if (/^\d$/.test(e.key)) void keys.current.press(e.key);
+      else if (e.key === 'Backspace') keys.current.back();
+      else if (e.key === 'Enter') void keys.current.submit();
+    };
+    window.addEventListener('keydown', on);
+    return () => window.removeEventListener('keydown', on);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-night-900/95 p-4 backdrop-blur">
@@ -40,6 +51,7 @@ export function LockScreen() {
             <span key={i} className={`h-4 w-4 rounded-full ${i < pin.length ? 'bg-grape' : 'bg-ink/15'}`} />
           ))}
         </div>
+        {!error && pin.length >= 4 && <p className="mb-2 text-sm font-bold text-ink-soft">Press OK when you have typed the whole PIN.</p>}
         {error && <p className="mb-2 text-sm font-bold text-[#c2410c]">{error}</p>}
         <div className="grid grid-cols-3 gap-2">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (

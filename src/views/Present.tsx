@@ -10,7 +10,7 @@ import { Habitat } from '../creatures/Habitat';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
 import { STAGE_NAMES } from '../data/elements';
 import { getSpecies } from '../data/species';
-import { stageForXp } from '../engine/progression';
+import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
 import { navigate } from '../lib/router';
@@ -28,6 +28,7 @@ export function Present() {
   const events = useStore((s) => s.data.events);
   const award = useStore((s) => s.award);
   const setLocked = useStore((s) => s.setLocked);
+  const locked = useStore((s) => s.locked);
   const [spot, setSpot] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [wholeClass, setWholeClass] = useState(false);
@@ -35,7 +36,7 @@ export function Present() {
 
   const exit = () => {
     if (document.fullscreenElement) void document.exitFullscreen();
-    if (settings.pinHash) setLocked(true);
+    if (settings.pinHash && !locked) setLocked(true);
     navigate('/');
   };
   const fullscreen = () => {
@@ -100,7 +101,7 @@ export function Present() {
 
       <nav className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-3 border-t border-white/10 bg-night-950/80 px-4 py-4 backdrop-blur">
         <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}>🎲 Pick a student</button>
-        <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}>✨ Whole class</button>
+        {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}>✨ Whole class</button>}
         <button className="btn btn-ghost px-5 py-4 text-xl" onClick={fullscreen} aria-label="Toggle full screen">⛶ Full screen</button>
         <button className="btn btn-ghost px-5 py-4 text-xl" onClick={exit}>✕ Exit</button>
       </nav>
@@ -126,7 +127,7 @@ function PresentTile({ s, onClick }: { s: Student; onClick: () => void }) {
   const settings = useStore((st) => st.data.settings);
   const pulse = useStore((st) => st.pulses[s.id]);
   const sp = getSpecies(s.speciesId);
-  const stage = stageForXp(s.xp, settings);
+  const stage = displayStage(s, settings);
   return (
     <button onClick={onClick} className="group relative flex flex-col items-center rounded-[1.75rem] bg-white/[.06] p-2 ring-1 ring-white/10 transition hover:bg-white/[.12]">
       <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[1.4rem]">
@@ -144,11 +145,12 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
   const settings = useStore((st) => st.data.settings);
   const pulse = useStore((st) => st.pulses[id]);
   const award = useStore((st) => st.award);
+  const locked = useStore((st) => st.locked);
   const [act, setAct] = useState<{ type: CreatureAction; key: number } | null>({ type: 'celebrate', key: 1 });
   const [showAward, setShowAward] = useState(false);
   if (!s) return null;
   const sp = getSpecies(s.speciesId);
-  const stage = stageForXp(s.xp, settings);
+  const stage = displayStage(s, settings);
   const doAct = (type: CreatureAction) => { if (settings.soundEnabled) playCreature(sp.sound, true); setAct({ type, key: Date.now() }); };
   return (
     <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-night-950/85 p-4 backdrop-blur" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
@@ -172,7 +174,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
             <div className="mt-4"><AwardGrid compact dark onPick={(c) => { const o = award([s.id], c.id); if (o.length && settings.soundEnabled) playAward(c.xp); setShowAward(false); }} /></div>
           ) : (
             <div className="mt-4 flex gap-3">
-              <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}>⭐ Give points</button>
+              {!locked && <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}>⭐ Give points</button>}
               <button className="btn btn-ghost py-4 text-xl" onClick={onClose}>Close</button>
             </div>
           )}
@@ -213,7 +215,7 @@ function RandomPicker({ students, onDone }: { students: Student[]; onDone: (id: 
 
   const s = students[idx];
   const sp = getSpecies(s.speciesId);
-  const stage = stageForXp(s.xp, settings);
+  const stage = displayStage(s, settings);
   const prev = students[(idx - 1 + students.length) % students.length];
   const next = students[(idx + 1) % students.length];
   return (
@@ -245,7 +247,7 @@ function Mini({ s }: { s: Student }) {
   return (
     <div className="hidden h-[22vh] w-[22vh] opacity-40 md:block">
       <Habitat element={sp.element} className="h-full w-full" rounded="rounded-full">
-        <Creature speciesId={sp.id} stage={stageForXp(s.xp, settings)} effects={false} className="mx-auto h-full w-[80%]" sound={false} />
+        <Creature speciesId={sp.id} stage={displayStage(s, settings)} effects={false} className="mx-auto h-full w-[80%]" sound={false} />
       </Habitat>
     </div>
   );

@@ -124,7 +124,7 @@ export const useStore = create<Store>()((set, get) => {
       set({
         pulses,
         celebrations: [...get().celebrations, ...queued],
-        lastAward: { batchId, label: cat.name, icon: cat.icon, count: outcomes.length, xp: cat.xp, at: Date.now() },
+        lastAward: { batchId, label: cat.name, icon: cat.icon, count: outcomes.length, xp: cat.xp > 0 ? cat.xp : Math.min(0, ...outcomes.map((o) => o.xp)), at: Date.now() },
       });
       commit(next);
       return outcomes;

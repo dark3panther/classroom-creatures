@@ -8,7 +8,7 @@ import { CreatureSvg } from '../creatures/CreatureSvg';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
 import { ELEMENT_ORDER, ELEMENTS, STAGE_NAMES } from '../data/elements';
 import { getSpecies } from '../data/species';
-import { stageForXp } from '../engine/progression';
+import { displayStage } from '../engine/progression';
 import { parseNames } from '../engine/roster';
 import { firstName, timeAgo } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
@@ -49,7 +49,7 @@ export function Dashboard() {
       const sp = getSpecies(s.speciesId);
       if (q && !s.name.toLowerCase().includes(q) && !sp.name.toLowerCase().includes(q)) return false;
       if (element !== 'all' && sp.element !== element) return false;
-      if (stageFilter && stageForXp(s.xp, settings) !== stageFilter) return false;
+      if (stageFilter && displayStage(s, settings) !== stageFilter) return false;
       return true;
     });
     return list.sort((a, b) => {
@@ -240,7 +240,7 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
                 </div>
                 <div className="truncate text-white/60">{b.name} · <span className={b.xp >= 0 ? 'text-sun' : ''}>{b.xp >= 0 ? '+' : ''}{b.xp}</span> · {timeAgo(b.at)}</div>
               </div>
-              <button className="rounded-full px-2 py-1 text-xs font-bold text-white/50 opacity-0 transition hover:bg-white/10 hover:text-white group-hover:opacity-100 focus:opacity-100" onClick={() => undo(b.batchId)} title="Undo this award">Undo</button>
+              <button className="min-h-9 rounded-full px-3 py-1.5 text-xs font-bold text-white/70 ring-1 ring-white/15 transition hover:bg-white/10 hover:text-white" onClick={() => undo(b.batchId)} title="Undo this award">Undo</button>
             </li>
           ))}
         </ul>
@@ -252,7 +252,7 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
           {levelUps.map(({ s, at, level }) => (
             <li key={`${s.id}-${at}`}>
               <button className="flex w-full items-center gap-2 rounded-xl px-1 py-1 text-left hover:bg-white/5" onClick={() => onOpen(s.id)}>
-                <span className="h-10 w-10"><CreatureSvg species={getSpecies(s.speciesId)} stage={stageForXp(s.xp, settings)} effects={false} noShadow className="h-full w-full" /></span>
+                <span className="h-10 w-10"><CreatureSvg species={getSpecies(s.speciesId)} stage={displayStage(s, settings)} effects={false} noShadow className="h-full w-full" /></span>
                 <span className="flex-1 text-sm"><b>{firstName(s.name)}</b> reached <b className="text-sun">Level {level}</b><br /><span className="text-white/60">{timeAgo(at)}</span></span>
               </button>
             </li>

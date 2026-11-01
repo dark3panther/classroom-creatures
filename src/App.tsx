@@ -59,6 +59,8 @@ export default function App() {
     );
   }
 
+  if (locked) return <LockScreen />;
+
   return (
     <div className="min-h-full">
       <TopBar route={route} />
@@ -71,7 +73,6 @@ export default function App() {
       <AnimatePresence>{!onboarded && !locked && <Onboarding />}</AnimatePresence>
       <CelebrationHost />
       <Toasts />
-      {locked && <LockScreen />}
     </div>
   );
 }

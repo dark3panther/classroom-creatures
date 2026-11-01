@@ -16,7 +16,7 @@ export function FloatingXP({ pulse }: { pulse?: { n: number; xp: number; icon: s
         <motion.div key={pulse.n} className="pointer-events-none absolute left-1/2 top-6 z-20 -translate-x-1/2 whitespace-nowrap font-display text-3xl font-bold"
           initial={{ y: 10, opacity: 0, scale: 0.6 }} animate={{ y: -46, opacity: [0, 1, 1, 0], scale: [0.6, 1.25, 1, 1] }} transition={{ duration: 1.5, times: [0, 0.2, 0.7, 1] }}
           style={{ color: pulse.xp >= 0 ? '#fff' : '#cbd5e1', textShadow: '0 3px 0 #c98400, 0 0 18px rgb(255 201 59 / .9)', WebkitTextStroke: '1px #c98400' }}>
-          {pulse.xp >= 0 ? '+' : ''}{pulse.xp} XP
+          {pulse.xp === 0 ? '♡' : `${pulse.xp > 0 ? '+' : ''}${pulse.xp} XP`}
         </motion.div>
       )}
     </AnimatePresence>

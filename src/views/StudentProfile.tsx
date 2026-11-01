@@ -247,7 +247,7 @@ function History({ student }: { student: Student }) {
             <span className="text-xl" aria-hidden>{e.icon}</span>
             <span className="flex-1 text-sm font-bold">{e.categoryName}<span className="block text-xs text-ink-soft">{new Date(e.at).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}</span></span>
             <span className={`font-display font-bold ${e.xp >= 0 ? 'text-mint' : 'text-ink-soft'}`}>{e.xp >= 0 ? '+' : ''}{e.xp}</span>
-            <button className="rounded-full px-2 py-1 text-xs font-bold text-ink-soft opacity-0 hover:bg-ink/10 group-hover:opacity-100 focus:opacity-100" onClick={() => undo(e.batchId)}>Undo</button>
+            <button className="min-h-9 rounded-full px-3 py-1.5 text-xs font-bold text-ink-soft ring-1 ring-ink/15 hover:bg-ink/10" onClick={() => undo(e.batchId)}>Undo</button>
           </li>
         ))}
       </ul>

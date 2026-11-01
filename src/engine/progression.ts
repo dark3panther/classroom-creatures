@@ -53,6 +53,11 @@ export function nextEvolution(xp: number, s: Pick<Settings, 'levelXp' | 'evoluti
   return { stage: (stage + 1) as Stage, level, atXp, xpNeeded: Math.max(0, atXp - xp) };
 }
 
+/** Stage to show: never below the best stage reached (undo lowers bestStage itself). */
+export function displayStage(s: { xp: number; bestStage: Stage }, st: Pick<Settings, 'levelXp' | 'evolutionLevels'>): Stage {
+  return Math.max(stageForXp(s.xp, st), s.bestStage) as Stage;
+}
+
 /** Lowest XP that still keeps `stage`. Used to make negative points never undo an evolution. */
 export function stageFloorXp(stage: Stage, s: Pick<Settings, 'levelXp' | 'evolutionLevels'>): number {
   const level = s.evolutionLevels[stage - 1];

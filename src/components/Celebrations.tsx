@@ -7,7 +7,7 @@ import { Creature } from '../creatures/Creature';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
 import { ELEMENTS, STAGE_NAMES } from '../data/elements';
 import { getSpecies } from '../data/species';
-import { stageForXp } from '../engine/progression';
+import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { type Celebration, useStore } from '../store/store';
 import type { Stage, Student } from '../types';
@@ -133,7 +133,7 @@ function LevelUpPopup({ level, student, onDone, sound }: { level: number; studen
     return () => clearTimeout(t);
   }, [onDone, sound]);
   const sp = getSpecies(student.speciesId);
-  const stage = stageForXp(student.xp, settings);
+  const stage = displayStage(student, settings);
   return (
     <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} onClick={onDone}>
       <div className="relative flex items-center gap-4 rounded-[2rem] bg-gradient-to-br from-grape to-night-600 py-3 pl-3 pr-8 shadow-2xl ring-4 ring-sun/70">
@@ -193,7 +193,7 @@ function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, 
       <div className="relative mt-8 flex max-w-5xl flex-wrap justify-center gap-1">
         {students.slice(0, 32).map((s, i) => {
           const sp = getSpecies(s.speciesId);
-          const stage = stageForXp(s.xp, settings);
+          const stage = displayStage(s, settings);
           return (
             <motion.div key={s.id} className="h-16 w-16 sm:h-20 sm:w-20" initial={{ y: 40, opacity: 0 }} animate={{ y: [0, -24, 0], opacity: 1 }} transition={{ delay: 0.3 + i * 0.04, y: { repeat: Infinity, duration: 0.9, delay: i * 0.05 } }}>
               <CreatureSvg species={sp} stage={stage} equipped={s.equipped} expression="excited" effects={false} className="h-full w-full" />
