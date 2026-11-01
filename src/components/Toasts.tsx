@@ -9,6 +9,7 @@ export function Toasts() {
   const last = useStore((s) => s.lastAward);
   const undo = useStore((s) => s.undo);
   const toast = useStore((s) => s.toast);
+  const bigMoment = useStore((s) => s.celebrations[0]?.type === 'evolution' || s.celebrations[0]?.type === 'classGoal');
   const [showUndo, setShowUndo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -35,7 +36,7 @@ export function Toasts() {
             {toast.text}
           </motion.div>
         )}
-        {showUndo && last && (
+        {showUndo && last && !bigMoment && (
           <motion.div key={last.batchId} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
             className="pointer-events-auto flex items-center gap-3 rounded-full bg-night-950/95 py-2 pl-5 pr-2 shadow-2xl ring-1 ring-white/15" role="status">
             <span className="text-xl" aria-hidden>{last.icon}</span>
