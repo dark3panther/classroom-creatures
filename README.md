@@ -27,6 +27,32 @@ npm run preview
 
 `npm run build` writes a static site to `dist/`. It uses relative paths, so `dist/` can be served by any static web server (for example `npx serve dist`) or copied to a school intranet. Data is stored per browser *and* per address, so always open the app from the same address on the same computer.
 
+### Mac app
+
+Classroom Creatures also runs as a normal Mac app (a dock icon, its own window, native full screen for the projector, menu shortcuts ⌘1–⌘3 for the tabs, ⌘, for Settings and ⌘P for Presentation Mode). It works fully offline.
+
+**Easiest: build it on your Mac** (needs Node.js 18+):
+
+```bash
+cd classroom-creatures
+npm install
+npm run app:mac
+```
+
+This creates `release/Classroom Creatures-1.0.0-universal.dmg` (works on both Apple Silicon and Intel Macs). Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
+
+**Or download it from GitHub:** every push that changes `classroom-creatures/` runs the *Classroom Creatures – macOS app* workflow, which builds the same `.dmg` on a Mac. Open the workflow run on the repository's **Actions** tab and download the `Classroom-Creatures-mac` artifact.
+
+**First launch of a downloaded copy:** the app is not notarised by Apple (that needs a paid Apple Developer account), so macOS warns you the first time. Right-click (or Control-click) the app in Applications → **Open** → **Open**. On recent macOS versions you may instead need to go to System Settings → Privacy & Security and click **Open Anyway**. If macOS says the app "is damaged", run this once in Terminal:
+
+```bash
+xattr -cr "/Applications/Classroom Creatures.app"
+```
+
+**Your data in the Mac app** is stored in `~/Library/Application Support/Classroom Creatures`, separately from any browser copy. To move a class from the browser version into the app, use Settings → Backup & Data → *Download backup file* in the browser, then *Restore from file* in the app.
+
+To try the desktop shell without packaging: `npm run app`. The same config also builds Windows (`npx electron-builder --win`) and Linux (`npx electron-builder --linux`) versions.
+
 ### Other commands
 
 | Command | What it does |
@@ -67,6 +93,7 @@ src/
 │   ├── Creature.tsx         Animated wrapper: idle loop, reactions, particle bursts
 │   ├── Burst.tsx            One-shot element/sparkle/confetti particles
 │   └── Habitat.tsx          Element habitats and unlockable backgrounds
+├── (electron/main.cjs)     Desktop shell: serves dist/ from a private app:// origin, menus, full screen
 ├── audio/sfx.ts             All sounds synthesised with Web Audio (original, offline)
 ├── components/              Cards, award grid, celebrations, toasts, top bar, PIN lock, UI kit
 ├── views/                   Dashboard, StudentProfile, Creaturedex, Rewards, Settings, Present, Onboarding

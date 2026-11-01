@@ -8,9 +8,24 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "app": "npm run build && electron .",
+    "app:mac": "npm run build && electron-builder --mac",
+    "app:mac-zip": "npm run build && electron-builder --mac zip --arm64 --x64"
   },
-  "dependencies": {
+  "devDependencies": {
+    "@electron/packager": "^18.3.6",
+    "@tailwindcss/vite": "^4.1.7",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "fake-indexeddb": "^6.0.0",
+    "tailwindcss": "^4.1.7",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4",
     "@fontsource/fredoka": "^5.1.1",
     "@fontsource/nunito": "^5.1.1",
     "framer-motion": "^11.18.2",
@@ -19,15 +34,55 @@
     "react-dom": "^18.3.1",
     "zustand": "^5.0.3"
   },
-  "devDependencies": {
-    "@tailwindcss/vite": "^4.1.7",
-    "@types/react": "^18.3.20",
-    "@types/react-dom": "^18.3.6",
-    "@vitejs/plugin-react": "^4.4.1",
-    "fake-indexeddb": "^6.0.0",
-    "tailwindcss": "^4.1.7",
-    "typescript": "^5.8.3",
-    "vite": "^6.3.5",
-    "vitest": "^3.1.4"
-  }
+  "main": "electron/main.cjs",
+  "description": "Gamified classroom management with evolving creatures",
+  "author": "Classroom Creatures",
+  "build": {
+    "appId": "app.classroomcreatures.desktop",
+    "productName": "Classroom Creatures",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "mac": {
+      "category": "public.app-category.education",
+      "icon": "build/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "identity": null,
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "Classroom Creatures"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png",
+      "category": "Education"
+    },
+    "publish": null,
+    "afterPack": "scripts/adhoc-sign.cjs"
+  },
+  "dependencies": {}
 }

@@ -71,7 +71,7 @@ export function Present() {
         <div className="starfield absolute inset-0" />
       </div>
 
-      <header className="relative flex flex-wrap items-center gap-4 px-6 pt-5">
+      <header className="present-header relative flex flex-wrap items-center gap-4 px-6 pt-5">
         <h1 className="font-display text-4xl font-bold tracking-wide sm:text-5xl">{cls?.name ?? 'Classroom Creatures'}</h1>
         {cls && (
           <div className="ml-auto w-full max-w-md">
