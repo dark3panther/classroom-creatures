@@ -95,3 +95,38 @@ export function playTick(i = 0) {
 export function playPop() {
   tone(500, 0, 0.12, 'sine', 0.15, 900);
 }
+
+/** Cartoon "bonk": a hollow knock, a wobbly boing and a little sad slide. Silly, not scary. */
+export function playBonk() {
+  tone(180, 0, 0.09, 'square', 0.12, 90);
+  tone(620, 0.01, 0.06, 'triangle', 0.1, 300);
+  tone(300, 0.08, 0.35, 'sine', 0.12, 140);
+  tone(392, 0.45, 0.22, 'triangle', 0.06, 330);
+  tone(330, 0.62, 0.3, 'triangle', 0.06, 262);
+}
+
+export function playCoin() {
+  tone(988, 0, 0.08, 'square', 0.04);
+  tone(1319, 0.07, 0.22, 'square', 0.04);
+}
+
+export function playMilestone() {
+  [0, 7, 12, 16, 19, 24].forEach((n, i) => tone(semi(523, n), i * 0.07, 0.3, 'triangle', 0.12));
+  tone(semi(523, 24), 0.45, 0.6, 'sine', 0.08);
+}
+
+export function playPrizeWin() {
+  [0, 4, 7, 12].forEach((n) => tone(semi(523, n), 0, 0.9, 'triangle', 0.08));
+  [12, 16, 19, 24, 28].forEach((n, i) => tone(semi(523, n), 0.12 + i * 0.09, 0.4, 'square', 0.035));
+}
+
+export function playPet() {
+  tone(880, 0, 0.12, 'sine', 0.08, 1175);
+}
+
+/** The right sound for an award: a bonk for deductions, chime + coin clink otherwise. */
+export function awardSound(xp: number, count = 1) {
+  if (xp < 0) { playBonk(); return; }
+  if (count > 1) playMultiAward(); else playAward(xp);
+  setTimeout(playCoin, 260);
+}

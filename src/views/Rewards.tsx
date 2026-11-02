@@ -7,9 +7,11 @@ import { challengeProgress } from '../engine/awards';
 import { uid } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
 import { useCurrentClass, useStore } from '../store/store';
-import type { CategoryTag, Challenge, ItemSlot } from '../types';
+import type { CategoryTag, Challenge, ItemSlot, Student } from '../types';
+import { ChocoStick } from '../components/Celebrations';
+import { timeAgo } from '../engine/util';
 
-const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hat', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Background', decoration: 'Decoration' };
+const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hat', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Background', decoration: 'Decoration', outfit: 'Outfit' };
 
 export function Rewards() {
   const cls = useCurrentClass();
@@ -28,6 +30,17 @@ export function Rewards() {
       <h1 className="font-display text-3xl font-bold sm:text-4xl">Rewards & Challenges</h1>
       <p className="text-white/70">Badges, collectibles and challenges unlock automatically as students earn XP.</p>
 
+      <MilestoneRewards students={students} />
+      {cls && (cls.prizeHistory?.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <SectionTitle>Class prizes won</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {[...cls.prizeHistory].reverse().map((p, i) => (
+              <span key={i} className="panel px-4 py-2 font-bold">{p.icon} {p.label} <span className="text-white/60">· {p.goal.toLocaleString()} XP goal · {new Date(p.at).toLocaleDateString()}</span></span>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="mt-6">
         <SectionTitle action={<button className="btn btn-primary !py-2" onClick={() => setEditing({ id: uid('ch'), title: '', period: 'daily', metric: 'count', tag: 'participation', target: 3, active: true })}>＋ New challenge</button>}>
           Daily & weekly challenges
@@ -148,5 +161,41 @@ function ChallengeEditor({ c, onClose, onSave, onDelete, exists }: { c: Challeng
         </form>
       )}
     </Modal>
+  );
+}
+
+function MilestoneRewards({ students }: { students: Student[] }) {
+  const setGiven = useStore((s) => s.setRewardGiven);
+  const milestones = useStore((s) => s.data.settings.milestones);
+  const pending = students.flatMap((s) => (s.milestoneRewards ?? []).filter((r) => !r.given).map((r) => ({ s, r }))).sort((a, b) => a.r.at - b.r.at);
+  const recent = students.flatMap((s) => (s.milestoneRewards ?? []).filter((r) => r.given).map((r) => ({ s, r }))).sort((a, b) => b.r.at - a.r.at).slice(0, 6);
+  return (
+    <section className="mt-6">
+      <SectionTitle>Milestone rewards to hand out</SectionTitle>
+      <p className="-mt-2 mb-3 text-sm text-white/70">{milestones.map((m) => `${m.icon} ${m.label} every ${m.every} XP`).join(' · ') || 'No milestone rewards set (Settings → Rewards).'}</p>
+      {pending.length === 0 ? (
+        <div className="panel p-4 text-white/70">All rewards have been handed out. 🎉</div>
+      ) : (
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {pending.map(({ s, r }) => (
+            <div key={r.id} className="paper flex items-center gap-3 p-3">
+              <ChocoStick size={44} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-display text-lg font-semibold">{s.name}</div>
+                <div className="text-xs font-bold text-ink-soft">{r.icon} {r.label} · reached {r.atXp} XP · {timeAgo(r.at)}</div>
+              </div>
+              <button className="btn btn-primary !py-1.5 !text-sm" onClick={() => setGiven(s.id, r.id, true)}>Given ✓</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {recent.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5 text-xs text-white/60">
+          Recently handed out: {recent.map(({ s, r }) => (
+            <button key={r.id} className="chip bg-white/10 text-white/80 hover:bg-white/20" title="Mark as not handed out" onClick={() => setGiven(s.id, r.id, false)}>{r.icon} {s.name.split(' ')[0]} ↺</button>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

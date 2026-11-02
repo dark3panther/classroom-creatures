@@ -1,6 +1,6 @@
 import { ACHIEVEMENTS, ITEMS } from '../data/defaults';
 import type { AchievementDef } from '../data/defaults';
-import type { AppData, AwardEvent, AwardOutcome, Challenge, Settings, Stage, Student } from '../types';
+import type { AppData, AwardEvent, AwardOutcome, Challenge, MilestoneReward, Settings, Stage, Student } from '../types';
 import { levelForXp, stageFloorXp, stageForXp } from './progression';
 import { dayKey, periodStart, uid, weekKey } from './util';
 
@@ -30,6 +30,7 @@ export function qualifiedItems(s: Student, settings: Prog): string[] {
     if (u.type === 'free') return true;
     if (u.type === 'level') return level >= u.level;
     if (u.type === 'achievement') return have.has(u.id);
+    if (u.type === 'shop') return false; // bought with coins, never auto-unlocked
     return s.challengeCompletions.length >= u.count;
   }).map((i) => i.id);
 }
@@ -79,6 +80,27 @@ function refreshUnlocks(s: Student, data: AppData, now: number) {
   return { newAchievements, newItems, newChallenges };
 }
 
+/** Milestone rewards newly reached (e.g. a chocolate every 100 XP earned). */
+export function milestoneRewardsFor(s: Student, milestones: AppData['settings']['milestones'], now: number): MilestoneReward[] {
+  const out: MilestoneReward[] = [];
+  for (const m of milestones) {
+    if (!m.every || m.every <= 0) continue;
+    const reached = Math.floor((s.lifetimeXp ?? 0) / m.every);
+    const have = (s.milestoneRewards ?? []).filter((r) => r.milestoneId === m.id).length;
+    for (let i = have + 1; i <= reached; i++) {
+      out.push({ id: `${s.id}-${m.id}-${i}-${now}`, milestoneId: m.id, label: m.label, icon: m.icon, atXp: i * m.every, at: now, given: false });
+    }
+  }
+  return out;
+}
+
+/** Buy a shop item with coins. Returns null when not affordable / already owned / not a shop item. */
+export function buyItem(data: AppData, studentId: string, itemId: string, price: number): AppData | null {
+  const s = data.students.find((x) => x.id === studentId);
+  if (!s || s.unlockedItems.includes(itemId) || (s.coins ?? 0) < price) return null;
+  return { ...data, students: data.students.map((x) => (x.id === studentId ? { ...x, coins: (x.coins ?? 0) - price, unlockedItems: [...x.unlockedItems, itemId] } : x)) };
+}
+
 export interface AwardResult {
   data: AppData;
   outcomes: AwardOutcome[];
@@ -106,6 +128,7 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
     newEvents.push({
       id: uid('e'), classId: s.classId, studentId: s.id, batchId, categoryId: cat.id, categoryName: cat.name,
       icon: cat.icon, tag: cat.tag, xp: applied, at: now, bestStageBefore: s.bestStage,
+      coins: applied > 0 ? Math.round(applied * (data.settings.coinRate ?? 1)) : 0,
     });
     const tagCounts = { ...s.tagCounts };
     const tagXp = { ...s.tagXp };
@@ -113,7 +136,8 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
       tagCounts[cat.tag] = (tagCounts[cat.tag] ?? 0) + 1;
       tagXp[cat.tag] = (tagXp[cat.tag] ?? 0) + applied;
     }
-    return { ...s, xp: Math.max(0, s.xp + applied), tagCounts, tagXp };
+    const coins = applied > 0 ? Math.round(applied * (data.settings.coinRate ?? 1)) : 0;
+    return { ...s, xp: Math.max(0, s.xp + applied), tagCounts, tagXp, coins: (s.coins ?? 0) + coins, lifetimeXp: (s.lifetimeXp ?? s.xp) + Math.max(0, applied) };
   });
 
   const next: AppData = { ...data, students, events: [...data.events, ...newEvents] };
@@ -126,6 +150,8 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
     const evolved = stageAfter > before.bestStage;
     copy.bestStage = Math.max(before.bestStage, stageAfter) as Stage;
     const un = refreshUnlocks(copy, next, now);
+    const newMilestoneRewards = milestoneRewardsFor(copy, data.settings.milestones ?? [], now);
+    if (newMilestoneRewards.length) copy.milestoneRewards = [...(copy.milestoneRewards ?? []), ...newMilestoneRewards];
     outcomes.push({
       studentId: s.id,
       xp: copy.xp - before.xp,
@@ -137,6 +163,8 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
       newAchievements: un.newAchievements,
       newItems: un.newItems,
       completedChallenges: un.newChallenges,
+      coins: (copy.coins ?? 0) - (before.coins ?? 0),
+      newMilestoneRewards,
     });
     return copy;
   });
@@ -162,7 +190,11 @@ export function undoBatch(data: AppData, batchId: string): AppData {
       tagXp[e.tag] = Math.max(0, (tagXp[e.tag] ?? 0) - e.xp);
     }
     const xp = Math.max(0, s.xp - e.xp);
-    const draft: Student = { ...s, xp, tagCounts, tagXp };
+    const lifetimeXp = Math.max(0, (s.lifetimeXp ?? s.xp) - Math.max(0, e.xp));
+    const coins = Math.max(0, (s.coins ?? 0) - (e.coins ?? 0));
+    // milestone rewards earned by this award and not handed out yet are taken back
+    const milestoneRewards = (s.milestoneRewards ?? []).filter((r) => r.given || r.at < e.at || r.atXp <= lifetimeXp);
+    const draft: Student = { ...s, xp, tagCounts, tagXp, lifetimeXp, coins, milestoneRewards };
     draft.bestStage = Math.max(e.bestStageBefore ?? 1, stageForXp(xp, data.settings)) as Stage;
     // challenge completions unlocked at/after this event that are no longer met
     draft.challengeCompletions = s.challengeCompletions.filter((cc) => {

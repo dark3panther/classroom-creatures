@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { playAward, playMultiAward, playTick, playCreature, playLevelUp } from '../audio/sfx';
+import { awardSound, playTick, playCreature, playLevelUp } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
+import { PrizeWheel } from '../components/PrizeWheel';
 import { FloatingXP } from '../components/StudentCard';
 import { ProgressBar, StagePips } from '../components/ui';
 import { Burst } from '../creatures/Burst';
@@ -13,6 +14,7 @@ import { getSpecies } from '../data/species';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
+import { useMood } from '../lib/useMood';
 import { navigate } from '../lib/router';
 import { useCurrentClass, useStore } from '../store/store';
 import type { Student } from '../types';
@@ -32,6 +34,7 @@ export function Present() {
   const [spot, setSpot] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [wholeClass, setWholeClass] = useState(false);
+  const [wheel, setWheel] = useState(false);
   const sorted = useMemo(() => [...students].sort((a, b) => a.name.localeCompare(b.name)), [students]);
 
   const exit = () => {
@@ -102,10 +105,12 @@ export function Present() {
       <nav className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-3 border-t border-white/10 bg-night-950/80 px-4 py-4 backdrop-blur">
         <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}>🎲 Pick a student</button>
         {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}>✨ Whole class</button>}
+        {cls?.pendingSpin && !locked && <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setWheel(true)}>🎡 Prize wheel</button>}
         <button className="btn btn-ghost px-5 py-4 text-xl" onClick={fullscreen} aria-label="Toggle full screen">⛶ Full screen</button>
         <button className="btn btn-ghost px-5 py-4 text-xl" onClick={exit}>✕ Exit</button>
       </nav>
 
+      <AnimatePresence>{wheel && cls && <PrizeWheel classId={cls.id} onClose={() => setWheel(false)} />}</AnimatePresence>
       <AnimatePresence>{spot && <Spotlight key={spot} id={spot} onClose={() => setSpot(null)} />}</AnimatePresence>
       <AnimatePresence>{picking && <RandomPicker students={sorted} onDone={(id) => { setPicking(false); if (id) setSpot(id); }} />}</AnimatePresence>
       <AnimatePresence>
@@ -113,7 +118,7 @@ export function Present() {
           <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-night-950/85 p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="w-full max-w-4xl">
               <h2 className="mb-4 text-center font-display text-4xl font-bold">Award the whole class</h2>
-              <AwardGrid dark onPick={(c) => { const o = award(students.map((s) => s.id), c.id); if (o.length && settings.soundEnabled) playMultiAward(); setWholeClass(false); }} />
+              <AwardGrid dark onPick={(c) => { const o = award(students.map((s) => s.id), c.id); if (o.length && settings.soundEnabled) awardSound(c.xp, o.length); setWholeClass(false); }} />
               <div className="mt-6 text-center"><button className="btn btn-ghost px-8 py-3 text-xl" onClick={() => setWholeClass(false)}>Cancel</button></div>
             </div>
           </motion.div>
@@ -126,12 +131,13 @@ export function Present() {
 function PresentTile({ s, onClick }: { s: Student; onClick: () => void }) {
   const settings = useStore((st) => st.data.settings);
   const pulse = useStore((st) => st.pulses[s.id]);
+  const mood = useMood(s);
   const sp = getSpecies(s.speciesId);
   const stage = displayStage(s, settings);
   return (
     <button onClick={onClick} className="group relative flex flex-col items-center rounded-[1.75rem] bg-white/[.06] p-2 ring-1 ring-white/10 transition hover:bg-white/[.12]">
       <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[1.4rem]">
-        <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} className="mx-auto h-full w-[86%]" />
+        <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
       </Habitat>
       <FloatingXP pulse={pulse} />
       <div className="mt-1.5 max-w-full truncate font-display text-xl font-semibold">{firstName(s.name)}</div>
@@ -148,6 +154,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
   const locked = useStore((st) => st.locked);
   const [act, setAct] = useState<{ type: CreatureAction; key: number } | null>({ type: 'celebrate', key: 1 });
   const [showAward, setShowAward] = useState(false);
+  const mood = useMood(s);
   if (!s) return null;
   const sp = getSpecies(s.speciesId);
   const stage = displayStage(s, settings);
@@ -156,7 +163,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
     <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-night-950/85 p-4 backdrop-blur" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
       <motion.div className="relative grid w-full max-w-5xl items-center gap-6 md:grid-cols-[1.1fr_1fr]" initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 20 }} onClick={(e) => e.stopPropagation()}>
         <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full shadow-2xl" rounded="rounded-[2.5rem]">
-          <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
+          <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
           <FloatingXP pulse={pulse} />
         </Habitat>
         <div>
@@ -171,7 +178,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
             <button className="btn btn-ghost py-4 text-xl" onClick={() => doAct('happy')}>💖 Happy</button>
           </div>
           {showAward ? (
-            <div className="mt-4"><AwardGrid compact dark onPick={(c) => { const o = award([s.id], c.id); if (o.length && settings.soundEnabled) playAward(c.xp); setShowAward(false); }} /></div>
+            <div className="mt-4"><AwardGrid compact dark onPick={(c) => { const o = award([s.id], c.id); if (o.length && settings.soundEnabled) awardSound(c.xp); setShowAward(false); }} /></div>
           ) : (
             <div className="mt-4 flex gap-3">
               {!locked && <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}>⭐ Give points</button>}

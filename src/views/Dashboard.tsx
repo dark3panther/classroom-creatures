@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
-import { playAward, playMultiAward } from '../audio/sfx';
+import { awardSound } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
+import { PrizeWheel } from '../components/PrizeWheel';
 import { StudentCard } from '../components/StudentCard';
 import { Modal, ProgressBar, SectionTitle } from '../components/ui';
 import { CreatureSvg } from '../creatures/CreatureSvg';
@@ -36,6 +37,7 @@ export function Dashboard() {
   const [wholeClass, setWholeClass] = useState(false);
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [wheel, setWheel] = useState(false);
 
   const lastAwardAt = useMemo(() => {
     const m = new Map<string, number>();
@@ -67,7 +69,7 @@ export function Dashboard() {
   const toggle = (id: string) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const doAward = (ids: string[], c: Category) => {
     const out = award(ids, c.id);
-    if (out.length && settings.soundEnabled) (ids.length > 1 ? playMultiAward() : playAward(c.xp));
+    if (out.length && settings.soundEnabled) awardSound(c.xp, ids.length);
     return out.length;
   };
 
@@ -95,7 +97,12 @@ export function Dashboard() {
               <span>Class goal</span><span className="tabular-nums">{Math.min(totalXp, cls.goal).toLocaleString()} / {cls.goal.toLocaleString()}</span>
             </div>
             <ProgressBar pct={goalPct} color="#34d399" track="rgb(255 255 255 / .12)" className="mt-1.5" glow={goalPct >= 1} />
-            {cls.goalReachedAt && <div className="mt-1 text-xs font-bold text-mint">Goal reached! Set a new goal in Settings.</div>}
+            {cls.pendingSpin && (
+              <button className="btn btn-primary mt-2 w-full !py-1.5 !text-sm" onClick={() => setWheel(true)}>🎡 Spin the prize wheel!</button>
+            )}
+            {!cls.pendingSpin && (cls.prizeHistory?.length ?? 0) > 0 && (
+              <div className="mt-1 truncate text-xs font-bold text-white/70">Last prize: {cls.prizeHistory[cls.prizeHistory.length - 1].icon} {cls.prizeHistory[cls.prizeHistory.length - 1].label}</div>
+            )}
           </div>
         </div>
       </div>
@@ -169,6 +176,7 @@ export function Dashboard() {
           <AwardGrid onPick={(c) => { doAward(students.map((s) => s.id), c); setWholeClass(false); }} />
         </div>
       </Modal>
+      <AnimatePresence>{wheel && <PrizeWheel classId={cls.id} onClose={() => setWheel(false)} />}</AnimatePresence>
       <AddStudentsModal open={adding} onClose={() => setAdding(false)} classId={cls.id} />
       <StudentProfile studentId={profile} onClose={() => setProfile(null)} />
     </div>

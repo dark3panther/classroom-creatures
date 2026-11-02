@@ -49,6 +49,21 @@ export function Habitat({ element, background, children, className = '', rounded
       </>,
     },
   };
+  scenes['bg-candy'] = {
+    style: 'linear-gradient(180deg,#ffd6ec 0%,#ffeaf5 55%,#b8f0d8 56%,#8fe0bd 100%)',
+    deco: <>
+      {[[12, 70, '#ff6fa3'], [86, 74, '#8b5cf6'], [70, 64, '#ffb020']].map(([x, y, c], i) => <g key={i}><rect x={`${x}%`} y={`${y}%`} width="3" height="24" fill="#fff" /><circle cx={`${Number(x) + 0.6}%`} cy={`${y}%`} r="11" fill={String(c)} stroke="#fff" strokeWidth="3" /></g>)}
+      <circle cx="18%" cy="22%" r="9" fill="#fff" opacity=".8" /><circle cx="78%" cy="18%" r="12" fill="#fff" opacity=".8" />
+    </>,
+  };
+  scenes['bg-space'] = {
+    style: 'radial-gradient(120% 90% at 50% 0%, #3b2a7a 0%, #120b2e 100%)',
+    deco: <>
+      <circle cx="82%" cy="22%" r="20" fill="#ff9ee8" opacity=".85" /><ellipse cx="82%" cy="22%" rx="34" ry="7" fill="none" stroke="#ffe066" strokeWidth="3" opacity=".8" />
+      {[[10, 14], [30, 30], [52, 10], [66, 42], [16, 56], [90, 60]].map(([x, y], i) => <circle key={i} cx={`${x}%`} cy={`${y}%`} r="1.8" fill="#fff" className="cc-twinkle" style={{ animationDelay: `${i * 0.3}s` }} />)}
+      <rect x="0" y="86%" width="100%" height="14%" fill="#5b6680" opacity=".7" />
+    </>,
+  };
   const scene = scenes[bg];
   const style = scene ? scene.style : `radial-gradient(120% 90% at 50% 0%, ${el.sky[0]} 0%, ${el.sky[1]} 100%)`;
   return (

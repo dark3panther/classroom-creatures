@@ -31,6 +31,7 @@ export function SettingsView({ tab = 'classes' }: { tab?: string }) {
         {tab === 'classroom' && <ClassroomTab />}
         {tab === 'backup' && <BackupTab />}
       </div>
+      <p className="mt-4 text-center text-xs font-bold text-white/50">Classroom Creatures v{__APP_VERSION__} · everything is saved on this computer</p>
     </div>
   );
 }
@@ -83,7 +84,7 @@ function ClassesTab() {
         })}
         {classes.length === 0 && <p className="text-ink-soft">No classes yet.</p>}
       </div>
-      <p className="mt-3 text-sm text-ink-soft">Archiving hides a class but keeps all progress. Students can be moved between classes from their profile (Manage tab).</p>
+      <p className="mt-3 text-sm text-ink-soft">When a class reaches its XP goal, everyone spins the prize wheel and the goal grows by the same amount for next time. Archiving hides a class but keeps all progress. Students can be moved between classes from their profile (Manage tab).</p>
       <CreateClassModal open={creating} onClose={() => setCreating(false)} />
       <Modal open={!!target} onClose={() => setDeleting(null)} label="Delete class">
         {target && (
@@ -242,9 +243,10 @@ function ClassroomTab() {
           checked={(settings.artStyle ?? 'illustrated') === 'illustrated'} onChange={(v) => updateSettings({ artStyle: v ? 'illustrated' : 'classic' })} />
         <Toggle label="Sound effects" hint="Award chimes, level-up fanfares and creature voices." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />
         <Toggle label="Reduce motion" hint="Calmer animations for sensitive learners or slower computers. The evolution sequence becomes a quick reveal." checked={settings.reducedMotion} onChange={(v) => updateSettings({ reducedMotion: v })} />
-        <Toggle label="Allow negative points" hint="Off by default. When on, small reminder categories appear. Points can never make a creature lose an evolution or go below 0 XP, and students never lose their creature."
+        <Toggle label="Behaviour deductions (−XP)" hint="Behaviour deductions such as talking without permission. They take away XP only (never coins), can never undo an evolution or go below 0 XP, and students never lose their creature."
           checked={settings.negativeEnabled} onChange={(v) => updateSettings({ negativeEnabled: v })} />
       </div>
+      <RewardsSettings />
       <h3 className="mt-6 font-display text-xl font-bold">Teacher PIN</h3>
       <p className="text-sm text-ink-soft">{settings.pinHash ? 'A PIN protects teacher controls. Use the lock button in the top bar before leaving the computer.' : 'No PIN set. Anyone at this computer can change points.'} The PIN is stored only as a secure hash on this computer.</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -335,6 +337,46 @@ function BackupTab() {
           </div>
         )}
       </Modal>
+    </div>
+  );
+}
+
+function RewardsSettings() {
+  const settings = useStore((s) => s.data.settings);
+  const updateSettings = useStore((s) => s.updateSettings);
+  const milestones = settings.milestones ?? [];
+  const prizes = settings.prizes ?? [];
+  const PRIZE_COLORS = ['#ff6fa3', '#8b5cf6', '#4f8cff', '#a0522d', '#24b47e', '#ffb020', '#0ea5e9', '#ef4444'];
+  return (
+    <div className="mt-6">
+      <h3 className="font-display text-xl font-bold">Rewards, coins & prize wheel</h3>
+      <label className="mt-3 flex items-center gap-3 text-sm font-bold">Coins per XP point
+        <input type="number" min={0} max={10} step={0.5} className="input !w-24 !py-1.5" value={settings.coinRate ?? 1} onChange={(e) => updateSettings({ coinRate: Math.max(0, Number(e.target.value) || 0) })} />
+      </label>
+      <div className="mt-4 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Milestone rewards (real treats you hand out)</div>
+      {milestones.map((m, i) => (
+        <div key={m.id} className="mt-2 flex flex-wrap items-center gap-2">
+          <input className="input !w-14 !px-2 !py-1.5 text-center" value={m.icon} maxLength={4} aria-label="Icon" onChange={(e) => updateSettings({ milestones: milestones.map((x, j) => (j === i ? { ...x, icon: e.target.value } : x)) })} />
+          <input className="input !w-56 !py-1.5" value={m.label} aria-label="Reward" onChange={(e) => updateSettings({ milestones: milestones.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} />
+          <span className="text-sm font-bold">every</span>
+          <input type="number" min={10} step={10} className="input !w-24 !py-1.5" value={m.every} aria-label="Every XP" onChange={(e) => updateSettings({ milestones: milestones.map((x, j) => (j === i ? { ...x, every: Math.max(10, Number(e.target.value) || 10) } : x)) })} />
+          <span className="text-sm font-bold">XP</span>
+          <button className="btn btn-light !px-3 !py-1 !text-xs" onClick={() => updateSettings({ milestones: milestones.filter((_, j) => j !== i) })}>Remove</button>
+        </div>
+      ))}
+      <button className="btn btn-light mt-2 !py-1.5 !text-sm" onClick={() => updateSettings({ milestones: [...milestones, { id: uid('ms'), every: 250, label: 'Sticker', icon: '⭐' }] })}>＋ Add milestone reward</button>
+      <div className="mt-5 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Class prize wheel</div>
+      <p className="text-sm text-ink-soft">When the class reaches its XP goal (Settings → Classes), you spin the wheel to pick a prize.</p>
+      <div className="mt-1 grid gap-2 sm:grid-cols-2">
+        {prizes.map((p, i) => (
+          <div key={p.id} className="flex items-center gap-2">
+            <input className="input !w-14 !px-2 !py-1.5 text-center" value={p.icon} maxLength={4} aria-label="Icon" onChange={(e) => updateSettings({ prizes: prizes.map((x, j) => (j === i ? { ...x, icon: e.target.value } : x)) })} />
+            <input className="input !py-1.5" value={p.label} aria-label="Prize" maxLength={30} onChange={(e) => updateSettings({ prizes: prizes.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} />
+            <button className="btn btn-light !px-3 !py-1 !text-xs" disabled={prizes.length <= 2} onClick={() => updateSettings({ prizes: prizes.filter((_, j) => j !== i) })}>✕</button>
+          </div>
+        ))}
+      </div>
+      <button className="btn btn-light mt-2 !py-1.5 !text-sm" disabled={prizes.length >= 10} onClick={() => updateSettings({ prizes: [...prizes, { id: uid('pz'), label: 'New prize', icon: '🎁', color: PRIZE_COLORS[prizes.length % PRIZE_COLORS.length] }] })}>＋ Add prize</button>
     </div>
   );
 }

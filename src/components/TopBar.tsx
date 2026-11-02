@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { CreatureSvg } from '../creatures/CreatureSvg';
-import { getSpecies } from '../data/species';
 import { navigate, type Route } from '../lib/router';
 import { onSaved } from '../store/storage';
 import { useCurrentClass, useStore } from '../store/store';
@@ -26,7 +24,7 @@ export function TopBar({ route }: { route: Route }) {
     <header className="sticky top-0 z-30 border-b border-white/10 bg-night-900/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
         <button className="flex items-center gap-2" onClick={() => navigate('/')} aria-label="Classroom Creatures home">
-          <span className="h-11 w-11"><CreatureSvg species={getSpecies('emberpup')} stage={2} noShadow effects={false} className="h-full w-full" /></span>
+          <img src={`${import.meta.env.BASE_URL}apple-touch-icon.png`} alt="" className="h-11 w-11 drop-shadow" />
           <span className="hidden font-display text-xl font-bold leading-none tracking-wide sm:block">
             Classroom<br /><span className="text-sun">Creatures</span>
           </span>

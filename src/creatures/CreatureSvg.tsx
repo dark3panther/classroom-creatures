@@ -236,7 +236,7 @@ export function WingPair({ type, g, line, fill, accent, scale, cls }: { type: st
   const ay = g.twoPiece ? g.bodyCy - 12 : g.bodyCy - 8;
   const ax = g.twoPiece ? g.bodyRx * 0.5 : g.bodyRx * 0.55;
   const side = (d: 1 | -1) => {
-    const T = `translate(${100 + d * ax} ${ay}) scale(${d * scale} ${scale})`;
+    const T = `translate(${g.cx + d * ax} ${ay}) scale(${d * scale} ${scale})`;
     switch (type) {
       case 'feather': return (
         <g transform={T}>
@@ -353,7 +353,9 @@ function Face({ c, expression }: { c: Ctx; expression: Expression }) {
       ? <path d={`M ${mx - 8} ${my} Q ${mx} ${my + 13} ${mx + 8} ${my} Z`} fill={mouthColor} stroke={line} strokeWidth={2} strokeLinejoin="round" />
       : sp.face === 'whisker'
         ? <path d={`M ${mx - 8} ${my} Q ${mx - 4} ${my + 5} ${mx} ${my} Q ${mx + 4} ${my + 5} ${mx + 8} ${my}`} stroke={mouthColor} strokeWidth={2.6} fill="none" strokeLinecap="round" />
-        : <path d={`M ${mx - 7} ${my} Q ${mx} ${my + (expression === 'sleepy' ? 3 : 7)} ${mx + 7} ${my}`} stroke={mouthColor} strokeWidth={2.8} fill="none" strokeLinecap="round" />;
+        : expression === 'sad'
+          ? <path d={`M ${mx - 7} ${my + 5} Q ${mx} ${my - 2} ${mx + 7} ${my + 5}`} stroke={mouthColor} strokeWidth={2.8} fill="none" strokeLinecap="round" />
+          : <path d={`M ${mx - 7} ${my} Q ${mx} ${my + (expression === 'sleepy' ? 3 : 7)} ${mx + 7} ${my}`} stroke={mouthColor} strokeWidth={2.8} fill="none" strokeLinecap="round" />;
     const tongue = open && <ellipse cx={mx} cy={my + 6.5} rx={4} ry={2.6} fill="#ff7a9a" />;
     if (sp.face === 'snout') {
       mouth = (
@@ -388,6 +390,13 @@ function Face({ c, expression }: { c: Ctx; expression: Expression }) {
       <ellipse cx={mx - g.eyeDx - er * 1.25} cy={g.eyeY + er * 1.25} rx={er * 0.75} ry={er * 0.45} fill="#ff7fa8" opacity={0.45} />
       <ellipse cx={mx + g.eyeDx + er * 1.25} cy={g.eyeY + er * 1.25} rx={er * 0.75} ry={er * 0.45} fill="#ff7fa8" opacity={0.45} />
       {eyeNodes}
+      {expression === 'sad' && (
+        <g>
+          <path d={`M ${eyes[0] - er} ${g.eyeY - er * 1.5} L ${eyes[0] + er * 0.8} ${g.eyeY - er * 2}`} stroke={darken(p.main, 0.6)} strokeWidth={2.6} strokeLinecap="round" />
+          <path d={`M ${eyes[1] + er} ${g.eyeY - er * 1.5} L ${eyes[1] - er * 0.8} ${g.eyeY - er * 2}`} stroke={darken(p.main, 0.6)} strokeWidth={2.6} strokeLinecap="round" />
+          <path d={droplet(eyes[0] - er * 0.4, g.eyeY + er * 1.6, er * 0.38)} fill="#7fd6ff" stroke="#3b8fd6" strokeWidth={1} />
+        </g>
+      )}
       {mouth}
     </g>
   );

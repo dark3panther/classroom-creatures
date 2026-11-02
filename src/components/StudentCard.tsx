@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo } from 'react';
-import { playAward } from '../audio/sfx';
+import { memo, useState } from 'react';
+import { MOODS } from '../engine/mood';
+import { useMood } from '../lib/useMood';
+import { awardSound } from '../audio/sfx';
 import { Creature } from '../creatures/Creature';
 import { Habitat } from '../creatures/Habitat';
 import { ELEMENTS, STAGE_NAMES } from '../data/elements';
@@ -9,14 +11,17 @@ import { useStore } from '../store/store';
 import type { Category, Student } from '../types';
 import { ElementIcon, LevelBadge, ProgressBar, StagePips } from './ui';
 
-export function FloatingXP({ pulse }: { pulse?: { n: number; xp: number; icon: string } }) {
+export function FloatingXP({ pulse }: { pulse?: { n: number; xp: number; icon: string; coins?: number; kind?: 'good' | 'bad' } }) {
   return (
     <AnimatePresence>
       {pulse && (
-        <motion.div key={pulse.n} className="pointer-events-none absolute left-1/2 top-6 z-20 -translate-x-1/2 whitespace-nowrap font-display text-3xl font-bold"
+        <motion.div key={pulse.n} className={`pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 whitespace-nowrap font-display text-3xl font-bold ${pulse.kind === 'bad' ? 'top-24' : 'top-6'}`}
           initial={{ y: 10, opacity: 0, scale: 0.6 }} animate={{ y: -46, opacity: [0, 1, 1, 0], scale: [0.6, 1.25, 1, 1] }} transition={{ duration: 1.5, times: [0, 0.2, 0.7, 1] }}
-          style={{ color: pulse.xp >= 0 ? '#fff' : '#cbd5e1', textShadow: '0 3px 0 #c98400, 0 0 18px rgb(255 201 59 / .9)', WebkitTextStroke: '1px #c98400' }}>
-          {pulse.xp === 0 ? '♡' : `${pulse.xp > 0 ? '+' : ''}${pulse.xp} XP`}
+          style={pulse.kind === 'bad'
+            ? { color: '#e2e8f0', textShadow: '0 3px 0 #475569', WebkitTextStroke: '1px #475569' }
+            : { color: '#fff', textShadow: '0 3px 0 #c98400, 0 0 18px rgb(255 201 59 / .9)', WebkitTextStroke: '1px #c98400' }}>
+          {pulse.kind === 'bad' && pulse.xp === 0 ? 'Oops!' : `${pulse.xp > 0 ? '+' : ''}${pulse.xp} XP`}
+          {!!pulse.coins && pulse.coins > 0 && <span className="ml-1 text-2xl" style={{ WebkitTextStroke: '0' }}>🪙+{pulse.coins}</span>}
         </motion.div>
       )}
     </AnimatePresence>
@@ -36,12 +41,17 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
   const settings = useStore((s) => s.data.settings);
   const pulse = useStore((s) => s.pulses[student.id]);
   const award = useStore((s) => s.award);
+  const negatives = useStore((s) => s.data.categories);
+  const mood = useMood(student);
+  const [deductOpen, setDeductOpen] = useState(false);
   const v = studentView(student, settings);
   const { species, prog, stage } = v;
+  const deductions = settings.negativeEnabled ? negatives.filter((c) => c.xp < 0) : [];
+  const m = MOODS[mood];
 
   const quickAward = (c: Category) => {
     const out = award([student.id], c.id);
-    if (out.length && settings.soundEnabled) playAward(c.xp);
+    if (out.length && settings.soundEnabled) awardSound(c.xp);
   };
 
   return (
@@ -50,7 +60,10 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
       <button type="button" className="relative block text-left" onClick={() => (selecting ? onToggle(student.id) : onOpen(student.id))}
         aria-label={selecting ? `${selected ? 'Deselect' : 'Select'} ${student.name}` : `Open ${student.name}`}>
         <Habitat element={species.element} background={student.equipped.background} className="m-2 mb-0 h-36 sm:h-40" rounded="rounded-[1.1rem]">
-          <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} className="mx-auto h-full w-[82%]" />
+          <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={3} compact className="mx-auto h-full w-[82%]" />
+          {!selecting && mood !== 'calm' && (
+            <span className="chip absolute bottom-1.5 left-2 bg-white/85 !px-2 text-[10px]" style={{ color: m.color }} title={`${species.name} feels ${m.label.toLowerCase()}`}>{m.icon} {m.label}</span>
+          )}
           <div className="absolute left-2 top-2"><LevelBadge level={prog.level} size="sm" /></div>
           {student.isDemo && <span className="chip absolute right-2 top-2 bg-white/80 text-[10px] text-ink">DEMO</span>}
           {selecting && (
@@ -69,7 +82,10 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
             <ProgressBar pct={prog.pct} className="flex-1" height={10} color={stage === 5 ? '#f2a20c' : '#8b5cf6'} />
             <span className="w-14 text-right text-[11px] font-extrabold tabular-nums text-ink-soft">{prog.isMax ? 'MAX' : `${prog.into}/${prog.span}`}</span>
           </div>
-          <div className="mt-0.5 text-[11px] font-bold text-ink-soft/80">{STAGE_NAMES[stage]} · {student.xp} XP</div>
+          <div className="mt-0.5 flex items-center text-[11px] font-bold text-ink-soft/80">
+            <span className="truncate">{STAGE_NAMES[stage]} · {student.xp} XP</span>
+            <span className="ml-auto shrink-0 font-extrabold text-[#b7791f]" title="Coins">🪙 {student.coins ?? 0}</span>
+          </div>
         </div>
       </button>
       {!selecting && quick.length > 0 && (
@@ -81,8 +97,24 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
               <span aria-hidden>{c.icon}</span><span>+{c.xp}</span>
             </button>
           ))}
+          {deductions.length > 0 && (
+            <button type="button" onClick={() => setDeductOpen((o) => !o)} title="Behaviour reminders (deduct XP)" aria-label={`Deduct points from ${student.name}`} aria-expanded={deductOpen}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-500 text-sm font-extrabold text-white shadow-[0_3px_0_rgb(0_0_0/.18)] transition active:translate-y-[2px] active:shadow-none">−</button>
+          )}
         </div>
       )}
+      <AnimatePresence>
+        {deductOpen && !selecting && (
+          <motion.div className="absolute inset-x-2 bottom-14 z-20 rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-ink/10" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 10, opacity: 0 }}>
+            {deductions.map((c) => (
+              <button key={c.id} type="button" onClick={() => { quickAward(c); setDeductOpen(false); }}
+                className="flex w-full items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs font-bold text-ink hover:bg-slate-100">
+                <span className="text-base" aria-hidden>{c.icon}</span><span className="flex-1 leading-tight">{c.name}</span><span className="text-slate-500">{c.xp}</span>
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
       {selecting && <div className="pb-3" />}
     </motion.div>
   );

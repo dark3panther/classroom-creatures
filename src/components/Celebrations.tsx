@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { playAchievement, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp } from '../audio/sfx';
+import { playAchievement, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone } from '../audio/sfx';
+import { PrizeWheel } from './PrizeWheel';
 import { Burst } from '../creatures/Burst';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { Creature } from '../creatures/Creature';
@@ -29,6 +30,7 @@ export function CelebrationHost() {
     case 'evolution': return <EvolutionOverlay key={current.id} c={current} student={student!} onDone={close} sound={sound} reduced={reduced} />;
     case 'levelup': return <LevelUpPopup key={current.id} level={current.level} student={student!} onDone={close} sound={sound} />;
     case 'achievement': return <AchievementBanner key={current.id} id={current.achievementId} student={student!} onDone={close} sound={sound} />;
+    case 'milestone': return <MilestonePopup key={current.id} c={current} student={student!} onDone={close} sound={sound} />;
     case 'classGoal': return <ClassGoalOverlay key={current.id} c={current} name={classes.find((x) => x.id === current.classId)?.name ?? 'Your class'} onDone={close} sound={sound} />;
   }
 }
@@ -177,6 +179,7 @@ function AchievementBanner({ id, student, onDone, sound }: { id: string; student
 }
 
 function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, { type: 'classGoal' }>; name: string; onDone: () => void; sound: boolean }) {
+  const [wheel, setWheel] = useState(false);
   const all = useStore((s) => s.data.students);
   const students = all.filter((x) => x.classId === c.classId);
   const settings = useStore((s) => s.data.settings);
@@ -201,7 +204,49 @@ function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, 
           );
         })}
       </div>
-      <button className="btn btn-primary relative mt-8 px-10 text-xl" onClick={onDone} autoFocus>Celebrate!</button>
+      <button className="btn btn-primary relative mt-8 px-10 text-xl" onClick={() => setWheel(true)} autoFocus>🎡 Spin the prize wheel!</button>
+      <button className="relative mt-3 text-sm font-bold text-white/60 hover:text-white" onClick={onDone}>Spin later (the button stays on the Classroom page)</button>
+      <AnimatePresence>{wheel && <PrizeWheel classId={c.classId} onClose={onDone} />}</AnimatePresence>
     </motion.div>
+  );
+}
+
+function MilestonePopup({ c, student, onDone, sound }: { c: Extract<Celebration, { type: 'milestone' }>; student: Student; onDone: () => void; sound: boolean }) {
+  const all = useStore((s) => s.data.students);
+  const names = [student, ...(c.others ?? []).map((id) => all.find((x) => x.id === id)).filter(Boolean) as Student[]].map((s) => firstName(s.name));
+  const who = names.length === 1 ? names[0] : names.length === 2 ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+  useEffect(() => {
+    if (sound) playMilestone();
+    const t = setTimeout(onDone, 4200);
+    return () => clearTimeout(t);
+  }, [onDone, sound]);
+  return (
+    <motion.div className="fixed inset-x-0 top-20 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} onClick={onDone}>
+      <div className="relative flex items-center gap-4 rounded-[2rem] bg-gradient-to-br from-[#7a4b2a] to-[#4a2c17] py-3 pl-3 pr-8 shadow-2xl ring-4 ring-sun">
+        <div className="relative grid h-24 w-24 place-items-center rounded-full bg-white/10">
+          <motion.div initial={{ rotate: -30, scale: 0 }} animate={{ rotate: [-30, 10, 0], scale: [0, 1.3, 1] }} transition={{ duration: 0.7 }}><ChocoStick /></motion.div>
+          <Burst kind="sparkle" count={12} spread={90} />
+        </div>
+        <div>
+          <div className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-sun">Milestone reward{names.length > 1 ? 's' : ` · ${c.atXp} XP`}</div>
+          <div className={`font-display font-bold text-white ${names.length > 3 ? 'text-2xl' : 'text-3xl'}`}>{who} earned {names.length > 1 ? `a ${c.label} each` : `a ${c.label}`}! {c.icon}</div>
+          <div className="text-sm font-bold text-white/75">Hand it out, then tick it off in Rewards.</div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/** A generic chocolate-stick treat (drawn, no brand artwork). */
+export function ChocoStick({ size = 64 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
+      <g transform="rotate(-30 32 32)">
+        <rect x="24" y="4" width="16" height="44" rx="7" fill="#6b3a1f" stroke="#3a1d0c" strokeWidth="2.5" />
+        <rect x="27" y="8" width="4" height="34" rx="2" fill="#a0602e" opacity=".8" />
+        <rect x="22" y="44" width="20" height="16" rx="4" fill="#ffd23f" stroke="#7a4b00" strokeWidth="2.5" />
+        <path d="M26 50 h12 M26 55 h12" stroke="#ff5d5d" strokeWidth="2.5" strokeLinecap="round" />
+      </g>
+    </svg>
   );
 }

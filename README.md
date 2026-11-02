@@ -6,6 +6,17 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 - **Saves automatically** to the browser's IndexedDB (with a localStorage mirror), plus daily safety snapshots and downloadable backup files.
 - **Positive by default.** Negative points are off. If turned on, they can never make a creature lose an evolution or go below 0 XP.
 
+## What's new in 1.1
+
+- **New app icon** (made with Higgsfield).
+- **Coins and a shop.** Students earn 1 coin for every positive XP point (adjustable). In a student's profile, **Shop** sells outfits (T-shirt, hoodie, overalls, party dress, super suit, raincoat), hats, heart glasses, a bow tie, a necklace, dragon wings, a bubble aura and new backgrounds. Bought items are worn from **Wardrobe**.
+- **Milestone rewards.** Every 100 XP a student earns a **Choki Choki chocolate** (change the treat, the amount or add more milestones in Settings → Classroom & PIN). A popup tells you who earned one, and **Rewards → Milestone rewards to hand out** keeps the list until you tick **Given ✓**.
+- **Behaviour deductions.** Talking Without Permission (−2), Moving Around (−2), Task Not Finished (−3), Not Listening to Instructions (−2), from the grey **−** button on each card or the award list. The creature gets a cartoon **BONK!**, dizzy stars and a sad rain cloud for a while. Deductions take XP only, never coins, never go below 0 XP and never undo an evolution.
+- **Creature emotions.** Each creature feels **happy** after points, **excited** after several in a row, **proud** after a milestone, **sad** after a deduction, **sleepy** when ignored for a few days, and **calm** otherwise. Moods show on cards, profiles and in Presentation Mode (hearts, sparkles, rain cloud, Zzz, crown).
+- **Class goal prize wheel.** When the class reaches its XP goal, everyone spins the wheel: funny video, gaming class, movie class, Choki Choki for everyone, extra playtime or a music & dance party (editable). The next goal is set automatically.
+- **Livelier creatures.** Element particles drift around every creature (embers, bubbles, leaves, sparks…). In the profile and Presentation spotlight, creatures lean towards your pointer, react when tapped, and **press and hold to pet** them for hearts.
+- Data from 1.0 upgrades automatically: students start with coins equal to the XP they already have, and past milestones count as already handed out.
+
 ## Quick start
 
 Requires [Node.js](https://nodejs.org/) 18 or newer.

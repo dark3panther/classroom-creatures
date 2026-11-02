@@ -1,13 +1,48 @@
-import { DEFAULT_CATEGORIES, DEFAULT_SETTINGS } from '../data/defaults';
+import { DEFAULT_CATEGORIES, DEFAULT_MILESTONES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_PRIZES, DEFAULT_SETTINGS } from '../data/defaults';
 import { SPECIES_BY_ID } from '../data/species';
-import type { AppData, Student } from '../types';
+import type { AppData, Settings, Student } from '../types';
 import { validateProgression } from './progression';
 import { DATA_VERSION } from './roster';
 
+// coins / lifetimeXp / milestoneRewards are deliberately absent: migrate() derives them for old backups
 const STUDENT_DEFAULTS = (): Pick<Student, 'equipped' | 'unlockedItems' | 'achievements' | 'tagCounts' | 'tagXp' | 'bestStage' | 'challengeCompletions' | 'createdAt'> => ({
   equipped: {}, unlockedItems: ['bg-habitat'], achievements: [], tagCounts: {}, tagXp: {},
   bestStage: 1, challengeCompletions: [], createdAt: Date.now(),
 });
+
+/**
+ * Bring data saved by an older version up to date (v1.0 → v1.1: coins, milestone rewards,
+ * prize wheel, behaviour deductions). Existing students start with coins equal to the XP
+ * they already earned, and their past milestones are counted as already handed out.
+ */
+export function migrate(data: AppData): AppData {
+  if ((data.version ?? 1) >= DATA_VERSION && data.settings?.milestones) return data;
+  const settings: Settings = {
+    ...DEFAULT_SETTINGS, ...data.settings,
+    coinRate: data.settings?.coinRate ?? 1,
+    milestones: data.settings?.milestones ?? DEFAULT_MILESTONES.map((m) => ({ ...m })),
+    prizes: data.settings?.prizes ?? DEFAULT_PRIZES.map((p) => ({ ...p })),
+    negativeEnabled: true,
+  };
+  const oldNeg = new Set(['neg-focus', 'neg-kind']);
+  let categories = (data.categories ?? []).filter((c) => !oldNeg.has(c.id));
+  for (const n of DEFAULT_NEGATIVE_CATEGORIES) if (!categories.some((c) => c.id === n.id)) categories = [...categories, { ...n }];
+  return {
+    ...data,
+    version: DATA_VERSION,
+    settings,
+    categories,
+    classes: data.classes.map((c) => ({ ...c, goalStep: c.goalStep ?? 1000, prizeHistory: c.prizeHistory ?? [] })),
+    students: data.students.map((s) => {
+      const lifetimeXp = s.lifetimeXp ?? s.xp;
+      const milestoneRewards = s.milestoneRewards ?? settings.milestones.flatMap((m) =>
+        Array.from({ length: Math.floor(lifetimeXp / m.every) }, (_, i) => ({
+          id: `${s.id}-${m.id}-${i + 1}`, milestoneId: m.id, label: m.label, icon: m.icon, atXp: (i + 1) * m.every, at: s.createdAt, given: true,
+        })));
+      return { ...s, coins: s.coins ?? Math.round(s.xp * settings.coinRate), lifetimeXp, milestoneRewards };
+    }),
+  };
+}
 
 export const BACKUP_KIND = 'classroom-creatures-backup';
 
@@ -57,14 +92,15 @@ export function parseBackup(json: string): { data: AppData; summary: BackupSumma
       ...s,
       speciesId: SPECIES_BY_ID[s.speciesId] ? s.speciesId : 'emberpup',
       xp: Math.max(0, Number(s.xp) || 0),
-    })),
+    })) as Student[],
     categories: Array.isArray(data.categories) && data.categories.length ? data.categories : DEFAULT_CATEGORIES.map((c) => ({ ...c })),
     events: Array.isArray(data.events) ? data.events : [],
     challenges: Array.isArray(data.challenges) ? data.challenges : [],
     settings,
   };
+  const migrated = migrate({ ...normalised, version: data.version ?? 1 });
   return {
-    data: normalised,
-    summary: { classes: normalised.classes.length, students: normalised.students.length, events: normalised.events.length, exportedAt: obj.exportedAt },
+    data: migrated,
+    summary: { classes: migrated.classes.length, students: migrated.students.length, events: migrated.events.length, exportedAt: obj.exportedAt },
   };
 }

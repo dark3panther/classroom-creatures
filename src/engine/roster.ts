@@ -1,19 +1,19 @@
-import { DEFAULT_CATEGORIES, DEFAULT_CHALLENGES, DEFAULT_SETTINGS } from '../data/defaults';
+import { DEFAULT_CATEGORIES, DEFAULT_CHALLENGES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_SETTINGS } from '../data/defaults';
 import { SPECIES } from '../data/species';
 import type { AppData, ClassRoom, Student } from '../types';
 import { shuffle, uid } from './util';
 
-export const DATA_VERSION = 1;
+export const DATA_VERSION = 2;
 
 export function emptyData(): AppData {
   return {
     version: DATA_VERSION,
     classes: [],
     students: [],
-    categories: DEFAULT_CATEGORIES.map((c) => ({ ...c })),
+    categories: [...DEFAULT_CATEGORIES, ...DEFAULT_NEGATIVE_CATEGORIES].map((c) => ({ ...c })),
     events: [],
     challenges: DEFAULT_CHALLENGES.map((c) => ({ ...c })),
-    settings: { ...DEFAULT_SETTINGS },
+    settings: { ...DEFAULT_SETTINGS, milestones: DEFAULT_SETTINGS.milestones.map((m) => ({ ...m })), prizes: DEFAULT_SETTINGS.prizes.map((p) => ({ ...p })) },
   };
 }
 
@@ -43,11 +43,12 @@ export function newStudent(name: string, classId: string, speciesId: string, now
     id: uid('s'), classId, name: name.trim(), speciesId, xp: 0, createdAt: now,
     equipped: { background: 'bg-habitat' }, unlockedItems: ['bg-habitat'], achievements: [],
     tagCounts: {}, tagXp: {}, bestStage: 1, challengeCompletions: [],
+    coins: 0, lifetimeXp: 0, milestoneRewards: [],
   };
 }
 
 export function newClass(name: string, grade: string, now = Date.now()): ClassRoom {
-  return { id: uid('c'), name: name.trim(), grade, archived: false, createdAt: now, goal: 1000 };
+  return { id: uid('c'), name: name.trim(), grade, archived: false, createdAt: now, goal: 1000, goalStep: 1000, prizeHistory: [] };
 }
 
 /** Add students to a class, each with an automatically assigned unique creature. */

@@ -7,7 +7,7 @@ export type BurstKind = ElementType | 'sparkle' | 'confetti';
 
 const CONFETTI = ['#ff5fa2', '#ffc93b', '#4fb6f0', '#34d399', '#8b5cf6', '#ff8a3d'];
 
-function Particle({ kind, color, size }: { kind: BurstKind; color: string; size: number }) {
+export function Particle({ kind, color, size }: { kind: BurstKind; color: string; size: number }) {
   const s = size;
   switch (kind) {
     case 'fire': return <svg width={s} height={s} viewBox="0 0 20 20"><path d="M10 1 C 4 8 4 12 6 16 C 8 19 12 19 14 16 C 16 12 15 8 10 1 Z" fill={color} /><circle cx="10" cy="14" r="3" fill="#fff3b0" /></svg>;

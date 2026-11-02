@@ -1,4 +1,4 @@
-import type { Category, CategoryTag, Challenge, Item, Settings } from '../types';
+import type { Category, CategoryTag, Challenge, Item, Milestone, Prize, Settings } from '../types';
 
 export const DEFAULT_LEVEL_XP = [0, 50, 120, 210, 320, 450, 600, 780, 980, 1200];
 export const DEFAULT_EVOLUTION_LEVELS: Settings['evolutionLevels'] = [1, 3, 5, 7, 10];
@@ -17,10 +17,25 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat-effort', name: 'Excellent Effort', xp: 5, icon: '💪', color: '#ef4444', tag: 'effort' },
 ];
 
-/** Offered when the teacher turns negative points on. Kept gentle and small. */
+/** Behaviour deductions. Small values; they never take coins away or undo an evolution. */
 export const DEFAULT_NEGATIVE_CATEGORIES: Category[] = [
-  { id: 'neg-focus', name: 'Needs Focus', xp: -2, icon: '🎯', color: '#94a3b8', tag: 'other' },
-  { id: 'neg-kind', name: 'Remember Kindness', xp: -2, icon: '💛', color: '#94a3b8', tag: 'other' },
+  { id: 'neg-talking', name: 'Talking Without Permission', xp: -2, icon: '🙊', color: '#64748b', tag: 'other' },
+  { id: 'neg-moving', name: 'Moving Around', xp: -2, icon: '🏃', color: '#64748b', tag: 'other' },
+  { id: 'neg-unfinished', name: 'Task Not Finished', xp: -3, icon: '📝', color: '#64748b', tag: 'other' },
+  { id: 'neg-listening', name: 'Not Listening to Instructions', xp: -2, icon: '🙉', color: '#64748b', tag: 'other' },
+];
+
+export const DEFAULT_MILESTONES: Milestone[] = [
+  { id: 'ms-choki', every: 100, label: 'Choki Choki chocolate', icon: '🍫' },
+];
+
+export const DEFAULT_PRIZES: Prize[] = [
+  { id: 'pz-video', label: 'Funny video', icon: '😂', color: '#ff6fa3' },
+  { id: 'pz-gaming', label: 'Gaming class', icon: '🎮', color: '#8b5cf6' },
+  { id: 'pz-movie', label: 'Movie class', icon: '🎬', color: '#4f8cff' },
+  { id: 'pz-choki', label: 'Choki Choki for everyone', icon: '🍫', color: '#a0522d' },
+  { id: 'pz-play', label: 'Extra playtime', icon: '⚽', color: '#24b47e' },
+  { id: 'pz-music', label: 'Music & dance party', icon: '🎵', color: '#ffb020' },
 ];
 
 export const TAG_LABELS: Record<CategoryTag, string> = {
@@ -89,6 +104,23 @@ export const ITEMS: Item[] = [
   { id: 'bg-night', name: 'Starry Night', slot: 'background', unlock: { type: 'achievement', id: 'century' }, description: 'A sky full of wishes.' },
   { id: 'bg-castle', name: 'Cloud Castle', slot: 'background', unlock: { type: 'level', level: 8 }, description: 'High above the clouds.' },
   { id: 'bg-aurora', name: 'Aurora Peaks', slot: 'background', unlock: { type: 'achievement', id: 'living-legend' }, description: 'Only for legends.' },
+  // ── shop (bought with coins) ──
+  { id: 'outfit-tee', name: 'Comfy T-shirt', slot: 'outfit', unlock: { type: 'shop', price: 30 }, description: 'Soft and sporty.' },
+  { id: 'outfit-hoodie', name: 'Cozy Hoodie', slot: 'outfit', unlock: { type: 'shop', price: 60 }, description: 'Warm and snuggly.' },
+  { id: 'outfit-overalls', name: 'Explorer Overalls', slot: 'outfit', unlock: { type: 'shop', price: 50 }, description: 'Lots of pockets for treasure.' },
+  { id: 'outfit-dress', name: 'Party Dress', slot: 'outfit', unlock: { type: 'shop', price: 70 }, description: 'Twirly and sparkly.' },
+  { id: 'outfit-hero', name: 'Super Suit', slot: 'outfit', unlock: { type: 'shop', price: 120 }, description: 'Every hero needs one.' },
+  { id: 'outfit-raincoat', name: 'Yellow Raincoat', slot: 'outfit', unlock: { type: 'shop', price: 40 }, description: 'Ready for puddles.' },
+  { id: 'hat-beanie', name: 'Pom-pom Beanie', slot: 'hat', unlock: { type: 'shop', price: 25 }, description: 'Warm ears all winter.' },
+  { id: 'hat-pirate', name: 'Pirate Hat', slot: 'hat', unlock: { type: 'shop', price: 60 }, description: 'Ahoy, adventurer!' },
+  { id: 'hat-chef', name: 'Chef Hat', slot: 'hat', unlock: { type: 'shop', price: 45 }, description: 'Cooking up good work.' },
+  { id: 'glasses-heart', name: 'Heart Glasses', slot: 'glasses', unlock: { type: 'shop', price: 35 }, description: 'Full of kindness.' },
+  { id: 'deco-bowtie', name: 'Bow Tie', slot: 'decoration', unlock: { type: 'shop', price: 20 }, description: 'Very fancy.' },
+  { id: 'deco-necklace', name: 'Gem Necklace', slot: 'decoration', unlock: { type: 'shop', price: 45 }, description: 'Shiny and special.' },
+  { id: 'wings-dragon', name: 'Dragon Wings', slot: 'wings', unlock: { type: 'shop', price: 100 }, description: 'Big, bold and brave.' },
+  { id: 'magic-bubbles', name: 'Bubble Aura', slot: 'magic', unlock: { type: 'shop', price: 80 }, description: 'Floating bubbles everywhere.' },
+  { id: 'bg-candy', name: 'Candy Land', slot: 'background', unlock: { type: 'shop', price: 90 }, description: 'Sweets as far as you can see.' },
+  { id: 'bg-space', name: 'Space Station', slot: 'background', unlock: { type: 'shop', price: 110 }, description: 'Out of this world.' },
   // decorations
   { id: 'deco-bow', name: 'Ribbon Bow', slot: 'decoration', unlock: { type: 'level', level: 3 }, description: 'Tied with care.' },
   { id: 'deco-scarf', name: 'Cozy Scarf', slot: 'decoration', unlock: { type: 'achievement', id: 'team-captain' }, description: 'Warm like teamwork.' },
@@ -110,11 +142,14 @@ export const DEFAULT_CHALLENGES: Challenge[] = [
 export const DEFAULT_SETTINGS: Settings = {
   levelXp: DEFAULT_LEVEL_XP,
   evolutionLevels: DEFAULT_EVOLUTION_LEVELS,
-  negativeEnabled: false,
+  negativeEnabled: true,
   soundEnabled: true,
   reducedMotion: false,
   pinHash: null,
   currentClassId: null,
   onboarded: false,
   artStyle: 'illustrated',
+  coinRate: 1,
+  milestones: DEFAULT_MILESTONES,
+  prizes: DEFAULT_PRIZES,
 };

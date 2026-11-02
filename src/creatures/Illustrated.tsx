@@ -31,12 +31,13 @@ function geoFor(a: Anchor): { g: Geo; k: number; ox: number; oy: number } {
   const [[lx, ly], [rx, ry]] = a.eyes;
   const ex = IMG_X + map((lx + rx) / 2), ey = IMG_Y + map((ly + ry) / 2);
   const eyeDxSvg = map(Math.abs(rx - lx)) / 2;
-  const headHalf = Math.max(map(a.headW) / 2, eyeDxSvg * 1.8);
+  // wings or manes can make the widest row much wider than the head: keep it near the eyes
+  const headHalf = Math.min(Math.max(map(a.headW) / 2, eyeDxSvg * 1.8), eyeDxSvg * 2.6);
   const k = Math.max(0.3, (headHalf / 50) * 0.82);  // accessory size follows the head, not the eyes
   const u = (d: number) => d / k;                    // svg distance → unscaled frame
   const headRx = u(headHalf);
   const eyeDx = u(eyeDxSvg);
-  const headTop = Math.max(u(IMG_Y + map(a.top) - ey), -headRx * 0.95);
+  const headTop = Math.max(u(IMG_Y + map(a.top) - ey), -headRx * 0.95, -eyeDx * 2.3);
   const bottom = u(IMG_Y + map(a.bottom) - ey);
   const g: Geo = {
     cx: 0, headCx: 0, headCy: headTop + headRx * 0.85, headRx, headRy: headRx * 0.9, headTop,
@@ -63,7 +64,9 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
   const sparkleColor = sp.rarity === 'legendary' ? '#ffd23f' : sp.rarity === 'epic' ? '#e9b6ff' : '#ffffff';
   // accessories live in the vector frame, centred on the eyes and scaled to this head
   const frame = `translate(${ox} ${oy}) scale(${k})`;
-  const hasBack = !!(equipped.wings || equipped.decoration === 'deco-cape' || equipped.magic === 'magic-rainbow');
+  // the same anchors in plain svg coordinates, for effects that are placed around the whole creature
+  const gAbs: Geo = { ...g, cx: ox, headCx: ox, headTop: oy + g.headTop * k, headCy: oy + g.headCy * k, headRx: g.headRx * k, headRy: g.headRy * k };
+  const hasBack = !!(equipped.wings || equipped.decoration === 'deco-cape');
 
   return (
     <svg viewBox="-8 -22 216 222" className={`${className ?? ''}${effects ? '' : ' cc-still'}`} role="img" aria-label={title ?? sp.name} overflow="visible">
@@ -79,9 +82,11 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
       {effects && (sp.rarity === 'epic' || sp.rarity === 'legendary') && (
         <circle cx={100} cy={112} r={94} fill="none" stroke={sp.rarity === 'legendary' ? '#ffd23f' : '#d6a6ff'} strokeWidth={2.5} strokeDasharray="4 10" opacity={0.55} className="cc-spin-slow" style={{ transformOrigin: '100px 112px' }} />
       )}
-      {hasBack && <g transform={frame}><BackAccessories equipped={equipped} g={g} line={line} /></g>}
+      {equipped.magic === 'magic-rainbow' && <BackAccessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
+      {hasBack && <g transform={frame}><BackAccessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>}
       <image href={illustrationUrl(sp.id, stage)} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} />
-      <g transform={frame}><Accessories equipped={equipped} g={g} line={line} /></g>
+      <g transform={frame}><Accessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>
+      {equipped.magic && <Accessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
       {effects && sparkles.map(([x, y], i) => (
         <polygon key={i} className="cc-twinkle" style={{ animationDelay: `${i * 0.45}s` }} points={star(x, y, 7, 4, 0.32)} fill={sparkleColor} stroke={sp.rarity === 'legendary' ? '#d08a00' : 'none'} strokeWidth={1} />
       ))}

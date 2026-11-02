@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { playAward, playCreature, playPop } from '../audio/sfx';
+import { awardSound, playCoin, playCreature, playPop } from '../audio/sfx';
+import { MOODS } from '../engine/mood';
+import { useMood } from '../lib/useMood';
 import { AwardGrid } from '../components/AwardGrid';
 import { FloatingXP } from '../components/StudentCard';
 import { ElementBadge, LevelBadge, Modal, ProgressBar, RarityStars } from '../components/ui';
@@ -16,7 +18,7 @@ import { useStudentView } from '../lib/stats';
 import { useStore } from '../store/store';
 import type { Item, ItemSlot, Stage, Student } from '../types';
 
-type Tab = 'award' | 'wardrobe' | 'badges' | 'history' | 'manage';
+type Tab = 'award' | 'shop' | 'wardrobe' | 'badges' | 'history' | 'manage';
 
 export function StudentProfile({ studentId, onClose }: { studentId: string | null; onClose: () => void }) {
   const student = useStore((s) => s.data.students.find((x) => x.id === studentId));
@@ -31,6 +33,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
   const v = useStudentView(student)!;
   const settings = useStore((s) => s.data.settings);
   const pulse = useStore((s) => s.pulses[student.id]);
+  const mood = useMood(student);
   const award = useStore((s) => s.award);
   const replay = useStore((s) => s.replayEvolution);
   const [tab, setTab] = useState<Tab>('award');
@@ -49,7 +52,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
       {/* creature side */}
       <div className="p-4 sm:p-6">
         <Habitat element={sp.element} background={student.equipped.background} className="h-[300px] sm:h-[380px]" rounded="rounded-[1.5rem]">
-          <Creature speciesId={sp.id} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
+          <Creature speciesId={sp.id} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={8} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
           <FloatingXP pulse={pulse} />
           <div className="absolute left-3 top-3 flex items-center gap-2"><LevelBadge level={prog.level} size="lg" /></div>
           <div className="absolute right-3 top-3 rounded-full bg-white/85 px-3 py-1"><RarityStars rarity={sp.rarity} /></div>
@@ -73,6 +76,13 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
             <span className="chip" style={{ background: `${r.color}22`, color: r.color }}>{STAGE_NAMES[stage]}</span>
           </div>
           <p className="mt-2 text-[15px] text-ink-soft">{sp.personality}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span className="chip !py-1 !text-sm" style={{ background: `${MOODS[mood].color}22`, color: MOODS[mood].color }}>{MOODS[mood].icon} Feeling {MOODS[mood].label.toLowerCase()}</span>
+            <span className="chip bg-[#fff1c2] !py-1 !text-sm text-[#8a5a00]">🪙 {student.coins ?? 0} coins</span>
+            {(student.milestoneRewards ?? []).filter((r) => !r.given).length > 0 && (
+              <span className="chip bg-[#f3e2d3] !py-1 !text-sm text-[#7a4b2a]">🍫 {(student.milestoneRewards ?? []).filter((r) => !r.given).length} reward{(student.milestoneRewards ?? []).filter((r) => !r.given).length === 1 ? '' : 's'} to hand out</span>
+            )}
+          </div>
 
           <div className="mt-4 rounded-2xl bg-cream p-4">
             <div className="flex items-baseline justify-between">
@@ -116,7 +126,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
       {/* tabs side */}
       <div className="border-t border-ink/10 p-4 sm:p-6 lg:border-l lg:border-t-0">
         <div className="mb-4 flex gap-1 overflow-x-auto rounded-full bg-ink/5 p-1" role="tablist">
-          {([['award', 'Award'], ['wardrobe', 'Wardrobe'], ['badges', 'Badges'], ['history', 'History'], ['manage', 'Manage']] as const).map(([k, l]) => (
+          {([['award', 'Award'], ['shop', 'Shop'], ['wardrobe', 'Wardrobe'], ['badges', 'Badges'], ['history', 'History'], ['manage', 'Manage']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
               className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 font-display font-semibold transition ${tab === k ? 'bg-white text-ink shadow' : 'text-ink-soft hover:text-ink'}`}>{l}</button>
           ))}
@@ -124,9 +134,10 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
         {tab === 'award' && (
           <div>
             <p className="mb-3 text-sm font-bold text-ink-soft">Tap a behaviour to award {student.name.split(' ')[0]} instantly.</p>
-            <AwardGrid onPick={(c) => { const o = award([student.id], c.id); if (o.length && settings.soundEnabled) playAward(c.xp); }} />
+            <AwardGrid onPick={(c) => { const o = award([student.id], c.id); if (o.length && settings.soundEnabled) awardSound(c.xp); }} />
           </div>
         )}
+        {tab === 'shop' && <Shop student={student} />}
         {tab === 'wardrobe' && <Wardrobe student={student} />}
         {tab === 'badges' && <Badges student={student} />}
         {tab === 'history' && <History student={student} />}
@@ -136,21 +147,65 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
   );
 }
 
-const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hats', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Backgrounds', decoration: 'Decorations' };
+const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hats', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Backgrounds', decoration: 'Decorations', outfit: 'Outfits' };
 
 function unlockText(it: Item): string {
   const u = it.unlock;
   if (u.type === 'level') return `Reach Level ${u.level}`;
   if (u.type === 'achievement') return `Badge: ${ACHIEVEMENTS.find((a) => a.id === u.id)?.name ?? u.id}`;
   if (u.type === 'challenges') return `Complete ${u.count} challenges`;
+  if (u.type === 'shop') return `${u.price} coins in the Shop`;
   return 'Free';
+}
+
+function Shop({ student }: { student: Student }) {
+  const buy = useStore((s) => s.buy);
+  const notify = useStore((s) => s.notify);
+  const equip = useStore((s) => s.equip);
+  const sound = useStore((s) => s.data.settings.soundEnabled);
+  const v = useStudentView(student)!;
+  const shop = ITEMS.filter((i) => i.unlock.type === 'shop');
+  const coins = student.coins ?? 0;
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between rounded-2xl bg-[#fff1c2] px-4 py-3">
+        <span className="font-display text-lg font-semibold text-[#8a5a00]">🪙 {coins} coins</span>
+        <span className="text-xs font-bold text-[#8a5a00]/80">Students earn 1 coin for every XP point.</span>
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
+        {shop.map((it) => {
+          const price = it.unlock.type === 'shop' ? it.unlock.price : 0;
+          const owned = student.unlockedItems.includes(it.id);
+          const can = !owned && coins >= price;
+          return (
+            <div key={it.id} className={`flex flex-col rounded-2xl p-2 text-center ${owned ? 'bg-mint/15' : 'bg-ink/5'}`}>
+              {it.slot === 'background' ? (
+                <Habitat element={v.species.element} background={it.id} className="aspect-square" rounded="rounded-xl"><span /></Habitat>
+              ) : (
+                <div className="aspect-square"><CreatureSvg species={v.species} stage={v.stage} equipped={{ [it.slot]: it.id }} effects={false} noShadow className="h-full w-full" /></div>
+              )}
+              <div className="mt-1 truncate text-xs font-extrabold">{it.name}</div>
+              {owned ? (
+                <button className="btn btn-light mt-1 !py-1 !text-xs" onClick={() => equip(student.id, it.slot, it.id)}>✓ Owned · Wear</button>
+              ) : (
+                <button className="btn btn-primary mt-1 !py-1 !text-xs" disabled={!can}
+                  onClick={() => { if (buy(student.id, it.id)) { if (sound) { playCoin(); setTimeout(playPop, 120); } equip(student.id, it.slot, it.id); notify(`${student.name.split(' ')[0]} bought ${it.name}!`); } }}>
+                  🪙 {price}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function Wardrobe({ student }: { student: Student }) {
   const equip = useStore((s) => s.equip);
   const settings = useStore((s) => s.data.settings);
   const v = useStudentView(student)!;
-  const slots: ItemSlot[] = ['hat', 'glasses', 'wings', 'magic', 'decoration', 'background'];
+  const slots: ItemSlot[] = ['outfit', 'hat', 'glasses', 'wings', 'magic', 'decoration', 'background'];
   return (
     <div className="flex flex-col gap-4">
       {slots.map((slot) => (

@@ -169,3 +169,22 @@ button:disabled { cursor: not-allowed; }
 .desktop-mac header.sticky, .desktop-mac .present-header { -webkit-app-region: drag; }
 .desktop-mac header button, .desktop-mac header select, .desktop-mac header input, .desktop-mac header a, .desktop-mac header label { -webkit-app-region: no-drag; }
 .desktop-mac .present-header { padding-top: 40px; }
+
+/* ───────────── v1.1: emotions, ambient effects ───────────── */
+.cc-drop { animation: cc-drop 1.05s linear infinite; opacity: 0; }
+@keyframes cc-drop { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .9; } 100% { transform: translateY(46px); opacity: 0; } }
+.cc-heart { animation: cc-heart 3.3s ease-out infinite; opacity: 0; }
+@keyframes cc-heart { 0% { transform: translateY(0) scale(.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-80px) scale(1.1) rotate(12deg); opacity: 0; } }
+.cc-zzz { animation: cc-zzz 2.4s ease-out infinite; opacity: 0; }
+@keyframes cc-zzz { 0% { transform: translate(0, 0); opacity: 0; } 25% { opacity: 1; } 100% { transform: translate(22px, -40px); opacity: 0; } }
+.cc-ambient-rise { animation: cc-amb-rise 4.5s ease-in-out infinite; }
+@keyframes cc-amb-rise { 0% { transform: translateY(20px) scale(.6); opacity: 0; } 30% { opacity: .9; } 100% { transform: translateY(-70px) scale(1); opacity: 0; } }
+.cc-ambient-fall { animation: cc-amb-fall 5.5s linear infinite; }
+@keyframes cc-amb-fall { 0% { transform: translate(0, -60px) rotate(0); opacity: 0; } 20% { opacity: .9; } 100% { transform: translate(16px, 50px) rotate(200deg); opacity: 0; } }
+.cc-ambient-float { animation: cc-amb-float 5s ease-in-out infinite; }
+@keyframes cc-amb-float { 0%, 100% { transform: translate(0, 0) scale(.8); opacity: .25; } 50% { transform: translate(10px, -26px) scale(1.05); opacity: .95; } }
+.idle-sad { animation: idle-sad 3.6s ease-in-out infinite; transform-origin: 50% 92%; filter: saturate(.75); }
+@keyframes idle-sad { 0%, 100% { transform: translateY(2%) scale(1.01, .97); } 50% { transform: translateY(3%) scale(1.02, .95) rotate(-1deg); } }
+.idle-excited { animation: idle-hop 1.1s cubic-bezier(.3,.7,.4,1) infinite; transform-origin: 50% 92%; }
+.reduce-motion .cc-drop, .reduce-motion .cc-heart, .reduce-motion .cc-zzz, .reduce-motion [class*='cc-ambient'], .reduce-motion .idle-sad, .reduce-motion .idle-excited { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .cc-drop, .cc-heart, .cc-zzz, [class*='cc-ambient'], .idle-sad, .idle-excited { animation: none !important; } }

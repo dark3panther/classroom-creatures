@@ -16,7 +16,10 @@ export type WingType = 'none' | 'feather' | 'bat' | 'fairy' | 'crystal' | 'leaf'
 export type FaceType = 'snout' | 'beak' | 'plain' | 'whisker';
 export type PatternType = 'none' | 'belly' | 'spots' | 'stripes' | 'stars' | 'cracks' | 'swirl';
 export type IdleStyle = 'bob' | 'sway' | 'float' | 'hop' | 'breathe' | 'wiggle';
-export type Expression = 'happy' | 'neutral' | 'excited' | 'wow' | 'sleepy';
+export type Expression = 'happy' | 'neutral' | 'excited' | 'wow' | 'sleepy' | 'sad';
+
+/** How a creature feels right now (derived from recent classroom events). */
+export type Mood = 'happy' | 'excited' | 'sad' | 'sleepy' | 'calm' | 'proud';
 
 export interface Palette {
   main: string;
@@ -54,13 +57,14 @@ export interface Species {
   sound: CreatureSound;
 }
 
-export type ItemSlot = 'hat' | 'glasses' | 'wings' | 'magic' | 'background' | 'decoration';
+export type ItemSlot = 'hat' | 'glasses' | 'wings' | 'magic' | 'background' | 'decoration' | 'outfit';
 
 export type UnlockRule =
   | { type: 'level'; level: number }
   | { type: 'achievement'; id: string }
   | { type: 'challenges'; count: number }
-  | { type: 'free' };
+  | { type: 'free' }
+  | { type: 'shop'; price: number };
 
 export interface Item {
   id: string;
@@ -108,8 +112,22 @@ export interface Student {
   /** highest stage ever reached; evolution badges are kept even after an undo */
   bestStage: Stage;
   challengeCompletions: ChallengeCompletion[];
+  /** coins to spend in the shop (earned alongside XP, never taken away by deductions) */
+  coins: number;
+  /** total positive XP ever earned (deductions don't lower it); drives milestone rewards */
+  lifetimeXp: number;
+  /** real-world rewards earned at XP milestones (e.g. a chocolate) */
+  milestoneRewards: MilestoneReward[];
   isDemo?: boolean;
 }
+
+export interface MilestoneReward { id: string; milestoneId: string; label: string; icon: string; atXp: number; at: number; given: boolean }
+
+export interface Milestone { id: string; every: number; label: string; icon: string }
+
+export interface Prize { id: string; label: string; icon: string; color: string }
+
+export interface PrizeWin { prizeId: string; label: string; icon: string; goal: number; at: number }
 
 export interface ClassRoom {
   id: string;
@@ -120,6 +138,11 @@ export interface ClassRoom {
   /** collective XP goal for the class celebration */
   goal: number;
   goalReachedAt?: number;
+  /** how much the goal grows after each prize-wheel spin */
+  goalStep: number;
+  /** the goal was reached and the prize wheel is waiting to be spun */
+  pendingSpin?: boolean;
+  prizeHistory: PrizeWin[];
   isDemo?: boolean;
 }
 
@@ -139,6 +162,8 @@ export interface AwardEvent {
   undone?: boolean;
   /** student's bestStage before this award, so undo can restore it */
   bestStageBefore?: Stage;
+  /** coins given with this award (for undo) */
+  coins?: number;
 }
 
 export type ChallengePeriod = 'daily' | 'weekly';
@@ -169,6 +194,10 @@ export interface Settings {
   onboarded: boolean;
   /** illustrated (painted) creature art or the classic drawn style */
   artStyle?: 'illustrated' | 'classic';
+  /** coins earned per positive XP point */
+  coinRate: number;
+  milestones: Milestone[];
+  prizes: Prize[];
 }
 
 export interface AppData {
@@ -193,4 +222,6 @@ export interface AwardOutcome {
   newAchievements: string[];
   newItems: string[];
   completedChallenges: string[];
+  coins: number;
+  newMilestoneRewards: MilestoneReward[];
 }

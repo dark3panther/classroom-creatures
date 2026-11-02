@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { DEFAULT_NEGATIVE_CATEGORIES } from '../data/defaults';
-import { applyAward, refreshAll, undoBatch } from '../engine/awards';
+import { DEFAULT_NEGATIVE_CATEGORIES, ITEMS_BY_ID } from '../data/defaults';
+import { applyAward, buyItem, refreshAll, undoBatch } from '../engine/awards';
 import { buildDemoData, removeDemo } from '../engine/demo';
 import { validateProgression } from '../engine/progression';
+import { migrate } from '../engine/backup';
 import { addStudents as addStudentsPure, emptyData, newClass, pickSpecies } from '../engine/roster';
 import { uid } from '../engine/util';
 import type { AppData, AwardOutcome, Category, Challenge, ClassRoom, ItemSlot, Settings, Stage, Student } from '../types';
@@ -12,9 +13,10 @@ export type Celebration =
   | { id: string; type: 'evolution'; studentId: string; from: Stage; to: Stage; replay?: boolean }
   | { id: string; type: 'levelup'; studentId: string; level: number }
   | { id: string; type: 'achievement'; studentId: string; achievementId: string }
-  | { id: string; type: 'classGoal'; classId: string; goal: number };
+  | { id: string; type: 'classGoal'; classId: string; goal: number }
+  | { id: string; type: 'milestone'; studentId: string; label: string; icon: string; atXp: number; others?: string[] };
 
-export interface Pulse { n: number; xp: number; icon: string }
+export interface Pulse { n: number; xp: number; icon: string; coins: number; kind: 'good' | 'bad' }
 
 export interface LastAward { batchId: string; label: string; icon: string; count: number; xp: number; at: number }
 
@@ -33,6 +35,10 @@ interface Actions {
   init: () => Promise<void>;
   award: (studentIds: string[], categoryId: string) => AwardOutcome[];
   undo: (batchId: string) => void;
+  buy: (studentId: string, itemId: string) => boolean;
+  setRewardGiven: (studentId: string, rewardId: string, given: boolean) => void;
+  /** spin result for a class whose goal was reached: records the prize and raises the goal */
+  recordPrize: (classId: string, prizeId: string) => void;
   dismissCelebration: (id: string) => void;
   replayEvolution: (studentId: string, stage: Stage) => void;
   notify: (text: string, tone?: ToastTone) => void;
@@ -86,6 +92,7 @@ export const useStore = create<Store>()((set, get) => {
 
     init: async () => {
       let data = await loadData();
+      if (data) data = migrate(data);
       if (!data) {
         data = buildDemoData();
         scheduleSave(data, 0);
@@ -103,7 +110,8 @@ export const useStore = create<Store>()((set, get) => {
       const celebrations: Celebration[] = [];
       const pulses = { ...get().pulses };
       for (const o of outcomes) {
-        pulses[o.studentId] = { n: (pulses[o.studentId]?.n ?? 0) + 1, xp: o.xp, icon: cat.icon };
+        pulses[o.studentId] = { n: (pulses[o.studentId]?.n ?? 0) + 1, xp: o.xp, icon: cat.icon, coins: o.coins, kind: cat.xp < 0 ? 'bad' : 'good' };
+        for (const r of o.newMilestoneRewards) celebrations.push({ id: id(), type: 'milestone', studentId: o.studentId, label: r.label, icon: r.icon, atXp: r.atXp });
         if (o.evolved) celebrations.push({ id: id(), type: 'evolution', studentId: o.studentId, from: o.stageBefore, to: o.stageAfter });
         else if (o.levelAfter > o.levelBefore) celebrations.push({ id: id(), type: 'levelup', studentId: o.studentId, level: o.levelAfter });
         for (const a of o.newAchievements) celebrations.push({ id: id(), type: 'achievement', studentId: o.studentId, achievementId: a });
@@ -114,13 +122,19 @@ export const useStore = create<Store>()((set, get) => {
       if (cls && !cls.goalReachedAt) {
         const total = next.students.filter((s) => s.classId === cls.id).reduce((n, s) => n + s.xp, 0);
         if (total >= cls.goal) {
-          next = { ...next, classes: next.classes.map((c) => (c.id === cls.id ? { ...c, goalReachedAt: Date.now() } : c)) };
+          next = { ...next, classes: next.classes.map((c) => (c.id === cls.id ? { ...c, goalReachedAt: Date.now(), pendingSpin: true } : c)) };
           celebrations.push({ id: id(), type: 'classGoal', classId: cls.id, goal: cls.goal });
         }
       }
       // whole-class awards would queue one popup per student: keep evolutions, fold the rest
       const many = outcomes.length > 3;
-      const queued = many ? celebrations.filter((c) => c.type === 'evolution' || c.type === 'classGoal') : celebrations;
+      let queued = many ? celebrations.filter((c) => c.type === 'evolution' || c.type === 'classGoal' || c.type === 'milestone') : celebrations;
+      // several milestone rewards at once (whole-class award) → one combined popup
+      const ms = queued.filter((c): c is Extract<Celebration, { type: 'milestone' }> => c.type === 'milestone');
+      if (ms.length > 1) {
+        const first = ms[0];
+        queued = [...queued.filter((c) => c.type !== 'milestone' || c === first)].map((c) => (c === first ? { ...first, others: ms.slice(1).map((m) => m.studentId) } : c));
+      }
       set({
         pulses,
         celebrations: [...get().celebrations, ...queued],
@@ -130,6 +144,30 @@ export const useStore = create<Store>()((set, get) => {
       return outcomes;
     },
 
+    buy: (studentId, itemId) => {
+      const item = ITEMS_BY_ID[itemId];
+      if (!item || item.unlock.type !== 'shop') return false;
+      const next = buyItem(get().data, studentId, itemId, item.unlock.price);
+      if (!next) return false;
+      commit(next);
+      return true;
+    },
+    setRewardGiven: (studentId, rewardId, given) => {
+      const d = get().data;
+      commit({ ...d, students: d.students.map((s) => (s.id === studentId ? { ...s, milestoneRewards: s.milestoneRewards.map((r) => (r.id === rewardId ? { ...r, given } : r)) } : s)) });
+    },
+    recordPrize: (classId, prizeId) => {
+      const d = get().data;
+      const prize = d.settings.prizes.find((p) => p.id === prizeId);
+      if (!prize) return;
+      commit({
+        ...d,
+        classes: d.classes.map((c) => (c.id !== classId ? c : {
+          ...c, pendingSpin: false, goalReachedAt: undefined, goal: c.goal + (c.goalStep || 1000),
+          prizeHistory: [...(c.prizeHistory ?? []), { prizeId, label: prize.label, icon: prize.icon, goal: c.goal, at: Date.now() }],
+        })),
+      });
+    },
     undo: (batchId) => {
       const d = undoBatch(get().data, batchId);
       const removedStudents = new Set(get().data.events.filter((e) => e.batchId === batchId).map((e) => e.studentId));

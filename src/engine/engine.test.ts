@@ -131,7 +131,7 @@ describe('awarding XP', () => {
   });
   it('ignores negative categories while they are disabled', () => {
     let { data, ids } = classWith(['N']);
-    data = { ...data, categories: [...data.categories, { id: 'neg', name: 'Oops', xp: -5, icon: 'x', color: '#000', tag: 'other' }] };
+    data = { ...data, settings: { ...data.settings, negativeEnabled: false }, categories: [...data.categories, { id: 'neg', name: 'Oops', xp: -5, icon: 'x', color: '#000', tag: 'other' }] };
     const r = applyAward(data, ids, 'neg', NOW);
     expect(r.outcomes).toHaveLength(0);
     expect(r.data).toBe(data);
@@ -203,5 +203,67 @@ describe('display stage', () => {
     const harder = { levelXp: [0, 100, 300, 500, 700, 900, 1100, 1300, 1500, 2000], evolutionLevels: DEFAULT_EVOLUTION_LEVELS };
     expect(stageForXp(130, harder)).toBe(1);
     expect(displayStage({ xp: 130, bestStage: 2 }, harder)).toBe(2);
+  });
+});
+
+describe('v1.1: coins, milestones, deductions, moods', () => {
+  it('gives coins with positive awards and never takes them away with deductions', () => {
+    let { data, ids } = classWith(['C']);
+    data = { ...data, settings: { ...data.settings, negativeEnabled: true } };
+    data = applyAward(data, ids, 'cat-reading', NOW).data;
+    expect(data.students[0].coins).toBe(5);
+    const r = applyAward(data, ids, 'neg-talking', NOW + 1);
+    expect(r.data.students[0].coins).toBe(5);
+    expect(r.data.students[0].xp).toBe(3);
+    expect(r.data.students[0].lifetimeXp).toBe(5);
+  });
+  it('awards a Choki Choki every 100 lifetime XP, and undo takes back an unclaimed one', () => {
+    let { data, ids } = classWith(['M']);
+    data = { ...data, students: data.students.map((s) => ({ ...s, xp: 98, lifetimeXp: 98 })) };
+    const r = applyAward(data, ids, 'cat-reading', NOW);
+    expect(r.outcomes[0].newMilestoneRewards).toHaveLength(1);
+    expect(r.outcomes[0].newMilestoneRewards[0].label).toMatch(/Choki Choki/);
+    const u = undoBatch(r.data, r.batchId);
+    expect(u.students[0].milestoneRewards).toHaveLength(0);
+    expect(u.students[0].coins).toBe(0);
+  });
+  it('buys shop items with coins only when affordable', async () => {
+    const { buyItem } = await import('./awards');
+    let { data, ids } = classWith(['S']);
+    data = { ...data, students: data.students.map((s) => ({ ...s, coins: 40 })) };
+    expect(buyItem(data, ids[0], 'outfit-hoodie', 60)).toBeNull();
+    const bought = buyItem(data, ids[0], 'outfit-tee', 30)!;
+    expect(bought.students[0].coins).toBe(10);
+    expect(bought.students[0].unlockedItems).toContain('outfit-tee');
+    expect(buyItem(bought, ids[0], 'outfit-tee', 30)).toBeNull();
+  });
+  it('derives creature moods from recent events', async () => {
+    const { moodFor } = await import('./mood');
+    let { data, ids } = classWith(['E']);
+    data = { ...data, settings: { ...data.settings, negativeEnabled: true } };
+    const s = () => data.students[0];
+    expect(moodFor(s(), data.events, NOW)).toBe('calm');
+    data = applyAward(data, ids, 'cat-reading', NOW).data;
+    expect(moodFor(s(), data.events, NOW + 1000)).toBe('happy');
+    data = applyAward(data, ids, 'cat-reading', NOW + 2000).data;
+    data = applyAward(data, ids, 'cat-reading', NOW + 3000).data;
+    expect(moodFor(s(), data.events, NOW + 4000)).toBe('excited');
+    data = applyAward(data, ids, 'neg-moving', NOW + 5000).data;
+    expect(moodFor(s(), data.events, NOW + 6000)).toBe('sad');
+    expect(moodFor(s(), data.events, NOW + 5 * 86_400_000)).toBe('sleepy');
+  });
+  it('migrates v1.0 data: coins from XP, past milestones marked as handed out', async () => {
+    const { migrate } = await import('./backup');
+    const { data } = classWith(['Old']);
+    const old = { ...data, version: 1, settings: { ...data.settings, milestones: undefined } } as unknown as AppData;
+    (old.students[0] as unknown as Record<string, unknown>).coins = undefined;
+    (old.students[0] as unknown as Record<string, unknown>).lifetimeXp = undefined;
+    (old.students[0] as unknown as Record<string, unknown>).milestoneRewards = undefined;
+    old.students[0].xp = 250;
+    const m = migrate(old);
+    expect(m.students[0].coins).toBe(250);
+    expect(m.students[0].milestoneRewards).toHaveLength(2);
+    expect(m.students[0].milestoneRewards.every((r) => r.given)).toBe(true);
+    expect(m.categories.some((c) => c.id === 'neg-talking')).toBe(true);
   });
 });

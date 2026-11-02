@@ -38,6 +38,12 @@ export function buildDemoData(now = Date.now(), base: AppData = emptyData()): Ap
   // set the class goal just above the current total so a few whole-class awards trigger the celebration
   const total = data.students.filter((s) => s.classId === cls.id).reduce((n, s) => n + s.xp, 0);
   data.classes = data.classes.map((c) => (c.id === cls.id ? { ...c, goal: Math.ceil((total + 200) / 100) * 100 } : c));
+  data.classes = data.classes.map((c) => (c.id === cls.id ? { ...c, goalStep: 1000 } : c));
+  // past milestone rewards count as handed out; a couple stay waiting so the list isn't empty
+  data.students = data.students.map((s, i) => (s.classId !== cls.id ? s : {
+    ...s,
+    milestoneRewards: (s.milestoneRewards ?? []).map((r, k, all) => ({ ...r, given: !(i % 5 === 0 && k === all.length - 1) })),
+  }));
   data.settings = { ...data.settings, currentClassId: cls.id };
   return data;
 }
