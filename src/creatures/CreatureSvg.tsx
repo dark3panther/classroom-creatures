@@ -3,6 +3,8 @@ import { ELEMENTS, RARITIES } from '../data/elements';
 import type { Equipped, Expression, Species, Stage } from '../types';
 import { blob, bolt, cloud, crystal, darken, droplet, flame, leaf, lighten, luminance, star } from './shapes';
 import { Accessories, BackAccessories } from './accessories';
+import { IllustratedCreature, hasIllustration } from './Illustrated';
+import { useStore } from '../store/store';
 
 /**
  * Parametric, original creature artwork. Every species is drawn from its
@@ -644,9 +646,19 @@ export interface CreatureSvgProps {
   effects?: boolean;
   className?: string;
   title?: string;
+  /** force the original vector drawing (dev contact sheets) */
+  classic?: boolean;
 }
 
-function CreatureSvgImpl({ species: sp, stage, expression = 'happy', equipped = {}, noShadow, effects = true, className, title }: CreatureSvgProps) {
+function CreatureSvgImpl(props: CreatureSvgProps) {
+  const artStyle = useStore((s) => s.data.settings.artStyle ?? 'illustrated');
+  if (artStyle === 'illustrated' && !props.classic && hasIllustration(props.species.id, props.stage)) {
+    return <IllustratedCreature sp={props.species} stage={props.stage} equipped={props.equipped} noShadow={props.noShadow} effects={props.effects} className={props.className} title={props.title} />;
+  }
+  return <VectorCreature {...props} />;
+}
+
+function VectorCreature({ species: sp, stage, expression = 'happy', equipped = {}, noShadow, effects = true, className, title }: CreatureSvgProps) {
   const uid = useId().replace(/:/g, '');
   const g = geometry(sp, stage);
   const el = ELEMENTS[sp.element];

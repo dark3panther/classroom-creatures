@@ -167,6 +167,8 @@ export interface Settings {
   pinHash: string | null;
   currentClassId: string | null;
   onboarded: boolean;
+  /** illustrated (painted) creature art or the classic drawn style */
+  artStyle?: 'illustrated' | 'classic';
 }
 
 export interface AppData {

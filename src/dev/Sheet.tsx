@@ -15,7 +15,7 @@ export function Sheet() {
           <div className="w-28 text-sm font-bold">{s.name}<br /><span className="font-normal">{s.element} · {s.rarity}</span></div>
           {([1, 2, 3, 4, 5] as Stage[]).map((st) => (
             <div key={st} className="w-40 h-40 rounded-xl" style={{ background: `linear-gradient(${ELEMENTS[s.element].sky[0]}, ${ELEMENTS[s.element].sky[1]})` }}>
-              <CreatureSvg species={s} stage={st} effects={false} equipped={eq ? Object.fromEntries(eq.split(',').map((e) => [e.split(':')[0], e.split(':')[1]])) : {}} />
+              <CreatureSvg species={s} stage={st} effects={false} classic={!new URLSearchParams(location.search).has('art')} equipped={eq ? Object.fromEntries(eq.split(',').map((e) => [e.split(':')[0], e.split(':')[1]])) : {}} />
             </div>
           ))}
         </div>

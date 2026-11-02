@@ -238,6 +238,8 @@ function ClassroomTab() {
     <div>
       <h2 className="font-display text-2xl font-bold">Classroom</h2>
       <div className="mt-2 divide-y divide-ink/10">
+        <Toggle label="Illustrated creature art" hint="Painted creature artwork. Turn off for the classic drawn style (blinks and changes expression, lighter on very old computers)."
+          checked={(settings.artStyle ?? 'illustrated') === 'illustrated'} onChange={(v) => updateSettings({ artStyle: v ? 'illustrated' : 'classic' })} />
         <Toggle label="Sound effects" hint="Award chimes, level-up fanfares and creature voices." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />
         <Toggle label="Reduce motion" hint="Calmer animations for sensitive learners or slower computers. The evolution sequence becomes a quick reveal." checked={settings.reducedMotion} onChange={(v) => updateSettings({ reducedMotion: v })} />
         <Toggle label="Allow negative points" hint="Off by default. When on, small reminder categories appear. Points can never make a creature lose an evolution or go below 0 XP, and students never lose their creature."

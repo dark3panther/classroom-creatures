@@ -116,4 +116,5 @@ export const DEFAULT_SETTINGS: Settings = {
   pinHash: null,
   currentClassId: null,
   onboarded: false,
+  artStyle: 'illustrated',
 };
