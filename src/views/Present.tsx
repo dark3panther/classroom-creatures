@@ -137,7 +137,7 @@ function PresentTile({ s, onClick }: { s: Student; onClick: () => void }) {
   return (
     <button onClick={onClick} className="group relative flex flex-col items-center rounded-[1.75rem] bg-white/[.06] p-2 ring-1 ring-white/10 transition hover:bg-white/[.12]">
       <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[1.4rem]">
-        <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
+        <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
       </Habitat>
       <FloatingXP pulse={pulse} />
       <div className="mt-1.5 max-w-full truncate font-display text-xl font-semibold">{firstName(s.name)}</div>
@@ -163,7 +163,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
     <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-night-950/85 p-4 backdrop-blur" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
       <motion.div className="relative grid w-full max-w-5xl items-center gap-6 md:grid-cols-[1.1fr_1fr]" initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 20 }} onClick={(e) => e.stopPropagation()}>
         <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full shadow-2xl" rounded="rounded-[2.5rem]">
-          <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
+          <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
           <FloatingXP pulse={pulse} />
         </Habitat>
         <div>

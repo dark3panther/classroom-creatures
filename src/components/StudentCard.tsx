@@ -60,7 +60,7 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
       <button type="button" className="relative block text-left" onClick={() => (selecting ? onToggle(student.id) : onOpen(student.id))}
         aria-label={selecting ? `${selected ? 'Deselect' : 'Select'} ${student.name}` : `Open ${student.name}`}>
         <Habitat element={species.element} background={student.equipped.background} className="m-2 mb-0 h-36 sm:h-40" rounded="rounded-[1.1rem]">
-          <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={3} compact className="mx-auto h-full w-[82%]" />
+          <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(student.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[82%]" />
           {!selecting && mood !== 'calm' && (
             <span className="chip absolute bottom-1.5 left-2 bg-white/85 !px-2 text-[10px]" style={{ color: m.color }} title={`${species.name} feels ${m.label.toLowerCase()}`}>{m.icon} {m.label}</span>
           )}

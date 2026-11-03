@@ -6,6 +6,15 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 - **Saves automatically** to the browser's IndexedDB (with a localStorage mirror), plus daily safety snapshots and downloadable backup files.
 - **Positive by default.** Negative points are off. If turned on, they can never make a creature lose an evolution or go below 0 XP.
 
+## What's new in 1.2
+
+- **Pixel art effects** from the [pixelfx](https://github.com/dark3panther/pixelfx) library (MIT, vendored in `src/vendor/pixelfx`), played live on top of every creature:
+  - *Positive:* a sparkle burst and a "!" emote on every award, a **LEVEL UP!** banner, a power star for badges, a sunburst when a milestone treat is earned.
+  - *Negative:* a pixel **BONK!**, then a status effect that matches the behaviour: dizzy stars and birds (talking without permission, moving around), a slow-down clock (task not finished), question marks (not listening).
+  - *Emotes for moods:* pixel hearts (happy), a sparkling light beam (excited), a halo (proud), Zzz (sleepy), plus the rain cloud (sad).
+- **A pixel chocolate stick.** When a student earns a Choki Choki milestone, their creature appears holding a pixel chocolate stick (an original drawing in a red and yellow striped wrapper, no brand logo) until you tick **Given ✓** in Rewards. Several waiting treats show a ×2, ×3 badge.
+- **Earned accessories are worn automatically** in any empty slot, so creatures show off new hats, glasses, wings and decorations straight away.
+
 ## What's new in 1.1
 
 - **New app icon** (made with Higgsfield).

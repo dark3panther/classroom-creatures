@@ -11,6 +11,8 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
     "noEmit": true,
     "types": ["vite/client"]
   },

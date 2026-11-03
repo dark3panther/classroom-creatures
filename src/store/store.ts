@@ -16,7 +16,7 @@ export type Celebration =
   | { id: string; type: 'classGoal'; classId: string; goal: number }
   | { id: string; type: 'milestone'; studentId: string; label: string; icon: string; atXp: number; others?: string[] };
 
-export interface Pulse { n: number; xp: number; icon: string; coins: number; kind: 'good' | 'bad' }
+export interface Pulse { n: number; xp: number; icon: string; coins: number; kind: 'good' | 'bad'; categoryId: string; levelUp: boolean; achievement: boolean; milestone: boolean }
 
 export interface LastAward { batchId: string; label: string; icon: string; count: number; xp: number; at: number }
 
@@ -110,14 +110,25 @@ export const useStore = create<Store>()((set, get) => {
       const celebrations: Celebration[] = [];
       const pulses = { ...get().pulses };
       for (const o of outcomes) {
-        pulses[o.studentId] = { n: (pulses[o.studentId]?.n ?? 0) + 1, xp: o.xp, icon: cat.icon, coins: o.coins, kind: cat.xp < 0 ? 'bad' : 'good' };
+        pulses[o.studentId] = { n: (pulses[o.studentId]?.n ?? 0) + 1, xp: o.xp, icon: cat.icon, coins: o.coins, kind: cat.xp < 0 ? 'bad' : 'good', categoryId: cat.id, levelUp: o.levelAfter > o.levelBefore, achievement: o.newAchievements.length > 0, milestone: o.newMilestoneRewards.length > 0 };
         for (const r of o.newMilestoneRewards) celebrations.push({ id: id(), type: 'milestone', studentId: o.studentId, label: r.label, icon: r.icon, atXp: r.atXp });
         if (o.evolved) celebrations.push({ id: id(), type: 'evolution', studentId: o.studentId, from: o.stageBefore, to: o.stageAfter });
         else if (o.levelAfter > o.levelBefore) celebrations.push({ id: id(), type: 'levelup', studentId: o.studentId, level: o.levelAfter });
         for (const a of o.newAchievements) celebrations.push({ id: id(), type: 'achievement', studentId: o.studentId, achievementId: a });
       }
-      // class-wide goal
+      // newly earned accessories go straight on, into any empty slot
       let next = data;
+      next = { ...next, students: next.students.map((s) => {
+        const o = outcomes.find((x) => x.studentId === s.id);
+        if (!o || !o.newItems.length) return s;
+        const equipped = { ...s.equipped };
+        for (const itemId of o.newItems) {
+          const it = ITEMS_BY_ID[itemId];
+          if (it && it.slot !== 'background' && !equipped[it.slot]) equipped[it.slot] = itemId;
+        }
+        return { ...s, equipped };
+      }) };
+      // class-wide goal
       const cls = next.classes.find((c) => c.id === next.settings.currentClassId);
       if (cls && !cls.goalReachedAt) {
         const total = next.students.filter((s) => s.classId === cls.id).reduce((n, s) => n + s.xp, 0);

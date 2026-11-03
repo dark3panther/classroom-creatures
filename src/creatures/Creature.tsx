@@ -5,7 +5,9 @@ import { getSpecies } from '../data/species';
 import type { Equipped, Expression, Mood, Stage } from '../types';
 import { Burst, type BurstKind } from './Burst';
 import { CreatureSvg } from './CreatureSvg';
-import { BonkFx, ElementAmbient, EmotionFx } from './EmotionFx';
+import { ElementAmbient, EmotionFx } from './EmotionFx';
+import { PixelFx, type PixelFxId } from './PixelFx';
+import type { Pulse } from '../store/store';
 
 export type CreatureAction = 'jump' | 'wave' | 'ability' | 'happy' | 'celebrate' | 'bonk';
 
@@ -29,20 +31,55 @@ export interface CreatureProps {
   compact?: boolean;
   className?: string;
   sound?: boolean;
+  /** the latest award for this creature: picks the pixel effects it reacts with */
+  event?: Pulse;
+  /** chocolate treats earned and not handed out yet: the creature holds one */
+  treats?: number;
 }
+
+interface FxPlay { key: string; id: PixelFxId; anchor?: [number, number]; size?: number; duration?: number; options?: Record<string, unknown>; bodyFrac?: number }
+
+/** Positive effects for achievements, negative ones for each kind of deduction. */
+function reactionFx(e: Pulse, compact?: boolean): FxPlay[] {
+  const k = `${e.n}`;
+  if (e.kind === 'bad') {
+    const status: PixelFxId = e.categoryId === 'neg-listening' ? 'status/confused' : e.categoryId === 'neg-unfinished' ? 'status/slowed' : 'status/stunned';
+    return [
+      { key: `${k}-pow`, id: 'explosions/cartoon-pow', anchor: [0.5, 0.42], size: compact ? COMPACT_POW : 0.5, options: { text: 'BONK!' } },
+      { key: `${k}-st`, id: status, duration: 4 },
+    ];
+  }
+  const out: FxPlay[] = [
+    { key: `${k}-burst`, id: 'pickups/collect-burst', anchor: [0.5, 0.95], size: 0.8 },
+    { key: `${k}-emote`, id: 'ui/exclamation' },
+  ];
+  if (e.levelUp) out.push({ key: `${k}-lvl`, id: 'ui/level-up', size: 0.85 });
+  if (e.achievement) out.push({ key: `${k}-star`, id: 'pickups/power-star', anchor: [0.5, 0.3], size: 0.7, duration: 1.6 });
+  if (e.milestone) out.push({ key: `${k}-sun`, id: 'holy/sunburst', anchor: [0.5, 0.55], size: 0.9, duration: 2.6 });
+  return out;
+}
+
+const MOOD_FX: Partial<Record<Mood, PixelFxId>> = { happy: 'status/charmed', excited: 'holy/blessing', proud: 'holy/halo', sleepy: 'status/sleep' };
+const COMPACT_POW = 0.36;
 
 const CYCLE: CreatureAction[] = ['jump', 'wave', 'ability', 'happy'];
 const MOOD_FACE: Record<Mood, Expression> = { happy: 'happy', excited: 'excited', proud: 'happy', calm: 'happy', sad: 'sad', sleepy: 'sleepy' };
 
 /** The animated creature: idle loop, feelings, reactions, particles and play. */
-export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true }: CreatureProps) {
+export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0 }: CreatureProps) {
   const sp = getSpecies(speciesId);
   const controls = useAnimationControls();
   const [expr, setExpr] = useState<Expression | null>(null);
   const [burst, setBurst] = useState<{ kind: BurstKind | 'hearts'; key: number } | null>(null);
   const [current, setCurrent] = useState<CreatureAction | null>(null);
-  const [bonk, setBonk] = useState(0);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [fx, setFx] = useState<FxPlay[]>([]);
+  const lastEvent = useRef(event?.n);
+  useEffect(() => {
+    if (!event || event.n === lastEvent.current) return;
+    lastEvent.current = event.n;
+    if (effects) setFx((list) => [...list.slice(-4), ...reactionFx(event, compact)]);
+  }, [event, effects]);
   const cycle = useRef(0);
   const first = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout>>();
@@ -55,7 +92,6 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
     setExpr(a === 'bonk' ? 'sad' : a === 'ability' ? 'wow' : 'excited');
     if (a === 'ability') setBurst({ kind: sp.element, key: Date.now() });
     if (a === 'celebrate') setBurst({ kind: 'sparkle', key: Date.now() });
-    if (a === 'bonk') setBonk(Date.now());
     switch (a) {
       case 'jump':
       case 'celebrate':
@@ -148,8 +184,18 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
           </div>
         </motion.div>
       </div>
-      {effects && <EmotionFx mood={shownMood} compact={compact} />}
-      {bonk > 0 && current === 'bonk' && <BonkFx key={bonk} />}
+      {effects && shownMood === 'sad' && <EmotionFx mood="sad" compact={compact} />}
+      {effects && !current && MOOD_FX[mood] && <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={compact ? 20 : 30} />}
+      {effects && treats > 0 && (
+        <>
+          <PixelFx key="treat" id="pickups/choco-stick" anchor={[0.8, 0.98]} size={compact ? 0.42 : 0.45} options={{ shadow: false }} fps={compact ? 20 : 30} />
+          {treats > 1 && <span className="absolute bottom-[4%] right-[4%] grid h-5 min-w-5 place-items-center rounded-full bg-[#d8242f] px-1 text-[10px] font-extrabold text-white ring-2 ring-white">×{treats}</span>}
+        </>
+      )}
+      {fx.map((f) => (
+        <PixelFx key={f.key} id={f.id} anchor={f.anchor} size={f.size} duration={f.duration} options={f.options} fps={compact ? 24 : 30}
+          onDone={() => setFx((list) => list.filter((x) => x.key !== f.key))} />
+      ))}
       {burst && burst.kind === 'hearts' && <HeartBurst key={burst.key} />}
       {burst && burst.kind !== 'hearts' && <Burst key={burst.key} kind={burst.kind} count={burst.kind === 'sparkle' ? 12 : 16} />}
     </div>

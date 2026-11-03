@@ -52,7 +52,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
       {/* creature side */}
       <div className="p-4 sm:p-6">
         <Habitat element={sp.element} background={student.equipped.background} className="h-[300px] sm:h-[380px]" rounded="rounded-[1.5rem]">
-          <Creature speciesId={sp.id} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} mood={mood} ambient={8} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
+          <Creature speciesId={sp.id} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(student.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
           <FloatingXP pulse={pulse} />
           <div className="absolute left-3 top-3 flex items-center gap-2"><LevelBadge level={prog.level} size="lg" /></div>
           <div className="absolute right-3 top-3 rounded-full bg-white/85 px-3 py-1"><RarityStars rarity={sp.rarity} /></div>
