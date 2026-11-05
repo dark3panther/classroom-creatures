@@ -4,7 +4,16 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 - **Runs locally.** No accounts, no student emails, no cloud, no paid services. Works offline once installed.
 - **Saves automatically** to the browser's IndexedDB (with a localStorage mirror), plus daily safety snapshots and downloadable backup files.
-- **Positive by default.** Negative points are off. If turned on, they can never make a creature lose an evolution or go below 0 XP.
+- **Kind by design.** Behaviour deductions take XP only, never coins; they never go below 0 XP, never undo an evolution, and students never lose their creature. There are no public rankings.
+
+
+<p align="center"><img src="docs/screenshots/classroom.jpg" alt="The Classroom dashboard: student cards with illustrated creatures, moods, coins and quick award buttons" width="900"></p>
+
+| Presentation mode | Prize wheel | Shop |
+|---|---|---|
+| <img src="docs/screenshots/presentation.jpg" alt="Presentation mode on a projector" width="300"> | <img src="docs/screenshots/prize-wheel.jpg" alt="The class prize wheel" width="300"> | <img src="docs/screenshots/shop.jpg" alt="The coin shop in a student's profile" width="300"> |
+
+<p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
 ## What's new in 1.2
 
@@ -31,7 +40,6 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 Requires [Node.js](https://nodejs.org/) 18 or newer.
 
 ```bash
-cd classroom-creatures
 npm install
 npm run dev
 ```
@@ -54,14 +62,13 @@ Classroom Creatures also runs as a normal Mac app (a dock icon, its own window, 
 **Easiest: build it on your Mac** (needs Node.js 18+):
 
 ```bash
-cd classroom-creatures
 npm install
 npm run app:mac
 ```
 
 This creates `release/Classroom Creatures-1.0.0-universal.dmg` (works on both Apple Silicon and Intel Macs). Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
 
-**Or download it from GitHub:** every push that changes `classroom-creatures/` runs the *Classroom Creatures – macOS app* workflow, which builds the same `.dmg` on a Mac. Open the workflow run on the repository's **Actions** tab and download the `Classroom-Creatures-mac` artifact.
+**Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and pushing a tag such as `v1.2.0` publishes a Release automatically.
 
 **First launch of a downloaded copy:** the app is not notarised by Apple (that needs a paid Apple Developer account), so macOS warns you the first time. Right-click (or Control-click) the app in Applications → **Open** → **Open**. On recent macOS versions you may instead need to go to System Settings → Privacy & Security and click **Open Anyway**. If macOS says the app "is damaged", run this once in Terminal:
 
@@ -186,3 +193,14 @@ Only first names (or whatever the teacher types) are stored, and only on this co
 ## Credits
 
 All creatures, names, artwork, animations and sounds are original to this project. Inspired by the general appeal of creature-collecting games and classroom point systems; no characters, artwork, sounds or branding from any existing game are used.
+
+## Design documents
+
+- [Architecture & development plan](docs/architecture-and-plan.md)
+- [Visual reference analysis](docs/visual-reference-analysis.md)
+- [Design system](docs/design-system.md)
+- [Roadmap](ROADMAP.md)
+
+## License
+
+[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE` and `NOTICE.md`).

@@ -84,5 +84,10 @@
     "publish": null,
     "afterPack": "scripts/adhoc-sign.cjs"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dark3panther/classroom-creatures"
+  }
 }
