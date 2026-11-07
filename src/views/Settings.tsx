@@ -62,13 +62,13 @@ function ClassesTab() {
           return (
             <div key={c.id} className={`rounded-2xl border-2 p-4 ${c.archived ? 'border-dashed border-ink/15 opacity-70' : 'border-ink/10'}`}>
               <div className="grid gap-3 sm:grid-cols-[1fr_140px_140px]">
-                <label className="text-xs font-extrabold uppercase text-ink-soft">Name
+                <label className="text-[13px] font-bold text-ink-soft">Name
                   <input className="input mt-1 !text-base" defaultValue={c.name} onBlur={(e) => e.target.value.trim() && e.target.value !== c.name && update(c.id, { name: e.target.value.trim() })} />
                 </label>
-                <label className="text-xs font-extrabold uppercase text-ink-soft">Grade
+                <label className="text-[13px] font-bold text-ink-soft">Grade
                   <input className="input mt-1 !text-base" defaultValue={c.grade} onBlur={(e) => e.target.value !== c.grade && update(c.id, { grade: e.target.value })} />
                 </label>
-                <label className="text-xs font-extrabold uppercase text-ink-soft">Class XP goal
+                <label className="text-[13px] font-bold text-ink-soft">Class XP goal
                   <input type="number" min={50} step={50} className="input mt-1 !text-base" defaultValue={c.goal} onBlur={(e) => { const g = Math.max(50, Number(e.target.value) || 0); if (g !== c.goal) { update(c.id, { goal: g }); notify('New class goal set'); } }} />
                 </label>
               </div>

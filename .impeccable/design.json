@@ -1,0 +1,552 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-07T06:03:31.119072+00:00",
+  "title": "Design System: Classroom Creatures",
+  "extensions": {
+    "colorMeta": {
+      "cloth-950": {
+        "role": "primary",
+        "displayName": "Deep Bookcloth",
+        "canonical": "#0d2e23",
+        "tonalRamp": [
+          "#0d2e23",
+          "#123c2e",
+          "#1d5643",
+          "#2a6d56",
+          "#3f866c",
+          "#7fae98",
+          "#bcd6c8",
+          "#e6f0ea"
+        ]
+      },
+      "cloth-800": {
+        "role": "primary",
+        "displayName": "Bookcloth Green",
+        "canonical": "#1d5643",
+        "tonalRamp": [
+          "#0d2e23",
+          "#123c2e",
+          "#1d5643",
+          "#2a6d56",
+          "#3f866c",
+          "#7fae98",
+          "#bcd6c8",
+          "#e6f0ea"
+        ]
+      },
+      "cloth-700": {
+        "role": "primary",
+        "displayName": "Lifted Bookcloth",
+        "canonical": "#2a6d56",
+        "tonalRamp": [
+          "#0d2e23",
+          "#123c2e",
+          "#1d5643",
+          "#2a6d56",
+          "#3f866c",
+          "#7fae98",
+          "#bcd6c8",
+          "#e6f0ea"
+        ]
+      },
+      "gilt": {
+        "role": "secondary",
+        "displayName": "Marigold Gilt",
+        "canonical": "#f4b631",
+        "tonalRamp": [
+          "#3b2800",
+          "#6e4c05",
+          "#c98a0c",
+          "#f4b631",
+          "#f7c04a",
+          "#f9d47e",
+          "#fdf0cc",
+          "#fff9ea"
+        ]
+      },
+      "gilt-deep": {
+        "role": "secondary",
+        "displayName": "Gilt Deep",
+        "canonical": "#c98a0c",
+        "tonalRamp": [
+          "#3b2800",
+          "#6e4c05",
+          "#c98a0c",
+          "#f4b631",
+          "#f7c04a",
+          "#f9d47e",
+          "#fdf0cc",
+          "#fff9ea"
+        ]
+      },
+      "gilt-ink": {
+        "role": "secondary",
+        "displayName": "Gilt Ink",
+        "canonical": "#3b2800",
+        "tonalRamp": [
+          "#3b2800",
+          "#6e4c05",
+          "#c98a0c",
+          "#f4b631",
+          "#f7c04a",
+          "#f9d47e",
+          "#fdf0cc",
+          "#fff9ea"
+        ]
+      },
+      "gilt-pale": {
+        "role": "secondary",
+        "displayName": "Gilt Pale",
+        "canonical": "#fdf0cc",
+        "tonalRamp": [
+          "#3b2800",
+          "#6e4c05",
+          "#c98a0c",
+          "#f4b631",
+          "#f7c04a",
+          "#f9d47e",
+          "#fdf0cc",
+          "#fff9ea"
+        ]
+      },
+      "gilt-text": {
+        "role": "secondary",
+        "displayName": "Gilt Type",
+        "canonical": "#f6cb62",
+        "tonalRamp": [
+          "#3b2800",
+          "#6e4c05",
+          "#c98a0c",
+          "#f4b631",
+          "#f7c04a",
+          "#f9d47e",
+          "#fdf0cc",
+          "#fff9ea"
+        ]
+      },
+      "leaf": {
+        "role": "tertiary",
+        "displayName": "Award Leaf",
+        "canonical": "#1c7240",
+        "tonalRamp": [
+          "#0d3a20",
+          "#14562f",
+          "#1c7240",
+          "#3f8f5d",
+          "#73b08a",
+          "#a9d2b6",
+          "#e1f1e5",
+          "#f2f9f4"
+        ]
+      },
+      "leaf-pale": {
+        "role": "tertiary",
+        "displayName": "Award Leaf Pale",
+        "canonical": "#e1f1e5",
+        "tonalRamp": [
+          "#0d3a20",
+          "#14562f",
+          "#1c7240",
+          "#3f8f5d",
+          "#73b08a",
+          "#a9d2b6",
+          "#e1f1e5",
+          "#f2f9f4"
+        ]
+      },
+      "brick": {
+        "role": "tertiary",
+        "displayName": "Reminder Brick",
+        "canonical": "#b8432d",
+        "tonalRamp": [
+          "#4a1a11",
+          "#7a2b1c",
+          "#b8432d",
+          "#cc6a55",
+          "#df9686",
+          "#efc3b8",
+          "#f8e4df",
+          "#fcf3f1"
+        ]
+      },
+      "brick-pale": {
+        "role": "tertiary",
+        "displayName": "Reminder Brick Pale",
+        "canonical": "#f8e4df",
+        "tonalRamp": [
+          "#4a1a11",
+          "#7a2b1c",
+          "#b8432d",
+          "#cc6a55",
+          "#df9686",
+          "#efc3b8",
+          "#f8e4df",
+          "#fcf3f1"
+        ]
+      },
+      "coin": {
+        "role": "tertiary",
+        "displayName": "Coin Ochre",
+        "canonical": "#8a5d07",
+        "tonalRamp": [
+          "#2e1f02",
+          "#5a3d04",
+          "#8a5d07",
+          "#b07a12",
+          "#e7a92a",
+          "#f0c66a",
+          "#fbe3a2",
+          "#fdf5e0"
+        ]
+      },
+      "berry": {
+        "role": "tertiary",
+        "displayName": "Berry (content tag)",
+        "canonical": "#a3245a",
+        "tonalRamp": [
+          "#3a0c20",
+          "#6a1739",
+          "#a3245a",
+          "#c2507f",
+          "#d887a8",
+          "#ebbcd0",
+          "#f6e0ea",
+          "#fcf3f7"
+        ]
+      },
+      "sky": {
+        "role": "tertiary",
+        "displayName": "Sky (content tag)",
+        "canonical": "#1f7fbf",
+        "tonalRamp": [
+          "#0a2a40",
+          "#145580",
+          "#1f7fbf",
+          "#4a9dd2",
+          "#82bde3",
+          "#b7d9ef",
+          "#e0eff9",
+          "#f3f9fd"
+        ]
+      },
+      "endpaper": {
+        "role": "neutral",
+        "displayName": "Endpaper Sage",
+        "canonical": "#e5ecdc",
+        "tonalRamp": [
+          "#1f2a1f",
+          "#46584c",
+          "#7f9479",
+          "#a9baa0",
+          "#c3d0b8",
+          "#d3dec7",
+          "#e5ecdc",
+          "#eef3e8"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "#c3d0b8",
+        "tonalRamp": [
+          "#1f2a1f",
+          "#46584c",
+          "#7f9479",
+          "#a9baa0",
+          "#c3d0b8",
+          "#d3dec7",
+          "#e5ecdc",
+          "#eef3e8"
+        ]
+      },
+      "wash": {
+        "role": "neutral",
+        "displayName": "Wash",
+        "canonical": "#eef3e8",
+        "tonalRamp": [
+          "#1f2a1f",
+          "#46584c",
+          "#7f9479",
+          "#a9baa0",
+          "#c3d0b8",
+          "#d3dec7",
+          "#e5ecdc",
+          "#eef3e8"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#16241c",
+          "#46584c",
+          "#8fa092",
+          "#c3d0b8",
+          "#e5ecdc",
+          "#eef3e8",
+          "#f7f9f4",
+          "#ffffff"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#16241c",
+        "tonalRamp": [
+          "#0b130e",
+          "#16241c",
+          "#2c3d32",
+          "#46584c",
+          "#66786b",
+          "#8fa092",
+          "#c3d0b8",
+          "#eef3e8"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft",
+        "canonical": "#46584c",
+        "tonalRamp": [
+          "#0b130e",
+          "#16241c",
+          "#2c3d32",
+          "#46584c",
+          "#66786b",
+          "#8fa092",
+          "#c3d0b8",
+          "#eef3e8"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Monumental single messages: Present spotlight and picker names, profile level numeral."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page title (class name), Present class name, profile XP total."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Plate names, section and dialog titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "UI text and specimen field notes."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Meta lines, chips, field numbers, time stamps."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Every button and tab, in the display face."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card",
+        "value": "0 1px 0 rgb(22 36 28 / 0.04), 0 1px 2px rgb(22 36 28 / 0.08), 0 10px 24px -14px rgb(22 36 28 / 0.35)",
+        "purpose": "Plates, panels and award tiles at rest."
+      },
+      {
+        "name": "lift",
+        "value": "0 2px 4px rgb(22 36 28 / 0.08), 0 18px 34px -16px rgb(22 36 28 / 0.42)",
+        "purpose": "Hovered plates, modals, pop-overs."
+      },
+      {
+        "name": "glow",
+        "value": "0 0 0 3px #f4b631, 0 12px 28px -12px rgb(201 138 12 / 0.7)",
+        "purpose": "The selected plate only."
+      },
+      {
+        "name": "cloth-band",
+        "value": "0 8px 20px -14px rgb(13 46 35 / .9)",
+        "purpose": "Header and Present top band onto the endpaper."
+      },
+      {
+        "name": "button-primary",
+        "value": "inset 0 1px 0 rgb(255 255 255 / .45), 0 1px 2px rgb(120 80 0 / .25), 0 8px 18px -10px rgb(150 100 0 / .8)",
+        "purpose": "Gilt primary button."
+      }
+    ],
+    "motion": [
+      {
+        "name": "button-press",
+        "value": "transform .12s ease; translateY(1px) scale(.98)",
+        "purpose": "Press feedback on every button."
+      },
+      {
+        "name": "control-transition",
+        "value": "150ms ease",
+        "purpose": "Background, colour, border and shadow changes on buttons and inputs."
+      },
+      {
+        "name": "plate-spring",
+        "value": "spring stiffness 400 damping 30",
+        "purpose": "Plate hover lift (-3px) and layout moves."
+      },
+      {
+        "name": "modal-spring",
+        "value": "spring stiffness 320 damping 28",
+        "purpose": "Modal and sheet entry."
+      },
+      {
+        "name": "ribbon-spring",
+        "value": "spring stiffness 380 damping 22",
+        "purpose": "Just-rewarded ribbon dropping from the plate edge."
+      },
+      {
+        "name": "creature-idle",
+        "value": "2.2s to 3.6s ease-in-out infinite",
+        "purpose": "Creature idle loops; all stop under Reduce Motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      },
+      {
+        "name": "container",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one gilt action per region: Present, Award whole class, Pick a student.",
+      "html": "<button class=\"ds-btn ds-btn-primary\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M8 21h8M12 16v5\"/></svg>Present</button>",
+      "css": ".ds-btn { display:inline-flex; align-items:center; gap:.5rem; font-family:'Bricolage Grotesque Variable', system-ui, sans-serif; font-weight:650; font-size:16px; line-height:1.1; border:none; border-radius:999px; padding:.62rem 1.15rem; cursor:pointer; transition:transform .12s ease, box-shadow .15s ease, background-color .15s ease; } .ds-btn:active { transform:translateY(1px) scale(.98); } .ds-btn:focus-visible { outline:3px solid #2a6d56; outline-offset:3px; } .ds-btn-primary { background:#f4b631; color:#3b2800; box-shadow:inset 0 1px 0 rgb(255 255 255 / .45), 0 1px 2px rgb(120 80 0 / .25), 0 8px 18px -10px rgb(150 100 0 / .8); } .ds-btn-primary:hover { background:#f7c04a; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions on paper or endpaper; turns white-ringed on bookcloth.",
+      "html": "<button class=\"ds-btn-ghost\">Select students</button>",
+      "css": ".ds-btn-ghost { display:inline-flex; align-items:center; gap:.5rem; font-family:'Bricolage Grotesque Variable', system-ui, sans-serif; font-weight:650; font-size:16px; line-height:1.1; border:none; border-radius:999px; padding:.62rem 1.15rem; background:transparent; color:#16241c; box-shadow:inset 0 0 0 1.5px rgb(22 36 28 / .22); cursor:pointer; transition:background-color .15s ease, transform .12s ease; } .ds-btn-ghost:hover { background:#eef3e8; } .ds-btn-ghost:active { transform:translateY(1px) scale(.98); } .ds-btn-ghost:focus-visible { outline:3px solid #2a6d56; outline-offset:3px; }"
+    },
+    {
+      "name": "Cloth Button",
+      "kind": "button",
+      "refersTo": "button-cloth",
+      "description": "Confirming action inside a paper sheet.",
+      "html": "<button class=\"ds-btn-cloth\">Save class</button>",
+      "css": ".ds-btn-cloth { font-family:'Bricolage Grotesque Variable', system-ui, sans-serif; font-weight:650; font-size:16px; line-height:1.1; border:none; border-radius:999px; padding:.62rem 1.15rem; background:#1d5643; color:#fff; box-shadow:0 1px 2px rgb(13 46 35 / .3), 0 8px 18px -10px rgb(13 46 35 / .7); cursor:pointer; transition:background-color .15s ease, transform .12s ease; } .ds-btn-cloth:hover { background:#2a6d56; } .ds-btn-cloth:active { transform:translateY(1px) scale(.98); } .ds-btn-cloth:focus-visible { outline:3px solid #2a6d56; outline-offset:3px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "White field with a rule border and a bookcloth focus halo.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search\" />",
+      "css": ".ds-input { width:100%; max-width:320px; border-radius:12px; padding:.62rem .9rem; font-size:1rem; font-family:'Atkinson Hyperlegible Next Variable', system-ui, sans-serif; background:#fff; color:#16241c; border:1.5px solid #c3d0b8; outline:none; transition:border-color .15s, box-shadow .15s; } .ds-input::placeholder { color:#66786b; } .ds-input:hover { border-color:#a9baa0; } .ds-input:focus { border-color:#2a6d56; box-shadow:0 0 0 4px rgb(42 109 86 / .18); }"
+    },
+    {
+      "name": "Main Navigation",
+      "kind": "nav",
+      "description": "Tabs on bookcloth; the current tab carries the gilt underline.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-tab is-on\">Classroom</a><a class=\"ds-nav-tab\">Creatures</a><a class=\"ds-nav-tab\">Rewards</a><a class=\"ds-nav-tab\">Settings</a></nav>",
+      "css": ".ds-nav { display:flex; gap:4px; background:#1d5643; padding:0 12px; border-radius:14px; } .ds-nav-tab { position:relative; padding:10px 12px; font-family:'Bricolage Grotesque Variable', system-ui, sans-serif; font-weight:600; font-size:16px; color:rgb(255 255 255 / .75); cursor:pointer; transition:color .15s; } .ds-nav-tab:hover { color:#fff; } .ds-nav-tab.is-on { color:#fff; } .ds-nav-tab::after { content:''; position:absolute; left:12px; right:12px; bottom:0; height:3px; border-radius:999px; background:transparent; } .ds-nav-tab.is-on::after { background:#f4b631; } .ds-nav-tab:focus-visible { outline:3px solid #f4b631; outline-offset:3px; }"
+    },
+    {
+      "name": "Element Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A tag tinted by the colour it names, text in ink.",
+      "html": "<span class=\"ds-chip\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 16 16\"><path d=\"M10 1.5 A 6.5 6.5 0 1 0 14.5 11 A 5 5 0 1 1 10 1.5 Z\" fill=\"#5b3fa8\"/></svg>Shadow</span>",
+      "css": ".ds-chip { display:inline-flex; align-items:center; gap:.3rem; border-radius:999px; padding:.15rem .6rem; font-size:.75rem; font-weight:700; font-family:'Atkinson Hyperlegible Next Variable', system-ui, sans-serif; color:#16241c; background:color-mix(in srgb, #5b3fa8 15%, white); box-shadow:inset 0 0 0 1px color-mix(in srgb, #5b3fa8 45%, white); }"
+    },
+    {
+      "name": "Specimen Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "The student card: watercolour wash, level tab, element ribbon, name, field number, progress, award row.",
+      "html": "<article class=\"ds-plate\"><div class=\"ds-plate-wash\"><span class=\"ds-level\"><small>Lv</small>7</span></div><span class=\"ds-ribbon\"></span><div class=\"ds-plate-body\"><div class=\"ds-plate-rule\"></div><div class=\"ds-plate-name\">Ava Demo</div><div class=\"ds-plate-meta\">No. 021 · <b>Murmink</b></div><div class=\"ds-plate-bar\"><span></span></div><div class=\"ds-plate-awards\"><button>+5</button><button>+3</button><button class=\"ds-deduct\">−</button></div></div></article>",
+      "css": ".ds-plate { position:relative; width:196px; background:#fff; color:#16241c; border:1px solid #c3d0b8; border-radius:14px; box-shadow:0 1px 0 rgb(22 36 28 / .04), 0 1px 2px rgb(22 36 28 / .08), 0 10px 24px -14px rgb(22 36 28 / .35); font-family:'Atkinson Hyperlegible Next Variable', system-ui, sans-serif; transition:transform .2s, box-shadow .2s; } .ds-plate:hover { transform:translateY(-3px); box-shadow:0 2px 4px rgb(22 36 28 / .08), 0 18px 34px -16px rgb(22 36 28 / .42); } .ds-plate-wash { position:relative; margin:8px 8px 0; height:144px; border-radius:8px; background:radial-gradient(60% 55% at 50% 50%, color-mix(in srgb,#5b3fa8 45%, white) 0 70%, transparent 72%); } .ds-level { position:absolute; left:6px; top:6px; display:flex; align-items:baseline; gap:3px; padding:4px 8px; border-radius:999px; background:#fff; color:#1d5643; box-shadow:0 0 0 2px #1d5643, 0 1px 3px rgb(22 36 28 / .22); font-family:'Bricolage Grotesque Variable', system-ui, sans-serif; font-weight:700; font-size:16px; line-height:1; } .ds-level small { font-size:12px; font-weight:600; } .ds-ribbon { position:absolute; right:16px; top:0; width:16px; height:40px; background:#f4b631; clip-path:polygon(0 0,100% 0,100% 100%,50% 78%,0 100%); } .ds-plate-body { padding:8px 12px 12px; } .ds-plate-rule { height:3px; border-radius:999px; background:#5b3fa8; margin-bottom:8px; } .ds-plate-name { font-family:'Bricolage Grotesque Variable', system-ui, sans-serif; font-weight:700; font-size:20px; letter-spacing:-0.01em; } .ds-plate-meta { font-size:13px; color:#46584c; font-variant-numeric:tabular-nums; } .ds-plate-meta b { color:#16241c; } .ds-plate-bar { margin-top:8px; height:9px; border-radius:999px; background:rgb(22 36 28 / .1); overflow:hidden; } .ds-plate-bar span { display:block; width:76%; height:100%; background:#5b3fa8; border-radius:999px; } .ds-plate-awards { display:flex; gap:6px; margin-top:10px; } .ds-plate-awards button { flex:1; height:48px; border:none; border-radius:12px; font-weight:700; font-size:12px; color:#16241c; background:color-mix(in srgb,#f4b631 15%, white); box-shadow:inset 0 0 0 1.5px color-mix(in srgb,#f4b631 45%, white); cursor:pointer; } .ds-plate-awards button:hover { filter:brightness(.97); } .ds-plate-awards button:active { transform:translateY(1px); } .ds-plate-awards .ds-deduct { flex:0 0 36px; background:#f8e4df; color:#b8432d; box-shadow:inset 0 0 0 1px rgb(184 67 45 / .3); }"
+    },
+    {
+      "name": "Award Tile",
+      "kind": "custom",
+      "refersTo": "award-tile",
+      "description": "One-tap behaviour award in the profile and the whole-class dialog.",
+      "html": "<button class=\"ds-award\"><span class=\"ds-award-icon\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z\"/></svg></span><span><b>Excellent Behaviour</b><em>+5 XP</em></span></button>",
+      "css": ".ds-award { display:flex; align-items:center; gap:10px; width:200px; padding:10px; border:none; border-radius:12px; background:#fff; color:#16241c; text-align:left; box-shadow:0 0 0 1px #c3d0b8, 0 1px 2px rgb(22 36 28 / .08), 0 10px 24px -14px rgb(22 36 28 / .35); font-family:'Atkinson Hyperlegible Next Variable', system-ui, sans-serif; cursor:pointer; transition:transform .15s, box-shadow .15s; } .ds-award:hover { transform:translateY(-2px); box-shadow:0 0 0 1px #c3d0b8, 0 2px 4px rgb(22 36 28 / .08), 0 18px 34px -16px rgb(22 36 28 / .42); } .ds-award:active { transform:scale(.96); } .ds-award:focus-visible { outline:3px solid #2a6d56; outline-offset:3px; } .ds-award-icon { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border-radius:8px; background:color-mix(in srgb,#e8a91c 22%, white); box-shadow:inset 0 0 0 1.5px color-mix(in srgb,#e8a91c 55%, white); color:color-mix(in srgb,#e8a91c 70%, #16241c); } .ds-award b { display:block; font-size:15px; } .ds-award em { font-style:normal; font-weight:700; font-size:13px; color:#1c7240; font-variant-numeric:tabular-nums; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Living Field Guide",
+    "overview": "**Creative North Star: \"The Living Field Guide\"**\n\nThe class is a naturalist's field guide that fills up as the year goes on. The shell is woven bookcloth in deep green with a gilt title; every page sits on a sage endpaper printed with faint leaves, tracks and paw prints; each student's creature is a numbered specimen on a white plate, standing on a watercolour wash painted in its element colour with a pooled darker edge. The teacher is the curator: the interface frames specimens and gets out of their way.\n\nThe system is light, bright and dense enough to show a whole class at a glance, and loud only at the scale where the room needs it. Present mode, the profile and the big moments set names, levels and XP at monumental scale on bookcloth or white, one message per band. Everything else is quiet ink on paper, so the one marigold thing on screen is always the thing happening now.\n\nIt refuses both the dark game HUD with glowing pills it replaced and the grey admin table. It must not read as toddler pastel: colour comes from the painted plates and the creatures, not from tinted chrome.",
+    "keyCharacteristics": [
+      "Green bookcloth shell (header, Present bands, celebrations) with a real woven texture, gilt type on top.",
+      "Sage endpaper ground with a faint printed naturalist pattern; white plates with a rule hairline on it.",
+      "Watercolour washes per element behind every creature; plate art is raster, never CSS gradients.",
+      "Marigold gilt reserved for \"now\": selection, current tab, primary action, the just-rewarded ribbon.",
+      "Field numbers (No. 001 to 030) on every species surface, set in tabular figures.",
+      "One drawn 24px stroke icon set; emoji only as the teacher's own content."
+    ],
+    "rules": [
+      {
+        "name": "The Marigold Means Now Rule",
+        "body": "Gilt appears only on the active thing: the primary action, the current tab, the current selection, the most recent award. Never as decoration, never on a resting surface. If two unrelated things are marigold, one of them is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted Not Painted Rule",
+        "body": "Any colour that is not part of the book (element, behaviour, content tag) enters chrome only as a tint on white with a ring of the same hue; text on it stays ink.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scale Contrast Rule",
+        "body": "Hierarchy comes from size jumps on one scale (13, 16, 20, 44, 88), not from colour, caps or tracking. Display type is tightened (-0.01 to -0.03em); nothing is letterspaced open.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every number that can change or be compared (XP, coins, levels, field numbers, counts) is set in tabular figures.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper On Endpaper Rule",
+        "body": "Depth is one sheet thick. A plate never sits on another plate; tiles inside a sheet use rings and tints, not shadows.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep marigold gilt for the one active thing on screen: primary action, current tab, selection, the latest award.",
+      "**Do** put every creature on its watercolour wash inside a white plate with the field number beside the species name.",
+      "**Do** use bookcloth with the linen texture for the shell and for big moments, with gilt type for titles on it.",
+      "**Do** tint element and behaviour colours onto white with a ring of the same hue and keep the text ink.",
+      "**Do** set changeable numbers in tabular figures and give monumental numerals one message per band in Present and the profile.",
+      "**Do** use the drawn 24px stroke icon set for every control."
+    ],
+    "donts": [
+      "**Don't** use gilt on a resting surface, a decorative border or a heading on paper.",
+      "**Don't** return to a dark night-sky ground with glowing pills, or to a grey admin table.",
+      "**Don't** paint chrome in element colours or pastels; colour belongs to the creatures and their plates.",
+      "**Don't** use hard offset shadows or stacked sheets; one paper layer on the endpaper.",
+      "**Don't** build hierarchy from uppercase or letterspaced labels; use the size scale.",
+      "**Don't** put emoji in chrome; emoji appear only as the teacher's own behaviour, prize and badge content.",
+      "**Don't** let coins borrow gilt; currency is ochre."
+    ]
+  }
+}

@@ -214,7 +214,7 @@ function Wardrobe({ student }: { student: Student }) {
       {slots.map((slot) => (
         <div key={slot}>
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-sm font-extrabold uppercase tracking-wider text-ink-soft">{SLOT_LABEL[slot]}</span>
+            <span className="font-display text-[16px] font-bold text-ink">{SLOT_LABEL[slot]}</span>
             {student.equipped[slot] && slot !== 'background' && <button className="text-[13px] font-bold text-cloth-800 underline-offset-2 hover:underline" onClick={() => equip(student.id, slot, null)}>Take off</button>}
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
@@ -251,7 +251,7 @@ function Badges({ student }: { student: Student }) {
   const now = Date.now();
   return (
     <div>
-      <div className="mb-2 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Achievements · {have.size}/{ACHIEVEMENTS.length}</div>
+      <div className="mb-2 font-display text-[16px] font-bold text-ink">Achievements · {have.size}/{ACHIEVEMENTS.length}</div>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
         {ACHIEVEMENTS.map((a) => {
           const got = have.has(a.id);
@@ -266,7 +266,7 @@ function Badges({ student }: { student: Student }) {
           );
         })}
       </div>
-      <div className="mb-2 mt-5 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Challenges</div>
+      <div className="mb-2 mt-5 font-display text-[16px] font-bold text-ink">Challenges</div>
       <div className="flex flex-col gap-2">
         {challenges.filter((c) => c.active).map((c) => {
           const p = challengeProgress(c, student.id, events, now);
@@ -333,7 +333,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
   return (
     <div className="flex flex-col gap-5">
       <section>
-        <label className="text-sm font-extrabold uppercase tracking-wider text-ink-soft">Name</label>
+        <label className="font-display text-[16px] font-bold text-ink">Name</label>
         <div className="mt-1 flex gap-2">
           <input className="input" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
           <button className="btn btn-primary" disabled={!name.trim() || name === student.name} onClick={() => { update(student.id, { name: name.trim() }); notify('Name updated'); }}>Save</button>
@@ -341,7 +341,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
       </section>
 
       <section>
-        <div className="text-sm font-extrabold uppercase tracking-wider text-ink-soft">Creature</div>
+        <div className="font-display text-[16px] font-bold text-ink">Creature</div>
         <p className="text-sm text-ink-soft">Changing creature keeps all XP, levels, badges and items.</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button className="btn btn-light" onClick={() => { randomize(student.id); notify('New random creature!'); }}><Icon name="dice" size={18} />Random</button>
@@ -373,7 +373,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
       </section>
 
       <section>
-        <label className="text-sm font-extrabold uppercase tracking-wider text-ink-soft">Move to another class</label>
+        <label className="font-display text-[16px] font-bold text-ink">Move to another class</label>
         <p className="text-sm text-ink-soft">Progress moves with the student.</p>
         <select className="input mt-1" value={student.classId} onChange={(e) => { move(student.id, e.target.value); notify('Student moved'); onClose(); }}>
           {classes.filter((c) => !c.archived || c.id === student.classId).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
