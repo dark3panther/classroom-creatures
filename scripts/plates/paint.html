@@ -5,7 +5,8 @@
 // pigment pooled at each layer's edge, then granulation and paper tooth.
 function rng(seed){let h=2166136261;for(const c of seed)h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h=(h+0x6d2b79f5)|0;let t=Math.imul(h^(h>>>15),1|h);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};}
 function hexRgb(h){const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];}
-function paint(seed, pale, pooled, edge, W=600, H=450){
+function paint(seed, pale, pooled, edge, OW=600, OH=450){
+  const W=Math.round(OW*1.3), H=Math.round(OH*1.3);
   const r=rng(seed);
   const gauss=()=>{let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
   const deform=(poly,depth,scale)=>{let p=poly;for(let d=0;d<depth;d++){const out=[];for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];out.push(a);const len=Math.hypot(b.x-a.x,b.y-a.y);const v=(a.v+b.v)/2;out.push({x:(a.x+b.x)/2+gauss()*len*scale*v,y:(a.y+b.y)/2+gauss()*len*scale*v,v:v*(0.8+r()*0.4)});}p=out;}return p;};
@@ -42,7 +43,13 @@ function paint(seed, pale, pooled, edge, W=600, H=450){
     const k=Math.max(0,tooth-.55)*.9+speck;
     d[o]=d[o]+(er-d[o])*k*.5;d[o+1]=d[o+1]+(eg-d[o+1])*k*.5;d[o+2]=d[o+2]+(eb-d[o+2])*k*.5;d[o+3]=Math.min(255,a*(1+k*.35));}
   x.putImageData(img,0,0);
-  return c.toDataURL('image/webp',.8);
+  // fit the painted wash inside the plate with a margin, so every edge ends on paint, never on the canvas border
+  let x0=W,y0=H,x1=0,y1=0;const dd=x.getImageData(0,0,W,H).data;
+  for(let py=0;py<H;py++)for(let px=0;px<W;px++)if(dd[(py*W+px)*4+3]>6){if(px<x0)x0=px;if(px>x1)x1=px;if(py<y0)y0=py;if(py>y1)y1=py;}
+  const out=document.createElement('canvas');out.width=OW;out.height=OH;const ox=out.getContext('2d');
+  const k=Math.min(OW*.9/(x1-x0+1),OH*.9/(y1-y0+1));const dw=(x1-x0+1)*k,dh=(y1-y0+1)*k;
+  ox.drawImage(c,x0,y0,x1-x0+1,y1-y0+1,(OW-dw)/2,(OH-dh)/2+OH*.02,dw,dh);
+  return out.toDataURL('image/webp',.8);
 }
 window.paint=paint;
 </script>

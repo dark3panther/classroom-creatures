@@ -110,8 +110,10 @@ export function Present() {
         {students.length === 0 ? (
           <div className="grid h-full place-items-center font-display text-3xl font-bold text-ink-soft">Add students to see their creatures here.</div>
         ) : (
-          <div className="grid justify-center gap-4" style={{ gridTemplateColumns: `repeat(${fit.cols}, ${fit.w}px)` }}>
-            {sorted.map((s) => <PresentTile key={s.id} s={s} w={fit.w} onClick={() => setSpot(s.id)} />)}
+          <div className="flex min-h-full items-center justify-center">
+            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${fit.cols}, ${fit.w}px)` }}>
+              {sorted.map((s) => <PresentTile key={s.id} s={s} w={fit.w} onClick={() => setSpot(s.id)} />)}
+            </div>
           </div>
         )}
       </main>
