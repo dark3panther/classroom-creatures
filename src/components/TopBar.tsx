@@ -35,21 +35,21 @@ export function TopBar({ route }: { route: Route }) {
           <label className="relative min-w-0">
             <span className="sr-only">Current class</span>
             <select value={cls?.id ?? ''} onChange={(e) => setCurrent(e.target.value)}
-              className="max-w-[60vw] appearance-none truncate rounded-full bg-white/10 py-2 pl-4 pr-9 font-display text-base font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-gilt sm:max-w-none">
+              className="max-w-[calc(100vw-172px)] appearance-none truncate rounded-full bg-white/10 py-2 pl-4 pr-9 font-display text-base font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-gilt sm:max-w-none">
               {active.map((c) => <option key={c.id} value={c.id} className="text-ink">{c.name}{c.grade ? ` · ${c.grade}` : ''}</option>)}
             </select>
             <svg className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" width="12" height="8" viewBox="0 0 12 8" aria-hidden><path d="M1 1.5l5 5 5-5" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </label>
         )}
 
-        <nav className="order-last -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:mx-0 md:w-auto" aria-label="Main">
+        <nav className="order-last -mx-1 flex w-full gap-0.5 overflow-x-auto [mask-image:linear-gradient(90deg,#000_88%,transparent)] md:order-none md:mx-0 md:w-auto md:gap-1 md:[mask-image:none]" aria-label="Main">
           {TABS.map((t) => {
             const on = route.view === t.view;
             return (
               <button key={t.view} onClick={() => navigate(t.path)} aria-current={on ? 'page' : undefined}
-                className={`relative whitespace-nowrap px-3 py-2.5 font-display text-[16px] font-semibold transition ${on ? 'text-white' : 'text-white/75 hover:text-white'}`}>
+                className={`relative whitespace-nowrap px-2 py-2.5 font-display text-[16px] md:px-3 font-semibold transition ${on ? 'text-white' : 'text-white/75 hover:text-white'}`}>
                 {t.label}
-                <span className={`absolute inset-x-3 bottom-0 h-[3px] rounded-full transition ${on ? 'bg-gilt' : 'bg-transparent'}`} />
+                <span className={`absolute inset-x-2 bottom-0 h-[3px] md:inset-x-3 rounded-full transition ${on ? 'bg-gilt' : 'bg-transparent'}`} />
               </button>
             );
           })}

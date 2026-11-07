@@ -27,7 +27,7 @@
   --color-gilt-ink: #3b2800;
   --color-gilt-pale: #fdf0cc;
   /* state */
-  --color-leaf: #23864a;
+  --color-leaf: #1c7240;
   --color-leaf-pale: #e1f1e5;
   --color-brick: #b8432d;
   --color-brick-pale: #f8e4df;
@@ -45,7 +45,8 @@
 :root {
   color-scheme: light;
   --endpaper-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Cg fill='none' stroke='%231d5643' stroke-opacity='.13' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M26 92c3-26 20-43 46-48-3 26-20 43-46 48zM26 92l36-38M44 74l-2-12M52 66l8-3'/%3E%3Cg transform='translate(168 44) rotate(-18)'%3E%3Cpath d='M0 14V0M0 5l-8-9M0 5l8-9M0 14l0 5'/%3E%3C/g%3E%3Cg transform='translate(196 80) rotate(-18)'%3E%3Cpath d='M0 14V0M0 5l-8-9M0 5l8-9M0 14l0 5'/%3E%3C/g%3E%3Cpath d='M70 268c8-26 26-46 54-58'/%3E%3Cpath d='M80 248l-9-6M80 248l3-11M90 235l-9-5M90 235l4-11M101 225l-8-4M101 225l5-10M112 217l-7-3M112 217l6-8'/%3E%3Cpath d='M210 270c10-24 26-40 50-50-6 24-22 40-50 50zM210 270l38-38M226 254l-9-2M236 244l-9-2M228 252l3 8M238 242l3 8'/%3E%3Cpath d='M150 170a8 8 0 1 1 8 8a14 14 0 1 1-14-14a20 20 0 1 1 20 20'/%3E%3C/g%3E%3Cg fill='%231d5643' fill-opacity='.12'%3E%3Cpath d='M250 158c0-7 5-11 10-11s10 4 10 11c0 5-5 6-10 6s-10-1-10-6z'/%3E%3Ccircle cx='249' cy='143' r='3.2'/%3E%3Ccircle cx='256' cy='137' r='3.2'/%3E%3Ccircle cx='264' cy='137' r='3.2'/%3E%3Ccircle cx='271' cy='143' r='3.2'/%3E%3Ccircle cx='110' cy='40' r='2'/%3E%3Ccircle cx='118' cy='46' r='1.4'/%3E%3Ccircle cx='34' cy='176' r='2'/%3E%3Ccircle cx='280' cy='22' r='1.6'/%3E%3Ccircle cx='180' cy='236' r='1.6'/%3E%3C/g%3E%3C/svg%3E");
-  --linen: repeating-linear-gradient(0deg, rgb(255 255 255 / .035) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgb(0 0 0 / .06) 0 1px, transparent 1px 3px);
+  /* woven bookcloth: a tileable plain-weave overlay rendered by scripts/plates/paint.html */
+  --linen: url('./assets/bookcloth.png');
 }
 
 html, body, #root { height: 100%; }

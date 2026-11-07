@@ -5,7 +5,7 @@ import { useMood } from '../lib/useMood';
 import { AwardGrid } from '../components/AwardGrid';
 import { FloatingXP } from '../components/StudentCard';
 import { ChocoStick } from '../components/Celebrations';
-import { CoinIcon, Icon } from '../components/Icon';
+import { CoinIcon, Glyph, Icon } from '../components/Icon';
 import { ElementBadge, LevelBadge, Modal, ProgressBar, RarityStars } from '../components/ui';
 import { Creature, type CreatureAction } from '../creatures/Creature';
 import { CreatureSvg } from '../creatures/CreatureSvg';
@@ -89,8 +89,8 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
 
           <div className="mt-4 rounded-xl bg-wash p-4 ring-1 ring-rule">
             <div className="flex items-end justify-between gap-3">
-              <span className="font-display font-extrabold leading-none tracking-[-0.02em]"><span className="text-xl">Level </span><span className="text-[56px] tabular">{prog.level}</span></span>
-              <span className="pb-1 text-right font-display leading-none"><span className="text-[34px] font-extrabold tabular">{student.xp.toLocaleString()}</span><span className="text-lg font-bold text-ink-soft"> XP</span></span>
+              <span className="font-display font-extrabold leading-[0.85] tracking-[-0.03em]"><span className="text-2xl">Level </span><span className="text-[84px] tabular">{prog.level}</span></span>
+              <span className="text-right font-display leading-[0.85]"><span className="text-[52px] font-extrabold tracking-[-0.02em] tabular">{student.xp.toLocaleString()}</span><span className="text-xl font-bold text-ink-soft"> XP</span></span>
             </div>
             <ProgressBar pct={prog.pct} height={16} color={ELEMENTS[sp.element].color} className="mt-3" />
             <div className="mt-1.5 text-sm font-bold text-ink-soft">
@@ -302,7 +302,7 @@ function History({ student }: { student: Student }) {
       <ul className="flex flex-col gap-1">
         {mine.map((e) => (
           <li key={e.id} className="group flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-ink/5">
-            <span className="text-xl" aria-hidden>{e.icon}</span>
+            <span className={e.xp >= 0 ? 'text-leaf' : 'text-brick'} aria-hidden><Glyph icon={e.icon} size={20} /></span>
             <span className="flex-1 text-sm font-bold">{e.categoryName}<span className="block text-xs text-ink-soft">{new Date(e.at).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}</span></span>
             <span className={`font-display font-bold tabular ${e.xp >= 0 ? 'text-leaf' : 'text-brick'}`}>{e.xp >= 0 ? '+' : ''}{e.xp}</span>
             <button className="min-h-9 rounded-full px-3 py-1.5 text-xs font-bold text-ink-soft ring-1 ring-ink/15 hover:bg-ink/10" onClick={() => undo(e.batchId)}>Undo</button>

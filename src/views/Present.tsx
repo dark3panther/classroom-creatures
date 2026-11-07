@@ -1,10 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { awardSound, playTick, playCreature, playLevelUp } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
 import { PrizeWheel } from '../components/PrizeWheel';
 import { FloatingXP } from '../components/StudentCard';
-import { Icon } from '../components/Icon';
+import { Glyph, Icon } from '../components/Icon';
 import { ElementIcon, ProgressBar, StagePips } from '../components/ui';
 import { Burst } from '../creatures/Burst';
 import { Creature, type CreatureAction } from '../creatures/Creature';
@@ -12,7 +12,7 @@ import { Habitat } from '../creatures/Habitat';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
 import { ELEMENTS, STAGE_NAMES } from '../data/elements';
 import { fieldNo, getSpecies } from '../data/species';
-import { displayStage } from '../engine/progression';
+import { displayStage, levelForXp } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
 import { useMood } from '../lib/useMood';
@@ -50,21 +50,44 @@ export function Present() {
 
   const ticker = useMemo(() => {
     const byId = new Map(students.map((s) => [s.id, s]));
-    const out: string[] = [];
+    const out: { icon: string; text: string }[] = [];
     const seen = new Set<string>();
     for (let i = events.length - 1; i >= 0 && out.length < 8; i--) {
       const e = events[i];
       if (e.classId !== cls?.id || e.undone || e.xp <= 0 || seen.has(e.batchId)) continue;
       seen.add(e.batchId);
       const many = events.filter((x) => x.batchId === e.batchId).length;
-      out.push(`${e.icon} ${many > 1 ? `${many} friends` : firstName(byId.get(e.studentId)?.name ?? '')} · ${e.categoryName}`);
+      out.push({ icon: e.icon, text: `${many > 1 ? `${many} friends` : firstName(byId.get(e.studentId)?.name ?? '')} · ${e.categoryName}` });
     }
-    for (const s of students) for (const a of s.achievements) if (Date.now() - a.at < 86_400_000 && out.length < 12) out.push(`${ACHIEVEMENTS_BY_ID[a.id]?.icon ?? ''} ${firstName(s.name)} unlocked ${ACHIEVEMENTS_BY_ID[a.id]?.name}`);
+    for (const s of students) for (const a of s.achievements) if (Date.now() - a.at < 86_400_000 && out.length < 12) out.push({ icon: ACHIEVEMENTS_BY_ID[a.id]?.icon ?? '', text: `${firstName(s.name)} unlocked ${ACHIEVEMENTS_BY_ID[a.id]?.name}` });
     return out;
   }, [events, students, cls?.id]);
 
   const total = students.reduce((n, s) => n + s.xp, 0);
-  const cols = students.length > 24 ? 'grid-cols-[repeat(auto-fill,minmax(120px,1fr))]' : students.length > 14 ? 'grid-cols-[repeat(auto-fill,minmax(170px,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(220px,1fr))]';
+
+  // fit the whole class on the projector: pick the column count that gives the biggest plates without scrolling
+  const mainRef = useRef<HTMLElement>(null);
+  const [fit, setFit] = useState({ cols: 6, w: 200 });
+  useLayoutEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const calc = () => {
+      const W = el.clientWidth - 48, H = el.clientHeight - 36, gap = 16, n = Math.max(1, students.length);
+      let best = { cols: 1, w: 0 };
+      for (let cols = 1; cols <= n; cols++) {
+        const rows = Math.ceil(n / cols);
+        const byWidth = (W - gap * (cols - 1)) / cols;
+        const byHeight = ((H - gap * (rows - 1)) / rows - TILE_EXTRA) / TILE_RATIO;
+        const w = Math.min(byWidth, byHeight, 300);
+        if (w > best.w) best = { cols, w };
+      }
+      setFit({ cols: best.cols, w: Math.max(112, Math.floor(best.w)) });
+    };
+    calc();
+    const ro = new ResizeObserver(calc);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [students.length]);
 
   const goalPct = cls && cls.goal > 0 ? Math.min(1, total / cls.goal) : 0;
 
@@ -83,25 +106,25 @@ export function Present() {
         )}
       </header>
 
-      <main className="relative flex-1 overflow-y-auto px-6 pb-44 pt-6">
+      <main ref={mainRef} className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-3 pt-5">
         {students.length === 0 ? (
           <div className="grid h-full place-items-center font-display text-3xl font-bold text-ink-soft">Add students to see their creatures here.</div>
         ) : (
-          <div className={`grid ${cols} gap-4`}>
-            {sorted.map((s) => <PresentTile key={s.id} s={s} onClick={() => setSpot(s.id)} />)}
+          <div className="grid justify-center gap-4" style={{ gridTemplateColumns: `repeat(${fit.cols}, ${fit.w}px)` }}>
+            {sorted.map((s) => <PresentTile key={s.id} s={s} w={fit.w} onClick={() => setSpot(s.id)} />)}
           </div>
         )}
       </main>
 
       {ticker.length > 0 && (
-        <div className="absolute inset-x-0 bottom-[92px] overflow-hidden whitespace-nowrap border-y border-rule bg-white/90 py-2.5 font-display text-[22px] font-semibold text-ink" aria-hidden>
+        <div className="shrink-0 overflow-hidden whitespace-nowrap border-y border-rule bg-white/90 py-2.5 font-display text-[22px] font-semibold text-ink" aria-hidden>
           <motion.div className="inline-block" animate={{ x: ['0%', '-50%'] }} transition={{ repeat: Infinity, duration: Math.max(18, ticker.length * 5), ease: 'linear' }}>
-            {[...ticker, ...ticker].map((t, i) => <span key={i} className="mx-8">{t}</span>)}
+            {[...ticker, ...ticker].map((t, i) => <span key={i} className="mx-8 inline-flex items-center gap-2"><span className="text-cloth-700"><Glyph icon={t.icon} size={24} /></span>{t.text}</span>)}
           </motion.div>
         </div>
       )}
 
-      <nav className="cloth on-cloth absolute inset-x-0 bottom-0 flex h-[92px] flex-wrap items-center justify-center gap-3 px-4">
+      <nav className="cloth on-cloth flex min-h-[92px] shrink-0 flex-wrap items-center justify-center gap-3 px-4 py-3">
         <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}><Icon name="dice" size={24} />Pick a student</button>
         {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}><Icon name="sparkle" size={24} />Whole class</button>}
         {cls?.pendingSpin && !locked && <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setWheel(true)}><Icon name="wheel" size={24} />Prize wheel</button>}
@@ -127,19 +150,28 @@ export function Present() {
   );
 }
 
-function PresentTile({ s, onClick }: { s: Student; onClick: () => void }) {
+/** plate height + caption, as a multiple of the tile width plus fixed padding (used to fit the grid) */
+const TILE_RATIO = 1.19;
+const TILE_EXTRA = 26;
+
+function PresentTile({ s, w, onClick }: { s: Student; w: number; onClick: () => void }) {
   const settings = useStore((st) => st.data.settings);
   const pulse = useStore((st) => st.pulses[s.id]);
   const mood = useMood(s);
   const sp = getSpecies(s.speciesId);
   const stage = displayStage(s, settings);
+  const level = levelForXp(s.xp, settings.levelXp);
+  const big = Math.max(22, Math.round(w * 0.17));
   return (
-    <button onClick={onClick} className="paper group relative flex flex-col items-center p-2 pb-2.5 transition hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
+    <button onClick={onClick} className="paper group relative flex flex-col items-center p-2 pb-2.5 transition hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]" aria-label={`${firstName(s.name)}, level ${level}`}>
       <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[8px]">
         <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
+        <span className="absolute left-1.5 top-1.5 flex items-baseline gap-0.5 rounded-full bg-white/95 px-2 py-0.5 font-display font-extrabold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.25)] ring-2 ring-cloth-800 tabular" aria-hidden>
+          <span style={{ fontSize: Math.max(12, big * 0.42) }}>Lv</span><span style={{ fontSize: big }}>{level}</span>
+        </span>
       </Habitat>
       <FloatingXP pulse={pulse} />
-      <div className="mt-1.5 max-w-full truncate font-display text-[26px] font-bold leading-tight tracking-[-0.01em]">{firstName(s.name)}</div>
+      <div className="mt-1.5 max-w-full truncate font-display font-bold leading-tight tracking-[-0.01em]" style={{ fontSize: Math.max(18, Math.min(34, Math.round(w * 0.13))) }}>{firstName(s.name)}</div>
       <StagePips stage={stage} color={ELEMENTS[sp.element].color} />
     </button>
   );

@@ -5,10 +5,12 @@ import { Icon } from './Icon';
 import { PrizeWheel } from './PrizeWheel';
 import { Burst } from '../creatures/Burst';
 import { CreatureSvg } from '../creatures/CreatureSvg';
+import { Habitat } from '../creatures/Habitat';
+import { ElementIcon } from './ui';
 import { Creature } from '../creatures/Creature';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
 import { ELEMENTS, STAGE_NAMES } from '../data/elements';
-import { getSpecies } from '../data/species';
+import { fieldNo, getSpecies } from '../data/species';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { type Celebration, useStore } from '../store/store';
@@ -59,55 +61,75 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
 
   const showNew = phase === 'flash' || phase === 'reveal';
   const stage: Stage = showNew ? c.to : c.from;
+  const roman = (n: Stage) => ['I', 'II', 'III', 'IV', 'V'][n - 1];
 
   return (
-    <motion.div className="on-cloth fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
+    <motion.div className="cloth-deep on-cloth fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="cloth-deep absolute inset-0" />
-      <div className="absolute inset-0" style={{ background: `radial-gradient(60% 50% at 50% 45%, ${el.color}66, transparent 70%)` }} />
+      <div className="relative flex w-full max-w-5xl flex-col items-center">
+        <div className="flex items-center justify-center gap-6 sm:gap-10">
+          {/* the old entry steps aside once the new one is painted */}
+          <AnimatePresence>
+            {phase === 'reveal' && (
+              <motion.div className="hidden w-[min(22vh,190px)] flex-col items-center sm:flex" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 0.85, x: 0 }} transition={{ delay: 0.35 }}>
+                <div className="paper w-full p-1.5">
+                  <Habitat element={sp.element} seed={sp.id} className="aspect-square w-full" rounded="rounded-[6px]">
+                    <CreatureSvg species={sp} stage={c.from} equipped={student.equipped} effects={false} className="mx-auto h-full w-[82%]" />
+                  </Habitat>
+                </div>
+                <div className="mt-2 text-center font-display text-lg font-bold text-white/80">Stage {roman(c.from)} · {STAGE_NAMES[c.from]}</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {phase === 'reveal' && <motion.span className="hidden text-gilt sm:block" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}><Icon name="arrowRight" size={44} strokeWidth={2.4} /></motion.span>}
 
-      {/* rotating light rays on reveal */}
-      {phase === 'reveal' && (
-        <motion.div className="pointer-events-none absolute left-1/2 top-[44%] h-[150vmax] w-[150vmax] -translate-x-1/2 -translate-y-1/2"
-          initial={{ opacity: 0, rotate: 0 }} animate={{ opacity: 0.55, rotate: 60 }} transition={{ opacity: { duration: 0.6 }, rotate: { duration: 20, ease: 'linear' } }}
-          style={{ background: `repeating-conic-gradient(from 0deg, ${el.glow}55 0deg 8deg, transparent 8deg 24deg)`, maskImage: 'radial-gradient(circle, black 0%, transparent 55%)', WebkitMaskImage: 'radial-gradient(circle, black 0%, transparent 55%)' }} />
-      )}
-
-      <div className="relative flex flex-col items-center">
-        <div className="relative h-[min(52vh,420px)] w-[min(52vh,420px)]">
-          {/* gathering energy */}
-          {phase === 'charge' && Array.from({ length: 14 }).map((_, i) => {
-            const a = (i / 14) * Math.PI * 2;
-            return (
-              <motion.div key={i} className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full" style={{ background: i % 2 ? el.glow : '#fff', boxShadow: `0 0 12px ${el.glow}` }}
-                initial={{ x: Math.cos(a) * 260, y: Math.sin(a) * 260, opacity: 0 }}
-                animate={{ x: 0, y: 0, opacity: [0, 1, 0] }} transition={{ duration: 1.1, delay: (i % 7) * 0.18, repeat: 1 }} />
-            );
-          })}
-          <motion.div className="absolute inset-x-[14%] bottom-[2%] top-[26%] rounded-full" style={{ background: `radial-gradient(circle, #ffffff, ${el.glow}aa 40%, transparent 70%)` }}
-            animate={{ scale: phase === 'charge' ? [0.6, 1.3] : phase === 'reveal' ? 1.15 : 0.4, opacity: phase === 'intro' ? 0.2 : phase === 'reveal' ? 0.55 : 0.95 }}
-            transition={{ duration: phase === 'charge' ? 2.4 : 0.5 }} />
-          <motion.div className="absolute inset-0"
-            key={showNew ? 'new' : 'old'}
-            initial={showNew ? { scale: 0.5, opacity: 0 } : { scale: 0.9, opacity: 0 }}
-            animate={showNew ? { scale: 1, opacity: 1 } : { scale: phase === 'charge' ? [1, 1.06, 0.96, 1.08, 1] : 1, opacity: 1 }}
-            transition={showNew ? { type: 'spring', stiffness: 160, damping: 11 } : { duration: phase === 'charge' ? 2.4 : 0.5, repeat: 0 }}
-            style={{ filter: phase === 'charge' ? 'brightness(2.4) saturate(0)' : 'none', transition: 'filter 2.2s ease-in' }}>
-            <CreatureSvg species={sp} stage={stage} equipped={student.equipped} expression={phase === 'reveal' ? 'excited' : 'wow'} className="h-full w-full drop-shadow-[0_10px_30px_rgba(0,0,0,.4)]" />
-          </motion.div>
-          {phase === 'reveal' && <><Burst key={`c${run}`} kind="confetti" count={28} spread={260} size={16} duration={1.8} /><Burst key={`e${run}`} kind={sp.element} count={16} spread={200} size={26} duration={1.4} /></>}
+          {/* the hero plate: the specimen as it changes */}
+          <div className="flex flex-col items-center">
+            <div className="paper relative w-[min(50vh,420px)] p-2 shadow-[var(--shadow-lift)]">
+              <motion.div key={showNew ? 'new' : 'old'} className="relative"
+                initial={showNew ? { clipPath: 'circle(0% at 50% 55%)' } : false}
+                animate={{ clipPath: 'circle(80% at 50% 55%)' }} transition={{ duration: showNew ? 0.9 : 0, ease: [0.2, 0.7, 0.2, 1] }}>
+                <Habitat element={sp.element} seed={sp.id} className="aspect-square w-full" rounded="rounded-[10px]">
+                  {/* gathering energy */}
+                  {phase === 'charge' && Array.from({ length: 14 }).map((_, i) => {
+                    const a = (i / 14) * Math.PI * 2;
+                    return (
+                      <motion.div key={i} className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full" style={{ background: el.color }}
+                        initial={{ x: Math.cos(a) * 200, y: Math.sin(a) * 200, opacity: 0 }}
+                        animate={{ x: 0, y: 0, opacity: [0, 1, 0] }} transition={{ duration: 1.1, delay: (i % 7) * 0.18, repeat: 1 }} />
+                    );
+                  })}
+                  <motion.div className="absolute inset-0"
+                    initial={showNew ? { scale: 0.6, opacity: 0 } : { scale: 0.9, opacity: 0 }}
+                    animate={showNew ? { scale: 1, opacity: 1 } : { scale: phase === 'charge' ? [1, 1.06, 0.96, 1.08, 1] : 1, opacity: 1 }}
+                    transition={showNew ? { type: 'spring', stiffness: 160, damping: 11, delay: 0.25 } : { duration: phase === 'charge' ? 2.4 : 0.5 }}
+                    style={{ filter: phase === 'charge' ? 'brightness(2.2) saturate(0)' : 'none', transition: 'filter 2.2s ease-in' }}>
+                    <CreatureSvg species={sp} stage={stage} equipped={student.equipped} expression={phase === 'reveal' ? 'excited' : 'wow'} className="mx-auto h-full w-[84%]" />
+                  </motion.div>
+                </Habitat>
+              </motion.div>
+              {phase === 'reveal' && (
+                <motion.div className="pointer-events-none absolute -right-4 -top-4 grid h-24 w-24 rotate-[-12deg] place-items-center rounded-full border-[3px] border-gilt bg-cloth-950/90 text-center font-display font-extrabold leading-none text-gilt shadow-[var(--shadow-lift)]"
+                  initial={{ scale: 2.2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.9, type: 'spring', stiffness: 300, damping: 16 }} aria-hidden>
+                  <span><span className="block text-[13px]">{fieldNo(sp.id)}</span><span className="block text-[26px]">{roman(c.to)}</span></span>
+                </motion.div>
+              )}
+              {phase === 'reveal' && <><Burst key={`c${run}`} kind="confetti" count={28} spread={260} size={16} duration={1.8} /><Burst key={`e${run}`} kind={sp.element} count={16} spread={200} size={26} duration={1.4} /></>}
+            </div>
+            <div className="mt-3 flex items-center gap-2 font-display text-xl font-bold text-white">
+              <ElementIcon element={sp.element} size={20} color={el.color} />
+              <span className="tabular text-white/75">{fieldNo(sp.id)}</span> {sp.name} · Stage {roman(stage)} · {STAGE_NAMES[stage]}
+            </div>
+          </div>
         </div>
 
         <AnimatePresence>
           {phase === 'reveal' && (
-            <motion.div className="mt-2 text-center" initial={{ y: 30, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 14 }}>
+            <motion.div className="mt-5 text-center" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 16 }}>
               <h2 className="gilt-text font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-7xl">Your creature evolved!</h2>
               <p className="mt-3 text-lg font-bold text-white sm:text-2xl">
-                {firstName(student.name)}’s {sp.name} became <span style={{ color: el.glow }}>{STAGE_NAMES[c.to]}</span>{c.to === 5 ? `, ${sp.legendTitle}!` : '!'}
+                {firstName(student.name)}’s {sp.name} became {STAGE_NAMES[c.to]}{c.to === 5 ? `, ${sp.legendTitle}!` : '!'} A new entry for the field guide.
               </p>
-              <motion.div className="mx-auto mt-4 inline-flex items-center gap-2.5 rounded-full bg-white/10 px-5 py-2 text-white ring-2 ring-gilt/70" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.8, type: 'spring' }}>
-                <Icon name="star" size={22} className="text-gilt" /><span className="font-display text-lg font-semibold">Evolution badge · {STAGE_NAMES[c.to]}</span>
-              </motion.div>
               <div className="mt-6 flex justify-center gap-3">
                 <button className="btn btn-ghost" onClick={() => setRun((r) => r + 1)}><Icon name="replay" size={18} />Replay</button>
                 <button className="btn btn-primary px-8 text-lg" onClick={onDone} autoFocus>Hooray!</button>
@@ -116,7 +138,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
           )}
         </AnimatePresence>
         {phase !== 'reveal' && (
-          <motion.p className="mt-4 font-display text-2xl font-semibold text-white" animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+          <motion.p className="mt-5 font-display text-2xl font-semibold text-white" animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.4 }}>
             What? {firstName(student.name)}’s {sp.name} is evolving…
           </motion.p>
         )}

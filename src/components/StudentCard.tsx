@@ -10,7 +10,7 @@ import { fieldNo } from '../data/species';
 import { studentView } from '../lib/stats';
 import { useStore } from '../store/store';
 import type { Category, Student } from '../types';
-import { CoinIcon, Icon } from './Icon';
+import { CoinIcon, Glyph, Icon } from './Icon';
 import { ElementIcon, LevelBadge, ProgressBar, StagePips } from './ui';
 
 export function FloatingXP({ pulse }: { pulse?: { n: number; xp: number; icon: string; coins?: number; kind?: 'good' | 'bad' } }) {
@@ -85,7 +85,8 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
           )}
         </AnimatePresence>
         <FloatingXP pulse={pulse} />
-        <div className="px-3 pt-2.5">
+        <div className="px-3 pt-2">
+          <div className="mb-2 h-[3px] rounded-full" style={{ background: el.color }} aria-hidden />
           <div className="truncate font-display text-[20px] font-bold leading-tight tracking-[-0.01em]">{student.name}</div>
           <div className="mt-0.5 flex items-center gap-1.5 text-[13px] text-ink-soft">
             <ElementIcon element={species.element} size={13} color={el.color} />
@@ -106,14 +107,14 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
         <div className="mt-auto flex gap-1.5 px-3 pb-3 pt-2.5">
           {quick.map((c) => (
             <button key={c.id} type="button" onClick={() => quickAward(c)} title={`${c.name} (+${c.xp} XP)`} aria-label={`Award ${c.name} to ${student.name}`}
-              className="flex h-10 min-w-0 flex-1 items-center justify-center gap-0.5 rounded-full text-[14px] font-bold text-ink transition hover:brightness-[.97] active:translate-y-[1px]"
-              style={{ background: `color-mix(in srgb, ${c.color} 17%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${c.color} 50%, white)` }}>
-              <span aria-hidden className="text-[15px]">{c.icon}</span><span className="tabular">+{c.xp}</span>
+              className="flex h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[12px] font-bold leading-none text-ink transition hover:brightness-[.97] active:translate-y-[1px]"
+              style={{ background: `color-mix(in srgb, ${c.color} 15%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${c.color} 45%, white)` }}>
+              <span style={{ color: `color-mix(in srgb, ${c.color} 70%, #16241c)` }}><Glyph icon={c.icon} size={19} /></span><span className="tabular">+{c.xp}</span>
             </button>
           ))}
           {deductions.length > 0 && (
             <button type="button" onClick={() => setDeductOpen((o) => !o)} title="Behaviour reminders (deduct XP)" aria-label={`Deduct points from ${student.name}`} aria-expanded={deductOpen}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition active:translate-y-[1px] ${deductOpen ? 'bg-brick text-white' : 'bg-brick-pale text-brick ring-1 ring-brick/30 hover:bg-[#f3d4cc]'}`}>
+              className={`grid h-12 w-9 shrink-0 place-items-center rounded-xl transition active:translate-y-[1px] ${deductOpen ? 'bg-brick text-white' : 'bg-brick-pale text-brick ring-1 ring-brick/30 hover:bg-[#f3d4cc]'}`}>
               <Icon name="minus" size={18} strokeWidth={2.8} />
             </button>
           )}
@@ -125,7 +126,7 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
             {deductions.map((c) => (
               <button key={c.id} type="button" onClick={() => { quickAward(c); setDeductOpen(false); }}
                 className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-[13px] font-bold text-ink hover:bg-brick-pale">
-                <span className="text-base" aria-hidden>{c.icon}</span><span className="flex-1 leading-tight">{c.name}</span><span className="text-brick tabular">{c.xp}</span>
+                <span className="text-brick"><Glyph icon={c.icon} size={18} /></span><span className="flex-1 leading-tight">{c.name}</span><span className="text-brick tabular">{c.xp}</span>
               </button>
             ))}
           </motion.div>

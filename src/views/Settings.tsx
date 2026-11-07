@@ -8,7 +8,7 @@ import { uid } from '../engine/util';
 import { navigate } from '../lib/router';
 import { listSnapshots, type Snapshot } from '../store/storage';
 import { useStore } from '../store/store';
-import { Icon } from '../components/Icon';
+import { Glyph, Icon } from '../components/Icon';
 import type { Category, CategoryTag, Settings as SettingsT } from '../types';
 import { CreateClassModal } from './Dashboard';
 
@@ -126,7 +126,7 @@ function BehavioursTab() {
       <div className="flex flex-col gap-2">
         {categories.filter((c) => c.xp > 0 || negative).map((c) => (
           <div key={c.id} className="flex items-center gap-3 rounded-xl bg-white p-2 pr-3 ring-1 ring-rule">
-            <span className="grid h-11 w-11 place-items-center rounded-lg text-2xl" style={{ background: c.xp < 0 ? 'var(--color-brick-pale)' : `color-mix(in srgb, ${c.color} 22%, white)`, boxShadow: `inset 0 0 0 1.5px ${c.xp < 0 ? 'rgb(184 67 45 / .3)' : `color-mix(in srgb, ${c.color} 55%, white)`}` }}>{c.icon}</span>
+            <span className="grid h-11 w-11 place-items-center rounded-lg" style={{ background: c.xp < 0 ? 'var(--color-brick-pale)' : `color-mix(in srgb, ${c.color} 22%, white)`, boxShadow: `inset 0 0 0 1.5px ${c.xp < 0 ? 'rgb(184 67 45 / .3)' : `color-mix(in srgb, ${c.color} 55%, white)`}`, color: c.xp < 0 ? 'var(--color-brick)' : `color-mix(in srgb, ${c.color} 70%, #16241c)` }}><Glyph icon={c.icon} size={24} /></span>
             <span className="min-w-0 flex-1">
               <span className="block truncate font-bold">{c.name}</span>
               <span className="text-[13px] text-ink-soft"><b className={c.xp < 0 ? 'text-brick' : 'text-leaf'}>{c.xp > 0 ? '+' : ''}{c.xp} XP</b> · counts as {TAG_LABELS[c.tag]}</span>
@@ -165,7 +165,7 @@ function CategoryForm({ c, negative, exists, onSave, onDelete, onCancel }: { c: 
         </label>
       </div>
       <div className="mt-3 text-sm font-bold">Icon</div>
-      <div className="mt-1 flex flex-wrap gap-1">{ICONS.map((i) => <button type="button" key={i} onClick={() => setD({ ...d, icon: i })} className={`grid h-10 w-10 place-items-center rounded-lg text-xl ${d.icon === i ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-endpaper'}`}>{i}</button>)}</div>
+      <div className="mt-1 flex flex-wrap gap-1">{ICONS.map((i) => <button type="button" key={i} onClick={() => setD({ ...d, icon: i })} aria-label={`Icon ${i}`} aria-pressed={d.icon === i} className={`grid h-10 w-10 place-items-center rounded-lg text-ink ${d.icon === i ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-endpaper'}`}><Glyph icon={i} size={22} /></button>)}</div>
       <div className="mt-3 text-sm font-bold">Colour</div>
       <div className="mt-1 flex flex-wrap gap-1.5">{COLORS.map((col) => <button type="button" key={col} aria-label={col} onClick={() => setD({ ...d, color: col })} className={`h-8 w-8 rounded-full ring-offset-2 ${d.color === col ? 'ring-[3px] ring-ink' : ''}`} style={{ background: col }} />)}</div>
       <div className="mt-6 flex justify-between gap-2">

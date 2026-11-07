@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useStore } from '../store/store';
-import { Icon } from './Icon';
+import { Glyph, Icon } from './Icon';
 
 const UNDO_WINDOW = 10_000;
 
@@ -40,7 +40,7 @@ export function Toasts() {
         {showUndo && last && !bigMoment && (
           <motion.div key={last.batchId} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
             className="cloth on-cloth pointer-events-auto flex items-center gap-3 rounded-full py-2 pl-5 pr-2 shadow-[var(--shadow-lift)]" role="status">
-            <span className="text-xl" aria-hidden>{last.icon}</span>
+            <span className="text-[#f6cb62]" aria-hidden><Glyph icon={last.icon} size={22} /></span>
             <span className="font-bold">
               {last.label} <span className="gilt-text tabular">{last.xp === 0 ? 'reminder noted' : `${last.xp > 0 ? '+' : ''}${last.xp} XP`}</span>
               <span className="text-white/80"> · {last.count === 1 ? '1 student' : `${last.count} students`}</span>

@@ -4,7 +4,7 @@ import { awardSound } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
 import { PrizeWheel } from '../components/PrizeWheel';
 import { StudentCard } from '../components/StudentCard';
-import { Icon } from '../components/Icon';
+import { Glyph, Icon } from '../components/Icon';
 import { Modal, ProgressBar, SectionTitle } from '../components/ui';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
@@ -51,9 +51,10 @@ export function Dashboard() {
     for (let i = data.events.length - 1; i >= 0; i--) {
       const e = data.events[i];
       if (e.classId !== cls?.id || e.undone) continue;
-      return new Set(data.events.filter((x) => x.batchId === e.batchId && !x.undone).map((x) => x.studentId));
+      const batch = data.events.filter((x) => x.batchId === e.batchId && !x.undone);
+      return { ids: new Set(batch.length <= 3 ? batch.map((x) => x.studentId) : []), count: batch.length, icon: e.icon, name: e.categoryName, xp: e.xp, at: e.at };
     }
-    return new Set<string>();
+    return null;
   }, [data.events, cls?.id]);
 
   const visible = useMemo(() => {
@@ -94,7 +95,7 @@ export function Dashboard() {
       {/* header */}
       <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[44px]">{cls.name}</h1>
+          <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:truncate sm:text-[44px]">{cls.name.replace(/ ([·\-–]) /g, '\u00a0$1 ')}</h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-ink-soft">
             {cls.grade && <span className="font-bold text-ink">{cls.grade}</span>}
             <span><b className="text-ink tabular">{students.length}</b> students</span>
@@ -111,6 +112,12 @@ export function Dashboard() {
           {cls.pendingSpin && (
             <button className="btn btn-primary mt-2.5 w-full !py-2" onClick={() => setWheel(true)}><Icon name="wheel" size={18} />Spin the prize wheel</button>
           )}
+          {fresh && fresh.count > 3 && (
+            <div className="mt-2 flex items-center gap-2 text-[13px] text-ink-soft" title="The latest award, marked until you give the next one">
+              <span className="ribbon h-5 w-3 shrink-0" aria-hidden />
+              <span className="truncate">Last award: <b className="text-ink">whole class</b> · {fresh.name} <b className={`tabular ${fresh.xp >= 0 ? 'text-leaf' : 'text-brick'}`}>{fresh.xp >= 0 ? '+' : ''}{fresh.xp}</b> · {timeAgo(fresh.at)}</span>
+            </div>
+          )}
           {!cls.pendingSpin && (cls.prizeHistory?.length ?? 0) > 0 && (
             <div className="mt-1.5 truncate text-[13px] text-ink-soft">Last prize: {cls.prizeHistory[cls.prizeHistory.length - 1].icon} {cls.prizeHistory[cls.prizeHistory.length - 1].label}</div>
           )}
@@ -125,10 +132,10 @@ export function Dashboard() {
         </button>
         <button className="btn btn-ghost" onClick={() => setAdding(true)}><Icon name="plus" size={18} />Add students</button>
         <div className="flex w-full flex-wrap items-center gap-2 lg:ml-auto lg:w-auto">
-          <label className="relative min-w-[180px] flex-1 sm:flex-none">
-            <span className="sr-only">Search students</span>
+          <label className="relative min-w-[150px] flex-1 sm:flex-none">
+            <span className="sr-only">Search students by name or creature</span>
             <Icon name="search" size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-soft" />
-            <input className="input !rounded-full !py-2 !pl-10 sm:!w-52" placeholder="Search name or creature" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <input className="input !rounded-full !py-2 !pl-10 sm:!w-44" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
           </label>
           <select className="input !w-auto !rounded-full !py-2" value={element} onChange={(e) => setElement(e.target.value as ElementType | 'all')} aria-label="Filter by element">
             <option value="all">All elements</option>
@@ -155,7 +162,7 @@ export function Dashboard() {
           ) : (
             <motion.div layout className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))] sm:gap-4">
               {visible.map((s) => (
-                <StudentCard key={s.id} student={s} quick={quick} selecting={selecting} selected={selected.has(s.id)} onOpen={setProfile} onToggle={toggle} fresh={fresh.has(s.id)} />
+                <StudentCard key={s.id} student={s} quick={quick} selecting={selecting} selected={selected.has(s.id)} onOpen={setProfile} onToggle={toggle} fresh={!!fresh?.ids.has(s.id)} />
               ))}
             </motion.div>
           )}
@@ -244,16 +251,20 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
         <SectionTitle>Recent activity</SectionTitle>
         {batches.length === 0 && <p className="text-sm text-ink-soft">Awards you give will show up here.</p>}
         <ul className="-mx-1 flex flex-col divide-y divide-rule/70">
-          {batches.map((b) => (
+          {batches.map((b, i) => (
             <li key={b.batchId} className="group flex items-center gap-2.5 px-1 py-2">
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-lg ${b.xp >= 0 ? 'bg-leaf-pale' : 'bg-brick-pale'}`} aria-hidden>{b.icon}</span>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${b.xp >= 0 ? 'bg-leaf-pale text-leaf' : 'bg-brick-pale text-brick'}`} aria-hidden><Glyph icon={b.icon} size={18} /></span>
               <div className="min-w-0 flex-1 text-sm leading-tight">
                 <div className="truncate font-bold">
                   {b.ids.length > 3 ? `${b.ids.length} students` : b.ids.map((id) => firstName(byId.get(id)?.name ?? '?')).join(', ')}
                 </div>
                 <div className="truncate text-[13px] text-ink-soft">{b.name} · <b className={`tabular ${b.xp >= 0 ? 'text-leaf' : 'text-brick'}`}>{b.xp >= 0 ? '+' : ''}{b.xp}</b> · {timeAgo(b.at)}</div>
               </div>
-              <button className="flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-bold text-ink-soft ring-1 ring-rule transition hover:bg-wash hover:text-ink" onClick={() => undo(b.batchId)} title="Undo this award"><Icon name="undo" size={14} strokeWidth={2.4} />Undo</button>
+              {i === 0 ? (
+                <button className="flex min-h-9 items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-bold text-ink-soft ring-1 ring-rule transition hover:bg-wash hover:text-ink" onClick={() => undo(b.batchId)} title="Undo this award"><Icon name="undo" size={14} strokeWidth={2.4} />Undo</button>
+              ) : (
+                <button className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-soft/70 transition hover:bg-wash hover:text-ink" onClick={() => undo(b.batchId)} title="Undo this award" aria-label={`Undo ${b.name}`}><Icon name="undo" size={16} strokeWidth={2.2} /></button>
+              )}
             </li>
           ))}
         </ul>
