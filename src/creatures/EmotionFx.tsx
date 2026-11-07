@@ -41,7 +41,7 @@ export function EmotionFx({ mood, compact }: { mood: Mood; compact?: boolean }) 
       );
     case 'sleepy':
       return (
-        <div className="pointer-events-none absolute right-[14%] top-[6%] font-display font-bold text-white" aria-hidden style={{ textShadow: '0 2px 0 #4f3a9c' }}>
+        <div className="pointer-events-none absolute right-[14%] top-[6%] font-display font-bold text-white" aria-hidden style={{ textShadow: '0 2px 0 #1d5643' }}>
           {['z', 'Z', 'Z'].map((z, i) => (
             <span key={i} className="cc-zzz absolute" style={{ animationDelay: `${i * 0.8}s`, fontSize: (compact ? 12 : 18) + i * 5 }}>{z}</span>
           ))}
@@ -82,7 +82,7 @@ export function BonkFx() {
   return (
     <div className="pointer-events-none absolute inset-0 z-10" aria-hidden>
       <motion.div className="absolute left-1/2 top-[8%] -translate-x-1/2 font-display text-3xl font-bold text-white"
-        style={{ WebkitTextStroke: '2px #4f3a9c', textShadow: '0 3px 0 #4f3a9c' }}
+        style={{ WebkitTextStroke: '2px #8a2f1e', textShadow: '0 3px 0 #8a2f1e' }}
         initial={{ scale: 0, rotate: -20 }} animate={{ scale: [0, 1.4, 1], rotate: [-20, 8, -4] }} transition={{ duration: 0.45 }}>
         BONK!
       </motion.div>

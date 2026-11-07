@@ -4,13 +4,15 @@ import { MOODS } from '../engine/mood';
 import { useMood } from '../lib/useMood';
 import { AwardGrid } from '../components/AwardGrid';
 import { FloatingXP } from '../components/StudentCard';
+import { ChocoStick } from '../components/Celebrations';
+import { CoinIcon, Icon } from '../components/Icon';
 import { ElementBadge, LevelBadge, Modal, ProgressBar, RarityStars } from '../components/ui';
 import { Creature, type CreatureAction } from '../creatures/Creature';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { Habitat } from '../creatures/Habitat';
 import { ACHIEVEMENTS, ITEMS, TAG_LABELS } from '../data/defaults';
-import { RARITIES, STAGE_NAMES } from '../data/elements';
-import { SPECIES, getSpecies } from '../data/species';
+import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
+import { SPECIES, fieldNo, getSpecies } from '../data/species';
 import { challengeProgress } from '../engine/awards';
 import { speciesChoices } from '../engine/roster';
 import { timeAgo } from '../engine/util';
@@ -51,84 +53,85 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
       {/* creature side */}
       <div className="p-4 sm:p-6">
-        <Habitat element={sp.element} background={student.equipped.background} className="h-[300px] sm:h-[380px]" rounded="rounded-[1.5rem]">
+        <Habitat element={sp.element} seed={sp.id} background={student.equipped.background} className="h-[300px] border border-rule sm:h-[380px]" rounded="rounded-[12px]">
           <Creature speciesId={sp.id} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(student.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
           <FloatingXP pulse={pulse} />
           <div className="absolute left-3 top-3 flex items-center gap-2"><LevelBadge level={prog.level} size="lg" /></div>
-          <div className="absolute right-3 top-3 rounded-full bg-white/85 px-3 py-1"><RarityStars rarity={sp.rarity} /></div>
-          <div className="absolute inset-x-0 bottom-2 text-center text-xs font-bold text-ink/50">Tap the creature to play!</div>
+          <div className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 ring-1 ring-rule"><RarityStars rarity={sp.rarity} /></div>
+          <div className="absolute inset-x-0 bottom-2 text-center text-[13px] font-bold text-ink-soft">Tap the creature to play!</div>
         </Habitat>
 
         <div className="mt-3 flex flex-wrap justify-center gap-2">
-          {([['jump', '⤒ Jump'], ['wave', '👋 Wave'], ['ability', `✨ ${sp.ability}`], ['happy', '💖 Happy'], ['sound', '🎵 Sing']] as const).map(([k, label]) => (
-            <button key={k} className="btn btn-light !py-2 !text-sm" onClick={() => doAct(k)}>{label}</button>
+          {([['jump', 'jump', 'Jump'], ['wave', 'wave', 'Wave'], ['ability', 'sparkle', sp.ability], ['happy', 'heart', 'Happy'], ['sound', 'music', 'Sing']] as const).map(([k, icon, label]) => (
+            <button key={k} className="btn btn-light !py-2 !text-sm" onClick={() => doAct(k)}><Icon name={icon} size={16} />{label}</button>
           ))}
         </div>
 
         <div className="mt-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-display text-3xl font-bold">{student.name}</h2>
-            {student.isDemo && <span className="chip bg-berry text-white">DEMO</span>}
+            <h2 className="font-display text-[34px] font-extrabold leading-tight tracking-[-0.02em]">{student.name}</h2>
+            {student.isDemo && <span className="chip bg-berry/10 text-berry ring-1 ring-berry/30">Demo</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-ink-soft">
-            <span className="font-display text-xl font-semibold text-ink">{sp.name}{stage === 5 ? `, ${sp.legendTitle}` : ''}</span>
+            <span className="tabular">{fieldNo(sp.id)}</span>
+            <span className="font-display text-xl font-bold text-ink">{sp.name}{stage === 5 ? `, ${sp.legendTitle}` : ''}</span>
             <ElementBadge element={sp.element} />
-            <span className="chip" style={{ background: `${r.color}22`, color: r.color }}>{STAGE_NAMES[stage]}</span>
+            <span className="chip bg-wash text-ink ring-1 ring-rule" title={r.name}>{STAGE_NAMES[stage]}</span>
           </div>
           <p className="mt-2 text-[15px] text-ink-soft">{sp.personality}</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            <span className="chip !py-1 !text-sm" style={{ background: `${MOODS[mood].color}22`, color: MOODS[mood].color }}>{MOODS[mood].icon} Feeling {MOODS[mood].label.toLowerCase()}</span>
-            <span className="chip bg-[#fff1c2] !py-1 !text-sm text-[#8a5a00]">🪙 {student.coins ?? 0} coins</span>
+            <span className="chip bg-white !py-1 !text-sm text-ink ring-1 ring-rule"><span className="h-2.5 w-2.5 rounded-full" style={{ background: MOODS[mood].color }} />Feeling {MOODS[mood].label.toLowerCase()}</span>
+            <span className="chip bg-[#fdf2d6] !py-1 !text-sm text-[#7a5308] ring-1 ring-[#e7c77a]"><CoinIcon size={15} /><span className="tabular">{student.coins ?? 0}</span> coins</span>
             {(student.milestoneRewards ?? []).filter((r) => !r.given).length > 0 && (
-              <span className="chip bg-[#f3e2d3] !py-1 !text-sm text-[#7a4b2a]">🍫 {(student.milestoneRewards ?? []).filter((r) => !r.given).length} reward{(student.milestoneRewards ?? []).filter((r) => !r.given).length === 1 ? '' : 's'} to hand out</span>
+              <span className="chip bg-[#f3e2d3] !py-1 !text-sm text-[#6b3f22] ring-1 ring-[#d9b89c]"><ChocoStick size={18} />{(student.milestoneRewards ?? []).filter((r) => !r.given).length} reward{(student.milestoneRewards ?? []).filter((r) => !r.given).length === 1 ? '' : 's'} to hand out</span>
             )}
           </div>
 
-          <div className="mt-4 rounded-2xl bg-cream p-4">
-            <div className="flex items-baseline justify-between">
-              <span className="font-display text-lg font-semibold">Level {prog.level}</span>
-              <span className="text-sm font-bold tabular-nums text-ink-soft">{student.xp} XP total</span>
+          <div className="mt-4 rounded-xl bg-wash p-4 ring-1 ring-rule">
+            <div className="flex items-end justify-between gap-3">
+              <span className="font-display font-extrabold leading-none tracking-[-0.02em]"><span className="text-xl">Level </span><span className="text-[56px] tabular">{prog.level}</span></span>
+              <span className="pb-1 text-right font-display leading-none"><span className="text-[34px] font-extrabold tabular">{student.xp.toLocaleString()}</span><span className="text-lg font-bold text-ink-soft"> XP</span></span>
             </div>
-            <ProgressBar pct={prog.pct} height={16} color={stage === 5 ? '#f2a20c' : '#8b5cf6'} className="mt-2" />
+            <ProgressBar pct={prog.pct} height={16} color={ELEMENTS[sp.element].color} className="mt-3" />
             <div className="mt-1.5 text-sm font-bold text-ink-soft">
               {prog.isMax ? 'Maximum level reached. Amazing!' : `${prog.toNext} XP to Level ${prog.level + 1}`}
             </div>
             <div className="mt-2 text-sm font-bold">
-              {next ? <>🎯 Next evolution: <span className="text-grape">{STAGE_NAMES[next.stage]}</span> at Level {next.level} · {next.xpNeeded} XP to go</>
-                : <>👑 {sp.name} has reached its Legendary Form!</>}
+              {next ? <span className="flex items-center gap-1.5"><Icon name="target" size={16} className="shrink-0 text-cloth-800" /><span>Next evolution: <span className="text-cloth-800">{STAGE_NAMES[next.stage]}</span> at Level {next.level} · {next.xpNeeded} XP to go</span></span>
+                : <span className="flex items-center gap-1.5"><Icon name="crown" size={16} className="shrink-0 text-cloth-800" />{sp.name} has reached its Legendary Form!</span>}
             </div>
           </div>
 
           {/* evolution path */}
           <div className="mt-4">
-            <div className="mb-1 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Evolution path</div>
+            <div className="mb-1.5 font-display text-[17px] font-bold">Evolution path</div>
             <div className="grid grid-cols-5 gap-1.5">
               {([1, 2, 3, 4, 5] as Stage[]).map((st) => {
                 const reached = st <= Math.max(stage, student.bestStage);
                 return (
                   <button key={st} disabled={!reached || st === 1} onClick={() => replay(student.id, st)}
-                    className={`group relative rounded-2xl p-1 text-center ${st === stage ? 'bg-grape/15 ring-2 ring-grape' : 'bg-ink/5'}`}
+                    className={`group relative rounded-xl p-1 text-center ${st === stage ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash ring-1 ring-rule'}`}
                     title={reached && st > 1 ? `Replay the ${STAGE_NAMES[st]} evolution` : reached ? STAGE_NAMES[st] : `Unlocks at Level ${settings.evolutionLevels[st - 1]}`}>
                     <div className="aspect-square" style={reached ? undefined : { filter: 'brightness(0)', opacity: 0.22 }}>
                       <CreatureSvg species={sp} stage={st} effects={false} noShadow className="h-full w-full" />
                     </div>
-                    <div className="text-[10px] font-extrabold leading-tight text-ink-soft">{reached ? STAGE_NAMES[st] : `Lv ${settings.evolutionLevels[st - 1]}`}</div>
-                    {reached && st > 1 && <span className="absolute right-1 top-1 hidden rounded-full bg-white px-1.5 text-[10px] font-bold text-grape shadow group-hover:block">↻</span>}
+                    <div className="text-[11px] font-bold leading-tight text-ink-soft">{reached ? STAGE_NAMES[st] : `Lv ${settings.evolutionLevels[st - 1]}`}</div>
+                    {reached && st > 1 && <span className="absolute right-1 top-1 hidden rounded-full bg-white p-0.5 text-cloth-800 shadow group-hover:block"><Icon name="replay" size={12} strokeWidth={2.6} /></span>}
                   </button>
                 );
               })}
             </div>
-            {stage > 1 && <button className="btn btn-light mt-2 !py-1.5 !text-sm" onClick={() => replay(student.id, stage)}>↻ Replay evolution</button>}
+            {stage > 1 && <button className="btn btn-light mt-2 !py-1.5 !text-sm" onClick={() => replay(student.id, stage)}><Icon name="replay" size={16} />Replay evolution</button>}
           </div>
         </div>
       </div>
 
       {/* tabs side */}
-      <div className="border-t border-ink/10 p-4 sm:p-6 lg:border-l lg:border-t-0">
-        <div className="mb-4 flex gap-1 overflow-x-auto rounded-full bg-ink/5 p-1" role="tablist">
+      <div className="border-t border-rule p-4 sm:p-6 lg:border-l lg:border-t-0">
+        <div className="mb-4 mr-12 flex gap-1 overflow-x-auto rounded-full bg-wash p-1 ring-1 ring-rule" role="tablist">
           {([['award', 'Award'], ['shop', 'Shop'], ['wardrobe', 'Wardrobe'], ['badges', 'Badges'], ['history', 'History'], ['manage', 'Manage']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-              className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 font-display font-semibold transition ${tab === k ? 'bg-white text-ink shadow' : 'text-ink-soft hover:text-ink'}`}>{l}</button>
+              className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 font-display font-semibold transition ${tab === k ? 'bg-cloth-800 text-white' : 'text-ink-soft hover:bg-white hover:text-ink'}`}>{l}</button>
           ))}
         </div>
         {tab === 'award' && (
@@ -168,9 +171,9 @@ function Shop({ student }: { student: Student }) {
   const coins = student.coins ?? 0;
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between rounded-2xl bg-[#fff1c2] px-4 py-3">
-        <span className="font-display text-lg font-semibold text-[#8a5a00]">🪙 {coins} coins</span>
-        <span className="text-xs font-bold text-[#8a5a00]/80">Students earn 1 coin for every XP point.</span>
+      <div className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-[#fdf2d6] px-4 py-3 ring-1 ring-[#e7c77a]">
+        <span className="flex items-center gap-2 font-display text-xl font-bold text-[#6b4806]"><CoinIcon size={22} /><span className="tabular">{coins}</span> coins</span>
+        <span className="text-right text-[13px] text-[#6b4806]">Students earn 1 coin for every XP point.</span>
       </div>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
         {shop.map((it) => {
@@ -178,7 +181,7 @@ function Shop({ student }: { student: Student }) {
           const owned = student.unlockedItems.includes(it.id);
           const can = !owned && coins >= price;
           return (
-            <div key={it.id} className={`flex flex-col rounded-2xl p-2 text-center ${owned ? 'bg-mint/15' : 'bg-ink/5'}`}>
+            <div key={it.id} className={`flex flex-col rounded-xl p-2 text-center ring-1 ${owned ? 'bg-leaf-pale ring-leaf/30' : 'bg-wash ring-rule'}`}>
               {it.slot === 'background' ? (
                 <Habitat element={v.species.element} background={it.id} className="aspect-square" rounded="rounded-xl"><span /></Habitat>
               ) : (
@@ -186,11 +189,11 @@ function Shop({ student }: { student: Student }) {
               )}
               <div className="mt-1 truncate text-xs font-extrabold">{it.name}</div>
               {owned ? (
-                <button className="btn btn-light mt-1 !py-1 !text-xs" onClick={() => equip(student.id, it.slot, it.id)}>✓ Owned · Wear</button>
+                <button className="btn btn-light mt-1 !py-1 !text-xs" onClick={() => equip(student.id, it.slot, it.id)}><Icon name="check" size={14} strokeWidth={2.6} />Owned · Wear</button>
               ) : (
                 <button className="btn btn-primary mt-1 !py-1 !text-xs" disabled={!can}
                   onClick={() => { if (buy(student.id, it.id)) { if (sound) { playCoin(); setTimeout(playPop, 120); } equip(student.id, it.slot, it.id); notify(`${student.name.split(' ')[0]} bought ${it.name}!`); } }}>
-                  🪙 {price}
+                  <CoinIcon size={14} />{price}
                 </button>
               )}
             </div>
@@ -212,7 +215,7 @@ function Wardrobe({ student }: { student: Student }) {
         <div key={slot}>
           <div className="mb-1.5 flex items-center justify-between">
             <span className="text-sm font-extrabold uppercase tracking-wider text-ink-soft">{SLOT_LABEL[slot]}</span>
-            {student.equipped[slot] && slot !== 'background' && <button className="text-xs font-bold text-grape" onClick={() => equip(student.id, slot, null)}>Take off</button>}
+            {student.equipped[slot] && slot !== 'background' && <button className="text-[13px] font-bold text-cloth-800 underline-offset-2 hover:underline" onClick={() => equip(student.id, slot, null)}>Take off</button>}
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
             {ITEMS.filter((i) => i.slot === slot).map((it) => {
@@ -220,7 +223,7 @@ function Wardrobe({ student }: { student: Student }) {
               const on = student.equipped[slot] === it.id;
               return (
                 <button key={it.id} disabled={!owned} onClick={() => { equip(student.id, slot, on && slot !== 'background' ? null : it.id); if (settings.soundEnabled) playPop(); }}
-                  className={`relative rounded-2xl p-1.5 text-center transition ${on ? 'bg-sun/30 ring-2 ring-sun-deep' : owned ? 'bg-ink/5 hover:bg-ink/10' : 'bg-ink/5'}`}
+                  className={`relative rounded-xl p-1.5 text-center transition ${on ? 'bg-gilt-pale ring-2 ring-gilt-deep' : owned ? 'bg-wash ring-1 ring-rule hover:bg-endpaper' : 'bg-wash ring-1 ring-rule'}`}
                   title={owned ? it.description : `Locked · ${unlockText(it)}`}>
                   {slot === 'background' ? (
                     <Habitat element={v.species.element} background={it.id} className="aspect-square" rounded="rounded-xl"><span /></Habitat>
@@ -230,7 +233,7 @@ function Wardrobe({ student }: { student: Student }) {
                     </div>
                   )}
                   <div className="mt-1 truncate text-[11px] font-extrabold">{it.name}</div>
-                  {!owned && <div className="truncate text-[10px] font-bold text-ink-soft">🔒 {unlockText(it)}</div>}
+                  {!owned && <div className="flex items-center justify-center gap-1 truncate text-[11px] font-bold text-ink-soft"><Icon name="lock" size={11} strokeWidth={2.4} className="shrink-0" />{unlockText(it)}</div>}
                 </button>
               );
             })}
@@ -254,7 +257,7 @@ function Badges({ student }: { student: Student }) {
           const got = have.has(a.id);
           return (
             <div key={a.id} className={`flex items-center gap-2 rounded-2xl p-2 ${got ? '' : 'opacity-50 grayscale'}`} style={{ background: got ? `${a.color}22` : 'rgb(43 33 64 / .05)' }}>
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xl" style={{ background: got ? `${a.color}44` : 'rgb(43 33 64 / .08)' }}>{got ? a.icon : '🔒'}</span>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xl" style={{ background: got ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(22 36 28 / .07)' }}>{got ? a.icon : <Icon name="lock" size={18} className="text-ink-soft" />}</span>
               <span className="min-w-0 leading-tight">
                 <span className="block truncate text-sm font-extrabold">{a.name}</span>
                 <span className="block text-[11px] font-bold text-ink-soft">{got ? `Earned ${timeAgo(have.get(a.id)!, now)}` : a.description}</span>
@@ -270,10 +273,10 @@ function Badges({ student }: { student: Student }) {
           return (
             <div key={c.id} className="rounded-2xl bg-ink/5 p-3">
               <div className="flex items-center justify-between gap-2 text-sm font-bold">
-                <span>{p.done ? '✅' : c.period === 'daily' ? '☀️' : '📅'} {c.title}</span>
+                <span className="flex items-center gap-1.5"><Icon name={p.done ? 'check' : c.period === 'daily' ? 'sun' : 'calendar'} size={16} strokeWidth={2.4} className={p.done ? 'text-leaf' : 'text-sky'} />{c.title}</span>
                 <span className="tabular-nums text-ink-soft">{p.value}/{c.target}</span>
               </div>
-              <ProgressBar pct={p.value / c.target} color={p.done ? '#34d399' : '#4fb6f0'} height={8} className="mt-1.5" />
+              <ProgressBar pct={p.value / c.target} color={p.done ? '#23864a' : '#1f7fbf'} height={8} className="mt-1.5" />
             </div>
           );
         })}
@@ -292,7 +295,7 @@ function History({ student }: { student: Student }) {
     <div>
       {tags.length > 0 && (
         <div className="mb-4 flex flex-wrap gap-1.5">
-          {tags.map(([t, n]) => <span key={t} className="chip bg-grape/12 text-grape">{TAG_LABELS[t as keyof typeof TAG_LABELS]} × {n}</span>)}
+          {tags.map(([t, n]) => <span key={t} className="chip bg-wash text-ink ring-1 ring-rule">{TAG_LABELS[t as keyof typeof TAG_LABELS]} × {n}</span>)}
         </div>
       )}
       {mine.length === 0 && <p className="text-ink-soft">No activity yet. Award some points!</p>}
@@ -301,7 +304,7 @@ function History({ student }: { student: Student }) {
           <li key={e.id} className="group flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-ink/5">
             <span className="text-xl" aria-hidden>{e.icon}</span>
             <span className="flex-1 text-sm font-bold">{e.categoryName}<span className="block text-xs text-ink-soft">{new Date(e.at).toLocaleString([], { weekday: 'short', hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}</span></span>
-            <span className={`font-display font-bold ${e.xp >= 0 ? 'text-mint' : 'text-ink-soft'}`}>{e.xp >= 0 ? '+' : ''}{e.xp}</span>
+            <span className={`font-display font-bold tabular ${e.xp >= 0 ? 'text-leaf' : 'text-brick'}`}>{e.xp >= 0 ? '+' : ''}{e.xp}</span>
             <button className="min-h-9 rounded-full px-3 py-1.5 text-xs font-bold text-ink-soft ring-1 ring-ink/15 hover:bg-ink/10" onClick={() => undo(e.batchId)}>Undo</button>
           </li>
         ))}
@@ -341,14 +344,14 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
         <div className="text-sm font-extrabold uppercase tracking-wider text-ink-soft">Creature</div>
         <p className="text-sm text-ink-soft">Changing creature keeps all XP, levels, badges and items.</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          <button className="btn btn-light" onClick={() => { randomize(student.id); notify('New random creature!'); }}>🎲 Random</button>
-          <button className="btn btn-light" onClick={() => { setChoices(speciesChoices(classmates, 3)); setMode('choose'); }}>🤔 Let student choose (3)</button>
-          <button className="btn btn-light" onClick={() => setMode(mode === 'pick' ? 'none' : 'pick')}>📖 Pick any creature</button>
+          <button className="btn btn-light" onClick={() => { randomize(student.id); notify('New random creature!'); }}><Icon name="dice" size={18} />Random</button>
+          <button className="btn btn-light" onClick={() => { setChoices(speciesChoices(classmates, 3)); setMode('choose'); }}><Icon name="choose" size={18} />Let student choose (3)</button>
+          <button className="btn btn-light" onClick={() => setMode(mode === 'pick' ? 'none' : 'pick')}><Icon name="book" size={18} />Pick any creature</button>
         </div>
         {mode === 'choose' && (
           <div className="mt-3 grid grid-cols-3 gap-2">
             {choices.map((id) => { const sp = getSpecies(id); return (
-              <button key={id} className="rounded-2xl bg-ink/5 p-2 text-center hover:bg-grape/15" onClick={() => { assign(student.id, id); setMode('none'); notify(`${student.name.split(' ')[0]} chose ${sp.name}!`); }}>
+              <button key={id} className="rounded-xl bg-wash p-2 text-center ring-1 ring-rule hover:bg-gilt-pale" onClick={() => { assign(student.id, id); setMode('none'); notify(`${student.name.split(' ')[0]} chose ${sp.name}!`); }}>
                 <CreatureSvg species={sp} stage={1} effects={false} className="mx-auto aspect-square w-full" />
                 <div className="font-display font-semibold">{sp.name}</div><div className="text-xs text-ink-soft">{sp.personality}</div>
               </button>
@@ -359,7 +362,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
           <div className="mt-3 grid max-h-80 grid-cols-[repeat(auto-fill,minmax(84px,1fr))] gap-1.5 overflow-y-auto scroll-thin pr-1">
             {SPECIES.map((sp) => (
               <button key={sp.id} onClick={() => { assign(student.id, sp.id); setMode('none'); notify(`Now ${sp.name}`); }}
-                className={`rounded-xl p-1 text-center ${sp.id === student.speciesId ? 'bg-sun/30 ring-2 ring-sun-deep' : 'bg-ink/5 hover:bg-ink/10'}`} title={taken.has(sp.id) ? 'A classmate already has this creature' : sp.name}>
+                className={`rounded-xl p-1 text-center ${sp.id === student.speciesId ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-endpaper'}`} title={taken.has(sp.id) ? 'A classmate already has this creature' : sp.name}>
                 <CreatureSvg species={sp} stage={1} effects={false} noShadow className="aspect-square w-full" />
                 <div className="truncate text-[11px] font-extrabold">{sp.name}</div>
                 {taken.has(sp.id) && <div className="text-[9px] font-bold text-ink-soft">taken</div>}
@@ -377,8 +380,8 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
         </select>
       </section>
 
-      <section className="rounded-2xl border-2 border-dashed border-[#fca5a5] p-4">
-        <div className="font-bold text-[#b91c1c]">Remove student</div>
+      <section className="rounded-xl border-2 border-dashed border-brick/40 p-4">
+        <div className="font-bold text-brick">Remove student</div>
         <p className="text-sm text-ink-soft">This permanently deletes {student.name} and their progress. A safety snapshot is saved first (Settings → Backup). Type the student’s first name to confirm.</p>
         <div className="mt-2 flex gap-2">
           <input className="input" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder={student.name.split(' ')[0]} aria-label="Type the first name to confirm" />

@@ -172,3 +172,9 @@ export const SPECIES_BY_ID: Record<string, Species> = Object.fromEntries(SPECIES
 export function getSpecies(id: string): Species {
   return SPECIES_BY_ID[id] ?? SPECIES[0];
 }
+
+const FIELD_NO: Record<string, number> = Object.fromEntries(SPECIES.map((s, i) => [s.id, i + 1]));
+/** The species' field-guide number ("No. 014"): its fixed place in the collection, shown on every plate. */
+export function fieldNo(id: string): string {
+  return `No. ${String(FIELD_NO[id] ?? 0).padStart(3, '0')}`;
+}

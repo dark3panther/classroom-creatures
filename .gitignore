@@ -3,3 +3,6 @@ dist
 release
 *.local
 *.tsbuildinfo
+
+# impeccable review captures (local evidence, regenerated each review)
+.impeccable/review/

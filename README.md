@@ -15,6 +15,14 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.3
+
+- **A new look: the creature field guide.** The dark purple night sky is gone. The app is now a naturalist's field guide for your class, built for a projector in a bright classroom: a light endpaper background printed with faint tracks and leaves, a bookcloth-green header, and dark ink text that stays readable from the back of the room.
+- **Every creature has its own painted plate.** Each species sits on a watercolour wash in its element's colour and carries a field number (No. 001 to No. 030) that is the same on student cards, in the Creature field guide and in profiles.
+- **See who was just rewarded.** Cards in the latest award keep a marigold ribbon until you give the next one. Marigold is used only for what is happening now: selected students, the current tab, the main action.
+- **Bigger numbers where the class looks.** Presentation Mode shows the class goal as a large percentage, and profiles show level and XP at a size you can read across the room.
+- New fonts (Bricolage Grotesque for headings, Atkinson Hyperlegible Next for everything else, both bundled for offline use) and a drawn icon set for every button.
+
 ## What's new in 1.2
 
 - **Pixel art effects** from the [pixelfx](https://github.com/dark3panther/pixelfx) library (MIT, vendored in `src/vendor/pixelfx`), played live on top of every creature:

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { playAchievement, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone } from '../audio/sfx';
+import { Icon } from './Icon';
 import { PrizeWheel } from './PrizeWheel';
 import { Burst } from '../creatures/Burst';
 import { CreatureSvg } from '../creatures/CreatureSvg';
@@ -60,11 +61,10 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
   const stage: Stage = showNew ? c.to : c.from;
 
   return (
-    <motion.div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
+    <motion.div className="on-cloth fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="absolute inset-0" style={{ background: 'rgb(14 8 36 / .95)' }} />
-      <div className="absolute inset-0" style={{ background: `radial-gradient(60% 50% at 50% 45%, ${el.color}55, transparent 70%)` }} />
-      <div className="starfield absolute inset-0" />
+      <div className="cloth-deep absolute inset-0" />
+      <div className="absolute inset-0" style={{ background: `radial-gradient(60% 50% at 50% 45%, ${el.color}66, transparent 70%)` }} />
 
       {/* rotating light rays on reveal */}
       {phase === 'reveal' && (
@@ -101,28 +101,28 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
         <AnimatePresence>
           {phase === 'reveal' && (
             <motion.div className="mt-2 text-center" initial={{ y: 30, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 14 }}>
-              <h2 className="font-display text-4xl font-bold tracking-wide text-sun drop-shadow-[0_4px_0_#7a4b00] sm:text-6xl">YOUR CREATURE EVOLVED!</h2>
-              <p className="mt-3 text-lg font-bold text-white/90 sm:text-2xl">
+              <h2 className="gilt-text font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-7xl">Your creature evolved!</h2>
+              <p className="mt-3 text-lg font-bold text-white sm:text-2xl">
                 {firstName(student.name)}’s {sp.name} became <span style={{ color: el.glow }}>{STAGE_NAMES[c.to]}</span>{c.to === 5 ? `, ${sp.legendTitle}!` : '!'}
               </p>
-              <motion.div className="mx-auto mt-4 inline-flex items-center gap-3 rounded-full bg-white/10 px-5 py-2 ring-2 ring-sun/60" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.8, type: 'spring' }}>
-                <span className="text-2xl" aria-hidden>🧬</span><span className="font-display text-lg font-semibold">Evolution Badge · {STAGE_NAMES[c.to]}</span>
+              <motion.div className="mx-auto mt-4 inline-flex items-center gap-2.5 rounded-full bg-white/10 px-5 py-2 text-white ring-2 ring-gilt/70" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.8, type: 'spring' }}>
+                <Icon name="star" size={22} className="text-gilt" /><span className="font-display text-lg font-semibold">Evolution badge · {STAGE_NAMES[c.to]}</span>
               </motion.div>
               <div className="mt-6 flex justify-center gap-3">
-                <button className="btn btn-ghost" onClick={() => setRun((r) => r + 1)}>↻ Replay</button>
+                <button className="btn btn-ghost" onClick={() => setRun((r) => r + 1)}><Icon name="replay" size={18} />Replay</button>
                 <button className="btn btn-primary px-8 text-lg" onClick={onDone} autoFocus>Hooray!</button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
         {phase !== 'reveal' && (
-          <motion.p className="mt-4 font-display text-2xl font-semibold text-white/90" animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+          <motion.p className="mt-4 font-display text-2xl font-semibold text-white" animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.4 }}>
             What? {firstName(student.name)}’s {sp.name} is evolving…
           </motion.p>
         )}
       </div>
       {phase === 'flash' && <motion.div className="absolute inset-0 bg-white" initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0] }} transition={{ duration: 0.6 }} />}
-      {phase !== 'reveal' && <button className="absolute bottom-6 right-6 text-sm font-bold text-white/50 hover:text-white" onClick={() => setPhase('reveal')}>Skip ›</button>}
+      {phase !== 'reveal' && <button className="absolute bottom-6 right-6 flex items-center gap-1 text-sm font-bold text-white/70 hover:text-white" onClick={() => setPhase('reveal')}>Skip<Icon name="next" size={16} /></button>}
     </motion.div>
   );
 }
@@ -138,15 +138,14 @@ function LevelUpPopup({ level, student, onDone, sound }: { level: number; studen
   const stage = displayStage(student, settings);
   return (
     <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} onClick={onDone}>
-      <div className="relative flex items-center gap-4 rounded-[2rem] bg-gradient-to-br from-grape to-night-600 py-3 pl-3 pr-8 shadow-2xl ring-4 ring-sun/70">
-        <div className="relative h-24 w-24 rounded-full bg-white/15">
+      <div className="relative flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 text-ink shadow-[var(--shadow-lift)] ring-[3px] ring-gilt">
+        <div className="relative h-24 w-24 overflow-hidden rounded-full bg-wash ring-1 ring-rule">
           <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} action={{ type: 'jump', key: 1 }} className="h-full w-full" sound={false} />
           <Burst kind="sparkle" count={10} spread={80} />
         </div>
         <div>
-          <div className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-sun">Level up!</div>
-          <div className="font-display text-3xl font-bold">{firstName(student.name)} · Level {level}</div>
-          <div className="text-sm font-bold text-white/80">{sp.name} is getting stronger!</div>
+          <div className="font-display text-3xl font-extrabold tracking-[-0.01em]">{firstName(student.name)} reached Level {level}!</div>
+          <div className="mt-0.5 text-[15px] font-bold text-ink-soft">{sp.name} is getting stronger.</div>
         </div>
       </div>
     </motion.div>
@@ -163,14 +162,14 @@ function AchievementBanner({ id, student, onDone, sound }: { id: string; student
   if (!a) return null;
   return (
     <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} onClick={onDone}>
-      <div className="relative flex items-center gap-4 rounded-[2rem] bg-parchment py-3 pl-3 pr-8 text-ink shadow-2xl ring-4" style={{ ['--tw-ring-color' as string]: a.color }}>
-        <div className="relative grid h-20 w-20 place-items-center rounded-full text-4xl" style={{ background: `${a.color}33` }}>
+      <div className="relative flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 text-ink shadow-[var(--shadow-lift)] ring-[3px]" style={{ ['--tw-ring-color' as string]: a.color }}>
+        <div className="relative grid h-20 w-20 place-items-center rounded-full text-4xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)` }}>
           <motion.span initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 12 }}>{a.icon}</motion.span>
           <Burst kind="sparkle" count={10} spread={70} />
         </div>
         <div>
-          <div className="text-xs font-extrabold uppercase tracking-[0.2em]" style={{ color: a.color }}>Achievement unlocked</div>
-          <div className="font-display text-2xl font-bold">{a.name}</div>
+          <div className="font-display text-2xl font-extrabold tracking-[-0.01em]">{a.name}</div>
+          <div className="text-[13px] font-bold text-ink-soft">Achievement unlocked</div>
           <div className="text-sm font-bold text-ink-soft">{firstName(student.name)} · {a.description}</div>
         </div>
       </div>
@@ -185,13 +184,11 @@ function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, 
   const settings = useStore((s) => s.data.settings);
   useEffect(() => { if (sound) playClassCelebration(); }, [sound]);
   return (
-    <motion.div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-night-950/90 px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="starfield absolute inset-0" />
+    <motion.div className="cloth-deep on-cloth fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Burst kind="confetti" count={40} spread={420} size={18} duration={2.4} />
       <motion.div className="relative text-center" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 160, damping: 12 }}>
-        <div className="font-display text-xl font-semibold uppercase tracking-[0.3em] text-mint">Class goal reached</div>
-        <h2 className="mt-2 font-display text-5xl font-bold text-sun drop-shadow-[0_4px_0_#7a4b00] sm:text-7xl">AMAZING TEAMWORK!</h2>
-        <p className="mt-3 text-xl font-bold text-white/90">{name} earned {c.goal.toLocaleString()} XP together!</p>
+        <h2 className="gilt-text font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-7xl">Amazing teamwork!</h2>
+        <p className="mt-3 text-2xl font-bold text-white">{name} reached the class goal: {c.goal.toLocaleString()} XP together!</p>
       </motion.div>
       <div className="relative mt-8 flex max-w-5xl flex-wrap justify-center gap-1">
         {students.slice(0, 32).map((s, i) => {
@@ -204,8 +201,8 @@ function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, 
           );
         })}
       </div>
-      <button className="btn btn-primary relative mt-8 px-10 text-xl" onClick={() => setWheel(true)} autoFocus>🎡 Spin the prize wheel!</button>
-      <button className="relative mt-3 text-sm font-bold text-white/60 hover:text-white" onClick={onDone}>Spin later (the button stays on the Classroom page)</button>
+      <button className="btn btn-primary relative mt-8 px-10 py-4 text-xl" onClick={() => setWheel(true)} autoFocus><Icon name="wheel" size={24} />Spin the prize wheel!</button>
+      <button className="relative mt-3 text-sm font-bold text-white/75 hover:text-white" onClick={onDone}>Spin later (the button stays on the Classroom page)</button>
       <AnimatePresence>{wheel && <PrizeWheel classId={c.classId} onClose={onDone} />}</AnimatePresence>
     </motion.div>
   );
@@ -222,15 +219,15 @@ function MilestonePopup({ c, student, onDone, sound }: { c: Extract<Celebration,
   }, [onDone, sound]);
   return (
     <motion.div className="fixed inset-x-0 top-20 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0, scale: 0.8 }} animate={{ y: 0, opacity: 1, scale: 1 }} onClick={onDone}>
-      <div className="relative flex items-center gap-4 rounded-[2rem] bg-gradient-to-br from-[#7a4b2a] to-[#4a2c17] py-3 pl-3 pr-8 shadow-2xl ring-4 ring-sun">
+      <div className="relative flex items-center gap-4 rounded-[20px] bg-[#5a341c] py-3 pl-3 pr-8 text-white shadow-[var(--shadow-lift)] ring-[3px] ring-gilt">
         <div className="relative grid h-24 w-24 place-items-center rounded-full bg-white/10">
           <motion.div initial={{ rotate: -30, scale: 0 }} animate={{ rotate: [-30, 10, 0], scale: [0, 1.3, 1] }} transition={{ duration: 0.7 }}><ChocoStick /></motion.div>
           <Burst kind="sparkle" count={12} spread={90} />
         </div>
         <div>
-          <div className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-sun">Milestone reward{names.length > 1 ? 's' : ` · ${c.atXp} XP`}</div>
+          <div className="font-display text-[15px] font-semibold text-[#f6cb62]">Milestone reward{names.length > 1 ? 's' : ` · ${c.atXp} XP`}</div>
           <div className={`font-display font-bold text-white ${names.length > 3 ? 'text-2xl' : 'text-3xl'}`}>{who} earned {names.length > 1 ? `a ${c.label} each` : `a ${c.label}`}! {c.icon}</div>
-          <div className="text-sm font-bold text-white/75">Hand it out, then tick it off in Rewards.</div>
+          <div className="text-sm font-bold text-white/85">Hand it out, then tick it off in Rewards.</div>
         </div>
       </div>
     </motion.div>

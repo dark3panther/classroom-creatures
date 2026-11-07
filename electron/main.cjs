@@ -23,7 +23,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 620,
     title: 'Classroom Creatures',
-    backgroundColor: '#1b1240',
+    backgroundColor: '#e5ecdc',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 14, y: 14 },
     show: false,

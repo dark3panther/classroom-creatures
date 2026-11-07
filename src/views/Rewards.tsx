@@ -9,6 +9,7 @@ import { useClassStudents } from '../lib/stats';
 import { useCurrentClass, useStore } from '../store/store';
 import type { CategoryTag, Challenge, ItemSlot, Student } from '../types';
 import { ChocoStick } from '../components/Celebrations';
+import { Icon } from '../components/Icon';
 import { timeAgo } from '../engine/util';
 
 const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hat', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Background', decoration: 'Decoration', outfit: 'Outfit' };
@@ -27,8 +28,8 @@ export function Rewards() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 pb-20 pt-5 sm:px-6">
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Rewards & Challenges</h1>
-      <p className="text-white/70">Badges, collectibles and challenges unlock automatically as students earn XP.</p>
+      <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[44px]">Rewards & challenges</h1>
+      <p className="mt-1.5 text-[15px] text-ink-soft">Badges, collectibles and challenges unlock automatically as students earn XP.</p>
 
       <MilestoneRewards students={students} />
       {cls && (cls.prizeHistory?.length ?? 0) > 0 && (
@@ -36,13 +37,13 @@ export function Rewards() {
           <SectionTitle>Class prizes won</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {[...cls.prizeHistory].reverse().map((p, i) => (
-              <span key={i} className="panel px-4 py-2 font-bold">{p.icon} {p.label} <span className="text-white/60">· {p.goal.toLocaleString()} XP goal · {new Date(p.at).toLocaleDateString()}</span></span>
+              <span key={i} className="panel px-4 py-2 font-bold">{p.icon} {p.label} <span className="font-normal text-ink-soft">· {p.goal.toLocaleString()} XP goal · {new Date(p.at).toLocaleDateString()}</span></span>
             ))}
           </div>
         </section>
       )}
       <section className="mt-6">
-        <SectionTitle action={<button className="btn btn-primary !py-2" onClick={() => setEditing({ id: uid('ch'), title: '', period: 'daily', metric: 'count', tag: 'participation', target: 3, active: true })}>＋ New challenge</button>}>
+        <SectionTitle action={<button className="btn btn-primary !py-2" onClick={() => setEditing({ id: uid('ch'), title: '', period: 'daily', metric: 'count', tag: 'participation', target: 3, active: true })}><Icon name="plus" size={18} />New challenge</button>}>
           Daily & weekly challenges
         </SectionTitle>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -52,8 +53,8 @@ export function Rewards() {
               <div key={c.id} className={`paper p-4 ${c.active ? '' : 'opacity-60'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="chip bg-sky/15 text-sky">{c.period === 'daily' ? '☀️ Daily' : '📅 Weekly'}</span>
-                    <div className="mt-1 font-display text-lg font-semibold">{c.title}</div>
+                    <span className="chip bg-sky/10 text-sky ring-1 ring-sky/25"><Icon name={c.period === 'daily' ? 'sun' : 'calendar'} size={13} strokeWidth={2.4} />{c.period === 'daily' ? 'Daily' : 'Weekly'}</span>
+                    <div className="mt-1.5 font-display text-lg font-bold">{c.title}</div>
                     <div className="text-xs font-bold text-ink-soft">{c.metric === 'xp' ? `Earn ${c.target} XP` : `${c.target}× ${c.tag ? TAG_LABELS[c.tag] : 'any award'}`}</div>
                   </div>
                   <div className="flex gap-1">
@@ -61,7 +62,7 @@ export function Rewards() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-sm font-bold">
-                  <ProgressBar pct={done / n} color="#34d399" className="flex-1" />
+                  <ProgressBar pct={done / n} color="#23864a" className="flex-1" />
                   <span className="tabular-nums text-ink-soft">{done}/{students.length} done</span>
                 </div>
               </div>
@@ -77,11 +78,11 @@ export function Rewards() {
             const got = students.filter((s) => s.achievements.some((x) => x.id === a.id)).length;
             return (
               <div key={a.id} className="panel flex items-center gap-3 p-3">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl" style={{ background: `${a.color}44` }}>{a.icon}</span>
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl text-3xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${a.color} 45%, white)` }}>{a.icon}</span>
                 <div className="min-w-0">
-                  <div className="font-display text-lg font-semibold leading-tight">{a.name}</div>
-                  <div className="text-xs text-white/70">{a.description}</div>
-                  <div className="mt-0.5 text-xs font-extrabold text-sun">{got} student{got === 1 ? '' : 's'} earned this</div>
+                  <div className="font-display text-lg font-bold leading-tight">{a.name}</div>
+                  <div className="text-[13px] text-ink-soft">{a.description}</div>
+                  <div className="mt-0.5 text-[13px] font-bold text-cloth-800">{got} student{got === 1 ? '' : 's'} earned this</div>
                 </div>
               </div>
             );
@@ -98,10 +99,10 @@ export function Rewards() {
             const rule = u.type === 'level' ? `Level ${u.level}` : u.type === 'achievement' ? ACHIEVEMENTS.find((a) => a.id === u.id)?.name : u.type === 'challenges' ? `${u.count} challenges` : 'Free';
             return (
               <div key={it.id} className="paper p-2 text-center">
-                <div className="aspect-square rounded-xl bg-cream"><CreatureSvg species={preview} stage={3} equipped={{ [it.slot]: it.id }} effects={false} className="h-full w-full" /></div>
-                <div className="mt-1 font-display font-semibold leading-tight">{it.name}</div>
-                <div className="text-[11px] font-bold text-ink-soft">{SLOT_LABEL[it.slot]} · {rule}</div>
-                <div className="text-[11px] font-extrabold text-grape">{owners} unlocked</div>
+                <div className="aspect-square rounded-lg bg-wash"><CreatureSvg species={preview} stage={3} equipped={{ [it.slot]: it.id }} effects={false} className="h-full w-full" /></div>
+                <div className="mt-1.5 font-display font-bold leading-tight">{it.name}</div>
+                <div className="text-[12px] text-ink-soft">{SLOT_LABEL[it.slot]} · {rule}</div>
+                <div className="text-[12px] font-bold text-cloth-800">{owners} unlocked</div>
               </div>
             );
           })}
@@ -149,7 +150,7 @@ function ChallengeEditor({ c, onClose, onSave, onDelete, exists }: { c: Challeng
             </label>
           </div>
           <label className="mt-3 flex items-center gap-2 text-sm font-bold">
-            <input type="checkbox" className="h-5 w-5 accent-[#8b5cf6]" checked={d.active} onChange={(e) => setDraft({ ...d, active: e.target.checked })} /> Active
+            <input type="checkbox" className="h-5 w-5" checked={d.active} onChange={(e) => setDraft({ ...d, active: e.target.checked })} /> Active
           </label>
           <div className="mt-6 flex justify-between gap-2">
             {exists ? <button type="button" className="btn btn-danger" onClick={() => onDelete(d.id)}>Delete</button> : <span />}
@@ -172,9 +173,9 @@ function MilestoneRewards({ students }: { students: Student[] }) {
   return (
     <section className="mt-6">
       <SectionTitle>Milestone rewards to hand out</SectionTitle>
-      <p className="-mt-2 mb-3 text-sm text-white/70">{milestones.map((m) => `${m.icon} ${m.label} every ${m.every} XP`).join(' · ') || 'No milestone rewards set (Settings → Rewards).'}</p>
+      <p className="-mt-2 mb-3 text-sm text-ink-soft">{milestones.map((m) => `${m.icon} ${m.label} every ${m.every} XP`).join(' · ') || 'No milestone rewards set (Settings → Rewards).'}</p>
       {pending.length === 0 ? (
-        <div className="panel p-4 text-white/70">All rewards have been handed out. 🎉</div>
+        <div className="panel flex items-center gap-2 p-4 text-ink-soft"><Icon name="check" size={18} className="text-leaf" strokeWidth={2.6} />All rewards have been handed out.</div>
       ) : (
         <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
           {pending.map(({ s, r }) => (
@@ -184,15 +185,15 @@ function MilestoneRewards({ students }: { students: Student[] }) {
                 <div className="truncate font-display text-lg font-semibold">{s.name}</div>
                 <div className="text-xs font-bold text-ink-soft">{r.icon} {r.label} · reached {r.atXp} XP · {timeAgo(r.at)}</div>
               </div>
-              <button className="btn btn-primary !py-1.5 !text-sm" onClick={() => setGiven(s.id, r.id, true)}>Given ✓</button>
+              <button className="btn btn-cloth !py-1.5 !text-sm" onClick={() => setGiven(s.id, r.id, true)}><Icon name="check" size={16} strokeWidth={2.6} />Given</button>
             </div>
           ))}
         </div>
       )}
       {recent.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5 text-xs text-white/60">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-soft">
           Recently handed out: {recent.map(({ s, r }) => (
-            <button key={r.id} className="chip bg-white/10 text-white/80 hover:bg-white/20" title="Mark as not handed out" onClick={() => setGiven(s.id, r.id, false)}>{r.icon} {s.name.split(' ')[0]} ↺</button>
+            <button key={r.id} className="chip bg-white text-ink ring-1 ring-rule hover:bg-wash" title="Mark as not handed out" onClick={() => setGiven(s.id, r.id, false)}>{r.icon} {s.name.split(' ')[0]} <Icon name="undo" size={12} strokeWidth={2.4} /></button>
           ))}
         </div>
       )}

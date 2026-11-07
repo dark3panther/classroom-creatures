@@ -8,6 +8,7 @@ import { uid } from '../engine/util';
 import { navigate } from '../lib/router';
 import { listSnapshots, type Snapshot } from '../store/storage';
 import { useStore } from '../store/store';
+import { Icon } from '../components/Icon';
 import type { Category, CategoryTag, Settings as SettingsT } from '../types';
 import { CreateClassModal } from './Dashboard';
 
@@ -18,10 +19,10 @@ const TABS = [
 export function SettingsView({ tab = 'classes' }: { tab?: string }) {
   return (
     <div className="mx-auto max-w-5xl px-4 pb-20 pt-5 sm:px-6">
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Settings</h1>
-      <div className="mt-4 flex gap-1 overflow-x-auto rounded-full bg-white/10 p-1">
+      <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[44px]">Settings</h1>
+      <div className="mt-4 flex gap-1 overflow-x-auto rounded-full bg-white p-1 ring-1 ring-rule" role="tablist">
         {TABS.map(([k, l]) => (
-          <button key={k} onClick={() => navigate(`/settings/${k}`)} className={`whitespace-nowrap rounded-full px-4 py-2 font-display font-semibold ${tab === k ? 'bg-white text-ink' : 'text-white/80 hover:bg-white/10'}`}>{l}</button>
+          <button key={k} role="tab" aria-selected={tab === k} onClick={() => navigate(`/settings/${k}`)} className={`whitespace-nowrap rounded-full px-4 py-2 font-display font-semibold transition ${tab === k ? 'bg-cloth-800 text-white' : 'text-ink-soft hover:bg-wash hover:text-ink'}`}>{l}</button>
         ))}
       </div>
       <div className="paper mt-4 p-5 sm:p-6">
@@ -31,7 +32,7 @@ export function SettingsView({ tab = 'classes' }: { tab?: string }) {
         {tab === 'classroom' && <ClassroomTab />}
         {tab === 'backup' && <BackupTab />}
       </div>
-      <p className="mt-4 text-center text-xs font-bold text-white/50">Classroom Creatures v{__APP_VERSION__} · everything is saved on this computer</p>
+      <p className="mt-4 text-center text-[13px] text-ink-soft">Classroom Creatures v{__APP_VERSION__} · everything is saved on this computer</p>
     </div>
   );
 }
@@ -53,7 +54,7 @@ function ClassesTab() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-display text-2xl font-bold">Classes</h2>
-        <button className="btn btn-primary" onClick={() => setCreating(true)}>＋ New class</button>
+        <button className="btn btn-primary" onClick={() => setCreating(true)}><Icon name="plus" size={18} />New class</button>
       </div>
       <div className="flex flex-col gap-3">
         {classes.map((c) => {
@@ -77,7 +78,7 @@ function ClassesTab() {
                 {!c.archived && <button className="btn btn-light !py-1.5 !text-sm" onClick={() => { setCurrent(c.id); navigate('/'); }}>Open</button>}
                 {!c.archived && <button className="btn btn-light !py-1.5 !text-sm" onClick={() => { if (confirmBox(`Give every student in ${c.name} a new random creature? Their XP and progress stay.`)) { randomize(c.id); notify('Creatures shuffled!'); } }}>🎲 Re-roll creatures</button>}
                 <button className="btn btn-light !py-1.5 !text-sm" onClick={() => update(c.id, { archived: !c.archived })}>{c.archived ? 'Restore' : 'Archive'}</button>
-                <button className="btn btn-light !py-1.5 !text-sm !text-[#b91c1c]" onClick={() => { setDeleting(c.id); setConfirm(''); }}>Delete</button>
+                <button className="btn btn-light !py-1.5 !text-sm !text-brick" onClick={() => { setDeleting(c.id); setConfirm(''); }}>Delete</button>
               </div>
             </div>
           );
@@ -89,7 +90,7 @@ function ClassesTab() {
       <Modal open={!!target} onClose={() => setDeleting(null)} label="Delete class">
         {target && (
           <div className="p-6">
-            <h2 className="font-display text-2xl font-bold text-[#b91c1c]">Delete “{target.name}”?</h2>
+            <h2 className="font-display text-2xl font-bold text-brick">Delete “{target.name}”?</h2>
             <p className="mt-2 text-ink-soft">This removes the class and all its students’ progress. A safety snapshot is saved first, but consider <b>archiving</b> instead. Type <b>DELETE</b> to confirm.</p>
             <input className="input mt-3" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="DELETE" />
             <div className="mt-5 flex justify-end gap-2">
@@ -119,20 +120,20 @@ function BehavioursTab() {
     <div>
       <div className="mb-1 flex items-center justify-between">
         <h2 className="font-display text-2xl font-bold">Behaviour categories</h2>
-        <button className="btn btn-primary" onClick={() => setEdit({ id: uid('cat'), name: '', xp: 3, icon: '🌟', color: '#8b5cf6', tag: 'other' })}>＋ New</button>
+        <button className="btn btn-primary" onClick={() => setEdit({ id: uid('cat'), name: '', xp: 3, icon: '🌟', color: '#8b5cf6', tag: 'other' })}><Icon name="plus" size={18} />New</button>
       </div>
-      <p className="mb-4 text-sm text-ink-soft">⭐ Pinned behaviours (up to 3) appear as quick buttons on every student card.</p>
+      <p className="mb-4 flex items-center gap-1.5 text-sm text-ink-soft"><Icon name="pin" size={16} />Pinned behaviours (up to 3) appear as quick buttons on every student card.</p>
       <div className="flex flex-col gap-2">
         {categories.filter((c) => c.xp > 0 || negative).map((c) => (
-          <div key={c.id} className="flex items-center gap-3 rounded-2xl bg-ink/5 p-2 pr-3">
-            <span className="grid h-11 w-11 place-items-center rounded-xl text-2xl" style={{ background: c.xp < 0 ? '#94a3b8' : c.color }}>{c.icon}</span>
+          <div key={c.id} className="flex items-center gap-3 rounded-xl bg-white p-2 pr-3 ring-1 ring-rule">
+            <span className="grid h-11 w-11 place-items-center rounded-lg text-2xl" style={{ background: c.xp < 0 ? 'var(--color-brick-pale)' : `color-mix(in srgb, ${c.color} 22%, white)`, boxShadow: `inset 0 0 0 1.5px ${c.xp < 0 ? 'rgb(184 67 45 / .3)' : `color-mix(in srgb, ${c.color} 55%, white)`}` }}>{c.icon}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate font-bold">{c.name}</span>
-              <span className="text-xs font-bold text-ink-soft">{c.xp > 0 ? '+' : ''}{c.xp} XP · counts as {TAG_LABELS[c.tag]}</span>
+              <span className="text-[13px] text-ink-soft"><b className={c.xp < 0 ? 'text-brick' : 'text-leaf'}>{c.xp > 0 ? '+' : ''}{c.xp} XP</b> · counts as {TAG_LABELS[c.tag]}</span>
             </span>
             {c.xp > 0 && (
-              <button className={`text-xl ${c.pinned ? '' : 'opacity-30 grayscale'}`} title={c.pinned ? 'Unpin from cards' : 'Pin to student cards'} aria-label={c.pinned ? `Unpin ${c.name}` : `Pin ${c.name}`}
-                disabled={!c.pinned && pinnedCount >= 3} onClick={() => upsert({ ...c, pinned: !c.pinned })}>⭐</button>
+              <button className={`grid h-10 w-10 place-items-center rounded-full transition ${c.pinned ? 'bg-cloth-800 text-white' : 'text-ink-soft ring-1 ring-rule hover:bg-wash disabled:opacity-40'}`} title={c.pinned ? 'Unpin from cards' : 'Pin to student cards'} aria-label={c.pinned ? `Unpin ${c.name}` : `Pin ${c.name}`} aria-pressed={!!c.pinned}
+                disabled={!c.pinned && pinnedCount >= 3} onClick={() => upsert({ ...c, pinned: !c.pinned })}><Icon name="pin" size={18} /></button>
             )}
             <button className="btn btn-light !px-3 !py-1.5 !text-sm" onClick={() => setEdit(c)}>Edit</button>
           </div>
@@ -164,9 +165,9 @@ function CategoryForm({ c, negative, exists, onSave, onDelete, onCancel }: { c: 
         </label>
       </div>
       <div className="mt-3 text-sm font-bold">Icon</div>
-      <div className="mt-1 flex flex-wrap gap-1">{ICONS.map((i) => <button type="button" key={i} onClick={() => setD({ ...d, icon: i })} className={`grid h-10 w-10 place-items-center rounded-xl text-xl ${d.icon === i ? 'bg-grape/20 ring-2 ring-grape' : 'bg-ink/5'}`}>{i}</button>)}</div>
+      <div className="mt-1 flex flex-wrap gap-1">{ICONS.map((i) => <button type="button" key={i} onClick={() => setD({ ...d, icon: i })} className={`grid h-10 w-10 place-items-center rounded-lg text-xl ${d.icon === i ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-endpaper'}`}>{i}</button>)}</div>
       <div className="mt-3 text-sm font-bold">Colour</div>
-      <div className="mt-1 flex flex-wrap gap-1.5">{COLORS.map((col) => <button type="button" key={col} aria-label={col} onClick={() => setD({ ...d, color: col })} className={`h-8 w-8 rounded-full ${d.color === col ? 'ring-4 ring-ink/30' : ''}`} style={{ background: col }} />)}</div>
+      <div className="mt-1 flex flex-wrap gap-1.5">{COLORS.map((col) => <button type="button" key={col} aria-label={col} onClick={() => setD({ ...d, color: col })} className={`h-8 w-8 rounded-full ring-offset-2 ${d.color === col ? 'ring-[3px] ring-ink' : ''}`} style={{ background: col }} />)}</div>
       <div className="mt-6 flex justify-between gap-2">
         {exists ? <button type="button" className="btn btn-danger" onClick={onDelete}>Delete</button> : <span />}
         <div className="flex gap-2"><button type="button" className="btn btn-light" onClick={onCancel}>Cancel</button><button className="btn btn-primary" disabled={!valid}>Save</button></div>
@@ -195,7 +196,7 @@ function ProgressionTab() {
       <p className="text-sm text-ink-soft">Total XP needed for each level, and the level at which creatures evolve. Changes apply to everyone right away; nobody loses badges or items.</p>
       <div className="mt-4 grid gap-6 md:grid-cols-2">
         <div>
-          <div className="mb-2 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Levels</div>
+          <div className="mb-2 font-display text-[17px] font-bold text-ink">Levels</div>
           <div className="flex flex-col gap-1.5">
             {levels.map((x, i) => (
               <label key={i} className="flex items-center gap-3">
@@ -206,12 +207,12 @@ function ProgressionTab() {
             ))}
           </div>
           <div className="mt-2 flex gap-2">
-            <button className="btn btn-light !py-1.5 !text-sm" onClick={() => setLevels([...levels, levels[levels.length - 1] + 250])} disabled={levels.length >= 30}>＋ Add level</button>
-            <button className="btn btn-light !py-1.5 !text-sm" onClick={() => setLevels(levels.slice(0, -1))} disabled={levels.length <= Math.max(5, evo[4])}>− Remove last</button>
+            <button className="btn btn-light !py-1.5 !text-sm" onClick={() => setLevels([...levels, levels[levels.length - 1] + 250])} disabled={levels.length >= 30}><Icon name="plus" size={16} />Add level</button>
+            <button className="btn btn-light !py-1.5 !text-sm" onClick={() => setLevels(levels.slice(0, -1))} disabled={levels.length <= Math.max(5, evo[4])}><Icon name="minus" size={16} />Remove last</button>
           </div>
         </div>
         <div>
-          <div className="mb-2 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Evolution stages</div>
+          <div className="mb-2 font-display text-[17px] font-bold text-ink">Evolution stages</div>
           {evo.map((lv, i) => (
             <label key={i} className="mb-1.5 flex items-center gap-3">
               <span className="w-36 font-bold">{STAGE_NAMES[(i + 1) as 1]}</span>
@@ -221,7 +222,7 @@ function ProgressionTab() {
           ))}
         </div>
       </div>
-      {err && <div className="mt-4 rounded-xl bg-[#fee2e2] p-3 font-bold text-[#991b1b]">{err}</div>}
+      {err && <div className="mt-4 rounded-xl bg-brick-pale p-3 font-bold text-[#8a2f1e] ring-1 ring-brick/30">{err}</div>}
       <div className="mt-5 flex flex-wrap gap-2">
         <button className="btn btn-primary" onClick={() => save()}>Save progression</button>
         <button className="btn btn-light" onClick={() => { setLevels(DEFAULT_LEVEL_XP); setEvo([...DEFAULT_EVOLUTION_LEVELS]); save(DEFAULT_LEVEL_XP, [...DEFAULT_EVOLUTION_LEVELS]); }}>Reset to recommended</button>
@@ -297,12 +298,12 @@ function BackupTab() {
       <h2 className="font-display text-2xl font-bold">Backup & data</h2>
       <p className="text-sm text-ink-soft">Everything saves automatically in this browser on this computer. Download a backup file regularly (for example every Friday) and keep it on a USB stick or school drive.</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button className="btn btn-primary" onClick={exportFile}>⬇ Download backup file</button>
-        <label className="btn btn-light cursor-pointer">⬆ Restore from file
+        <button className="btn btn-primary" onClick={exportFile}><Icon name="download" size={18} />Download backup file</button>
+        <label className="btn btn-light cursor-pointer"><Icon name="upload" size={18} />Restore from file
           <input type="file" accept=".json,application/json" className="hidden" onChange={(e) => { void onFile(e.target.files?.[0]); e.target.value = ''; }} />
         </label>
       </div>
-      {error && <div className="mt-3 rounded-xl bg-[#fee2e2] p-3 font-bold text-[#991b1b]">{error}</div>}
+      {error && <div className="mt-3 rounded-xl bg-brick-pale p-3 font-bold text-[#8a2f1e] ring-1 ring-brick/30">{error}</div>}
 
       <h3 className="mt-6 font-display text-xl font-bold">Safety snapshots</h3>
       <p className="text-sm text-ink-soft">Saved automatically once a day and before anything is deleted or restored. The newest 12 are kept on this computer.</p>
@@ -353,7 +354,7 @@ function RewardsSettings() {
       <label className="mt-3 flex items-center gap-3 text-sm font-bold">Coins per XP point
         <input type="number" min={0} max={10} step={0.5} className="input !w-24 !py-1.5" value={settings.coinRate ?? 1} onChange={(e) => updateSettings({ coinRate: Math.max(0, Number(e.target.value) || 0) })} />
       </label>
-      <div className="mt-4 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Milestone rewards (real treats you hand out)</div>
+      <div className="mt-4 font-display text-[17px] font-bold text-ink">Milestone rewards (real treats you hand out)</div>
       {milestones.map((m, i) => (
         <div key={m.id} className="mt-2 flex flex-wrap items-center gap-2">
           <input className="input !w-14 !px-2 !py-1.5 text-center" value={m.icon} maxLength={4} aria-label="Icon" onChange={(e) => updateSettings({ milestones: milestones.map((x, j) => (j === i ? { ...x, icon: e.target.value } : x)) })} />
@@ -364,19 +365,19 @@ function RewardsSettings() {
           <button className="btn btn-light !px-3 !py-1 !text-xs" onClick={() => updateSettings({ milestones: milestones.filter((_, j) => j !== i) })}>Remove</button>
         </div>
       ))}
-      <button className="btn btn-light mt-2 !py-1.5 !text-sm" onClick={() => updateSettings({ milestones: [...milestones, { id: uid('ms'), every: 250, label: 'Sticker', icon: '⭐' }] })}>＋ Add milestone reward</button>
-      <div className="mt-5 text-sm font-extrabold uppercase tracking-wider text-ink-soft">Class prize wheel</div>
+      <button className="btn btn-light mt-2 !py-1.5 !text-sm" onClick={() => updateSettings({ milestones: [...milestones, { id: uid('ms'), every: 250, label: 'Sticker', icon: '⭐' }] })}><Icon name="plus" size={16} />Add milestone reward</button>
+      <div className="mt-5 font-display text-[17px] font-bold text-ink">Class prize wheel</div>
       <p className="text-sm text-ink-soft">When the class reaches its XP goal (Settings → Classes), you spin the wheel to pick a prize.</p>
       <div className="mt-1 grid gap-2 sm:grid-cols-2">
         {prizes.map((p, i) => (
           <div key={p.id} className="flex items-center gap-2">
             <input className="input !w-14 !px-2 !py-1.5 text-center" value={p.icon} maxLength={4} aria-label="Icon" onChange={(e) => updateSettings({ prizes: prizes.map((x, j) => (j === i ? { ...x, icon: e.target.value } : x)) })} />
             <input className="input !py-1.5" value={p.label} aria-label="Prize" maxLength={30} onChange={(e) => updateSettings({ prizes: prizes.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} />
-            <button className="btn btn-light !px-3 !py-1 !text-xs" disabled={prizes.length <= 2} onClick={() => updateSettings({ prizes: prizes.filter((_, j) => j !== i) })}>✕</button>
+            <button className="btn btn-light !px-3 !py-1 !text-xs" disabled={prizes.length <= 2} onClick={() => updateSettings({ prizes: prizes.filter((_, j) => j !== i) })} aria-label={`Remove ${p.label}`}><Icon name="close" size={14} strokeWidth={2.6} /></button>
           </div>
         ))}
       </div>
-      <button className="btn btn-light mt-2 !py-1.5 !text-sm" disabled={prizes.length >= 10} onClick={() => updateSettings({ prizes: [...prizes, { id: uid('pz'), label: 'New prize', icon: '🎁', color: PRIZE_COLORS[prizes.length % PRIZE_COLORS.length] }] })}>＋ Add prize</button>
+      <button className="btn btn-light mt-2 !py-1.5 !text-sm" disabled={prizes.length >= 10} onClick={() => updateSettings({ prizes: [...prizes, { id: uid('pz'), label: 'New prize', icon: '🎁', color: PRIZE_COLORS[prizes.length % PRIZE_COLORS.length] }] })}><Icon name="plus" size={16} />Add prize</button>
     </div>
   );
 }

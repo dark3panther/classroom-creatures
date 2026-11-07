@@ -4,13 +4,14 @@ import { awardSound, playTick, playCreature, playLevelUp } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
 import { PrizeWheel } from '../components/PrizeWheel';
 import { FloatingXP } from '../components/StudentCard';
-import { ProgressBar, StagePips } from '../components/ui';
+import { Icon } from '../components/Icon';
+import { ElementIcon, ProgressBar, StagePips } from '../components/ui';
 import { Burst } from '../creatures/Burst';
 import { Creature, type CreatureAction } from '../creatures/Creature';
 import { Habitat } from '../creatures/Habitat';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
-import { STAGE_NAMES } from '../data/elements';
-import { getSpecies } from '../data/species';
+import { ELEMENTS, STAGE_NAMES } from '../data/elements';
+import { fieldNo, getSpecies } from '../data/species';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
@@ -58,35 +59,33 @@ export function Present() {
       const many = events.filter((x) => x.batchId === e.batchId).length;
       out.push(`${e.icon} ${many > 1 ? `${many} friends` : firstName(byId.get(e.studentId)?.name ?? '')} · ${e.categoryName}`);
     }
-    for (const s of students) for (const a of s.achievements) if (Date.now() - a.at < 86_400_000 && out.length < 12) out.push(`🏅 ${firstName(s.name)} unlocked ${ACHIEVEMENTS_BY_ID[a.id]?.name}`);
+    for (const s of students) for (const a of s.achievements) if (Date.now() - a.at < 86_400_000 && out.length < 12) out.push(`${ACHIEVEMENTS_BY_ID[a.id]?.icon ?? ''} ${firstName(s.name)} unlocked ${ACHIEVEMENTS_BY_ID[a.id]?.name}`);
     return out;
   }, [events, students, cls?.id]);
 
   const total = students.reduce((n, s) => n + s.xp, 0);
   const cols = students.length > 24 ? 'grid-cols-[repeat(auto-fill,minmax(120px,1fr))]' : students.length > 14 ? 'grid-cols-[repeat(auto-fill,minmax(170px,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(220px,1fr))]';
 
-  return (
-    <div className="relative flex min-h-full flex-col overflow-hidden bg-night-950 text-white">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-40 -top-40 h-[60vh] w-[60vh] rounded-full bg-grape/40 blur-3xl idle-float" />
-        <div className="absolute -right-40 top-20 h-[50vh] w-[50vh] rounded-full bg-berry/25 blur-3xl idle-float" style={{ animationDelay: '-1.5s' }} />
-        <div className="absolute bottom-0 left-1/3 h-[40vh] w-[60vh] rounded-full bg-mint/20 blur-3xl idle-float" style={{ animationDelay: '-2.5s' }} />
-        <div className="starfield absolute inset-0" />
-      </div>
+  const goalPct = cls && cls.goal > 0 ? Math.min(1, total / cls.goal) : 0;
 
-      <header className="present-header relative flex flex-wrap items-center gap-4 px-6 pt-5">
-        <h1 className="font-display text-4xl font-bold tracking-wide sm:text-5xl">{cls?.name ?? 'Classroom Creatures'}</h1>
+  return (
+    <div className="relative flex h-full min-h-full flex-col overflow-hidden text-ink">
+      <header className="present-header cloth on-cloth relative flex flex-wrap items-center gap-x-8 gap-y-3 px-6 pb-4 pt-5 shadow-[0_8px_20px_-14px_rgb(13_46_35/.9)]">
+        <h1 className="gilt-text min-w-0 truncate font-display text-[44px] font-extrabold leading-none tracking-[-0.02em] sm:text-[56px]">{cls?.name ?? 'Classroom Creatures'}</h1>
         {cls && (
-          <div className="ml-auto w-full max-w-md">
-            <div className="flex justify-between font-display text-lg font-semibold"><span>🌈 Class goal</span><span className="tabular-nums">{Math.round(Math.min(1, total / cls.goal) * 100)}%</span></div>
-            <ProgressBar pct={total / cls.goal} height={20} color="#34d399" track="rgb(255 255 255 / .15)" glow className="mt-1" />
+          <div className="ml-auto flex w-full max-w-lg items-center gap-4">
+            <div className="flex-1">
+              <div className="font-display text-xl font-bold text-white">Class goal</div>
+              <ProgressBar pct={goalPct} height={22} color="#5cc47f" track="rgb(255 255 255 / .16)" glow={goalPct >= 1} className="mt-1.5" />
+            </div>
+            <div className="font-display text-[64px] font-extrabold leading-none text-white tabular" aria-label={`${Math.round(goalPct * 100)} percent of the class goal`}>{Math.round(goalPct * 100)}<span className="text-[0.5em] text-white/75">%</span></div>
           </div>
         )}
       </header>
 
-      <main className="relative flex-1 overflow-y-auto px-6 pb-40 pt-6">
+      <main className="relative flex-1 overflow-y-auto px-6 pb-44 pt-6">
         {students.length === 0 ? (
-          <div className="grid h-full place-items-center text-2xl font-bold text-white/70">Add students to see their creatures here.</div>
+          <div className="grid h-full place-items-center font-display text-3xl font-bold text-ink-soft">Add students to see their creatures here.</div>
         ) : (
           <div className={`grid ${cols} gap-4`}>
             {sorted.map((s) => <PresentTile key={s.id} s={s} onClick={() => setSpot(s.id)} />)}
@@ -95,19 +94,19 @@ export function Present() {
       </main>
 
       {ticker.length > 0 && (
-        <div className="absolute inset-x-0 bottom-24 overflow-hidden whitespace-nowrap py-2 font-display text-xl font-semibold text-white/85" aria-hidden>
+        <div className="absolute inset-x-0 bottom-[92px] overflow-hidden whitespace-nowrap border-y border-rule bg-white/90 py-2.5 font-display text-[22px] font-semibold text-ink" aria-hidden>
           <motion.div className="inline-block" animate={{ x: ['0%', '-50%'] }} transition={{ repeat: Infinity, duration: Math.max(18, ticker.length * 5), ease: 'linear' }}>
             {[...ticker, ...ticker].map((t, i) => <span key={i} className="mx-8">{t}</span>)}
           </motion.div>
         </div>
       )}
 
-      <nav className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-center gap-3 border-t border-white/10 bg-night-950/80 px-4 py-4 backdrop-blur">
-        <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}>🎲 Pick a student</button>
-        {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}>✨ Whole class</button>}
-        {cls?.pendingSpin && !locked && <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setWheel(true)}>🎡 Prize wheel</button>}
-        <button className="btn btn-ghost px-5 py-4 text-xl" onClick={fullscreen} aria-label="Toggle full screen">⛶ Full screen</button>
-        <button className="btn btn-ghost px-5 py-4 text-xl" onClick={exit}>✕ Exit</button>
+      <nav className="cloth on-cloth absolute inset-x-0 bottom-0 flex h-[92px] flex-wrap items-center justify-center gap-3 px-4">
+        <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}><Icon name="dice" size={24} />Pick a student</button>
+        {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}><Icon name="sparkle" size={24} />Whole class</button>}
+        {cls?.pendingSpin && !locked && <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setWheel(true)}><Icon name="wheel" size={24} />Prize wheel</button>}
+        <button className="btn btn-ghost px-5 py-4 text-xl" onClick={fullscreen} aria-label="Toggle full screen"><Icon name="expand" size={22} />Full screen</button>
+        <button className="btn btn-ghost px-5 py-4 text-xl" onClick={exit}><Icon name="close" size={22} />Exit</button>
       </nav>
 
       <AnimatePresence>{wheel && cls && <PrizeWheel classId={cls.id} onClose={() => setWheel(false)} />}</AnimatePresence>
@@ -115,11 +114,11 @@ export function Present() {
       <AnimatePresence>{picking && <RandomPicker students={sorted} onDone={(id) => { setPicking(false); if (id) setSpot(id); }} />}</AnimatePresence>
       <AnimatePresence>
         {wholeClass && (
-          <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-night-950/85 p-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-endpaper/95 p-6 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="w-full max-w-4xl">
-              <h2 className="mb-4 text-center font-display text-4xl font-bold">Award the whole class</h2>
-              <AwardGrid dark onPick={(c) => { const o = award(students.map((s) => s.id), c.id); if (o.length && settings.soundEnabled) awardSound(c.xp, o.length); setWholeClass(false); }} />
-              <div className="mt-6 text-center"><button className="btn btn-ghost px-8 py-3 text-xl" onClick={() => setWholeClass(false)}>Cancel</button></div>
+              <h2 className="mb-5 text-center font-display text-5xl font-extrabold tracking-[-0.02em]">Award the whole class</h2>
+              <AwardGrid onPick={(c) => { const o = award(students.map((s) => s.id), c.id); if (o.length && settings.soundEnabled) awardSound(c.xp, o.length); setWholeClass(false); }} />
+              <div className="mt-6 text-center"><button className="btn btn-light px-8 py-3 text-xl" onClick={() => setWholeClass(false)}>Cancel</button></div>
             </div>
           </motion.div>
         )}
@@ -135,13 +134,13 @@ function PresentTile({ s, onClick }: { s: Student; onClick: () => void }) {
   const sp = getSpecies(s.speciesId);
   const stage = displayStage(s, settings);
   return (
-    <button onClick={onClick} className="group relative flex flex-col items-center rounded-[1.75rem] bg-white/[.06] p-2 ring-1 ring-white/10 transition hover:bg-white/[.12]">
-      <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[1.4rem]">
+    <button onClick={onClick} className="paper group relative flex flex-col items-center p-2 pb-2.5 transition hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
+      <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[8px]">
         <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
       </Habitat>
       <FloatingXP pulse={pulse} />
-      <div className="mt-1.5 max-w-full truncate font-display text-xl font-semibold">{firstName(s.name)}</div>
-      <StagePips stage={stage} />
+      <div className="mt-1.5 max-w-full truncate font-display text-[26px] font-bold leading-tight tracking-[-0.01em]">{firstName(s.name)}</div>
+      <StagePips stage={stage} color={ELEMENTS[sp.element].color} />
     </button>
   );
 }
@@ -160,28 +159,31 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
   const stage = displayStage(s, settings);
   const doAct = (type: CreatureAction) => { if (settings.soundEnabled) playCreature(sp.sound, true); setAct({ type, key: Date.now() }); };
   return (
-    <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-night-950/85 p-4 backdrop-blur" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+    <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-endpaper/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
       <motion.div className="relative grid w-full max-w-5xl items-center gap-6 md:grid-cols-[1.1fr_1fr]" initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 20 }} onClick={(e) => e.stopPropagation()}>
-        <Habitat element={sp.element} background={s.equipped.background} className="aspect-square w-full shadow-2xl" rounded="rounded-[2.5rem]">
+        <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full border border-rule p-0 shadow-[var(--shadow-lift)]" rounded="rounded-[18px]">
           <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
           <FloatingXP pulse={pulse} />
         </Habitat>
         <div>
-          <div className="font-display text-6xl font-bold leading-none">{firstName(s.name)}</div>
-          <div className="mt-2 font-display text-3xl font-semibold text-sun">{sp.name}</div>
-          <div className="mt-1 text-xl font-bold text-white/80">{STAGE_NAMES[stage]}{stage === 5 ? ` · ${sp.legendTitle}` : ''}</div>
-          <p className="mt-3 text-lg text-white/75">{sp.personality}</p>
+          <div className="font-display text-[88px] font-extrabold leading-[0.9] tracking-[-0.03em]">{firstName(s.name)}</div>
+          <div className="mt-3 flex items-center gap-2 font-display text-3xl font-bold" style={{ color: ELEMENTS[sp.element].color }}>
+            <ElementIcon element={sp.element} size={26} color={ELEMENTS[sp.element].color} /><span className="text-ink">{sp.name}</span>
+            <span className="text-xl font-semibold text-ink-soft tabular">{fieldNo(sp.id)}</span>
+          </div>
+          <div className="mt-1 text-xl font-bold text-ink-soft">{STAGE_NAMES[stage]}{stage === 5 ? ` · ${sp.legendTitle}` : ''}</div>
+          <p className="mt-3 max-w-[40ch] text-xl text-ink">{sp.personality}</p>
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <button className="btn btn-ghost py-4 text-xl" onClick={() => doAct('jump')}>⤒ Jump</button>
-            <button className="btn btn-ghost py-4 text-xl" onClick={() => doAct('wave')}>👋 Wave</button>
-            <button className="btn btn-ghost py-4 text-xl" onClick={() => doAct('ability')}>✨ {sp.ability}</button>
-            <button className="btn btn-ghost py-4 text-xl" onClick={() => doAct('happy')}>💖 Happy</button>
+            <button className="btn btn-light py-4 text-xl" onClick={() => doAct('jump')}><Icon name="jump" size={22} />Jump</button>
+            <button className="btn btn-light py-4 text-xl" onClick={() => doAct('wave')}><Icon name="wave" size={22} />Wave</button>
+            <button className="btn btn-light py-4 text-xl" onClick={() => doAct('ability')}><Icon name="sparkle" size={22} /><span className="truncate">{sp.ability}</span></button>
+            <button className="btn btn-light py-4 text-xl" onClick={() => doAct('happy')}><Icon name="heart" size={22} />Happy</button>
           </div>
           {showAward ? (
-            <div className="mt-4"><AwardGrid compact dark onPick={(c) => { const o = award([s.id], c.id); if (o.length && settings.soundEnabled) awardSound(c.xp); setShowAward(false); }} /></div>
+            <div className="mt-4"><AwardGrid compact onPick={(c) => { const o = award([s.id], c.id); if (o.length && settings.soundEnabled) awardSound(c.xp); setShowAward(false); }} /></div>
           ) : (
             <div className="mt-4 flex gap-3">
-              {!locked && <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}>⭐ Give points</button>}
+              {!locked && <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}><Icon name="star" size={22} />Give points</button>}
               <button className="btn btn-ghost py-4 text-xl" onClick={onClose}>Close</button>
             </div>
           )}
@@ -226,12 +228,12 @@ function RandomPicker({ students, onDone }: { students: Student[]; onDone: (id: 
   const prev = students[(idx - 1 + students.length) % students.length];
   const next = students[(idx + 1) % students.length];
   return (
-    <motion.div className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-night-950/90 p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="font-display text-3xl font-semibold uppercase tracking-[0.3em] text-sun">{done ? 'It’s your turn!' : 'Who will it be?'}</div>
+    <motion.div className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-endpaper/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <div className="font-display text-4xl font-extrabold tracking-[-0.01em] text-cloth-800">{done ? 'It’s your turn!' : 'Who will it be?'}</div>
       <div className="mt-6 flex items-center gap-6">
         {!done && <Mini s={prev} />}
         <motion.div key={done ? 'done' : 'spin'} className="relative h-[46vh] w-[46vh] max-w-[80vw]" animate={done ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 0.5 }}>
-          <Habitat element={sp.element} background={s.equipped.background} className="h-full w-full ring-8 ring-sun/70" rounded="rounded-full">
+          <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className={`h-full w-full shadow-[var(--shadow-lift)] ring-[6px] ${done ? 'ring-gilt' : 'ring-white'}`} rounded="rounded-full">
             {done ? <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} action={{ type: 'celebrate', key: 1 }} className="mx-auto h-full w-[80%]" sound={false} />
               : <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} effects={false} className="mx-auto h-full w-[80%]" sound={false} />}
           </Habitat>
@@ -239,7 +241,7 @@ function RandomPicker({ students, onDone }: { students: Student[]; onDone: (id: 
         </motion.div>
         {!done && <Mini s={next} />}
       </div>
-      <div className="mt-6 font-display text-6xl font-bold">{firstName(s.name)}</div>
+      <div className="mt-6 font-display text-[88px] font-extrabold leading-none tracking-[-0.03em]">{firstName(s.name)}</div>
       <div className="mt-6 flex gap-3">
         {done && <button className="btn btn-primary px-8 py-4 text-xl" onClick={() => onDone(s.id)}>Open spotlight</button>}
         <button className="btn btn-ghost px-8 py-4 text-xl" onClick={() => onDone(null)}>{done ? 'Close' : 'Cancel'}</button>
@@ -253,7 +255,7 @@ function Mini({ s }: { s: Student }) {
   const sp = getSpecies(s.speciesId);
   return (
     <div className="hidden h-[22vh] w-[22vh] opacity-40 md:block">
-      <Habitat element={sp.element} className="h-full w-full" rounded="rounded-full">
+      <Habitat element={sp.element} seed={sp.id} className="h-full w-full ring-4 ring-white" rounded="rounded-full">
         <Creature speciesId={sp.id} stage={displayStage(s, settings)} effects={false} className="mx-auto h-full w-[80%]" sound={false} />
       </Habitat>
     </div>

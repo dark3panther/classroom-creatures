@@ -43,7 +43,7 @@ export default function App() {
       <div className="grid h-full place-items-center">
         <div className="flex flex-col items-center gap-2">
           <span className="h-28 w-28 idle-hop"><CreatureSvg species={getSpecies('emberpup')} stage={1} /></span>
-          <span className="font-display text-xl font-semibold text-white/80">Waking up the creatures…</span>
+          <span className="font-display text-xl font-semibold text-ink-soft">Waking up the creatures…</span>
         </div>
       </div>
     );

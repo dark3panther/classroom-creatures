@@ -2,31 +2,35 @@
 
 Tokens live in `classroom-creatures/src/index.css` (`@theme`).
 
+## World: the creature field guide (1.3)
+The class is a naturalist's field guide: every creature is a numbered specimen on its own painted plate. Built for a projector in a lit classroom, so the ground is light and text is dark ink.
+
 ## Colour
 | Token | Value | Use |
 |---|---|---|
-| night-950 / 900 / 800 | #120b2e / #1b1240 / #2a1d5c | App sky, overlays, presentation backdrop |
-| parchment | #fffaf0 | Cards and modals ("paper") |
-| cream | #fff3dc | Inset panels on paper |
-| ink / ink-soft | #2b2140 / #6b5f86 | Text on paper |
-| sun / sun-deep | #ffc93b / #f2a20c | Primary actions, level badges, legendary |
-| grape | #8b5cf6 | XP bars, selection, focus |
-| mint | #34d399 | Class goal, success |
-| berry | #ff5fa2 | Demo labels, highlights |
-Element colours, habitats and glow colours are in `src/data/elements.ts`; behaviour colours in `src/data/defaults.ts`.
+| cloth-950 … cloth-600 | #0d2e23 … #3f866c | Bookcloth shell: header, Present bands, lock screen, big moments (with a linen weave) |
+| endpaper / endpaper-deep | #e5ecdc / #d3dec7 | Page ground, printed with a faint tracks-and-leaves tile |
+| rule / wash | #c3d0b8 / #eef3e8 | Hairlines on plates; inset panels |
+| ink / ink-soft | #16241c / #46584c | Text |
+| gilt / gilt-deep / gilt-ink | #f4b631 / #c98a0c / #3b2800 | Reserved for "now": selection, current tab, just-rewarded ribbon, primary action |
+| leaf / brick | #23864a / #b8432d | Awards / behaviour reminders |
+| coin | #8a5d07 | Coin numerals (the coin glyph is its own ochre, never gilt) |
+| berry / sky | #a3245a / #1f7fbf | Demo labels; daily/weekly challenge tags |
+Element colours are in `src/data/elements.ts`; the watercolour tints per element are in `src/creatures/Habitat.tsx` (`WASH`). Behaviour colours are the teacher's own and only tint buttons; labels stay ink.
 
 ## Type
-- Display: **Fredoka** 600/700 — headings, names, buttons
-- Body: **Nunito** 400/700/800 — everything else
-Both are bundled (no network).
+- Display: **Bricolage Grotesque** (variable) 600–800: headings, names, buttons, big numerals
+- Body/UI: **Atkinson Hyperlegible Next** (variable): everything else
+Both are bundled via Fontsource (no network). Hierarchy is by scale steps; no tracked-caps labels.
 
 ## Shape & depth
-- Cards: 24px radius (`--radius-card`), soft long shadow; habitats inside cards 18px radius
-- Buttons: pill shape; primary has a 4px "pressable" bottom shadow that collapses on press
-- Panels on the night sky: 7% white fill, 12% white hairline, blur
+- Plates and sheets: white, 1px `rule` hairline, 14px radius, soft offset shadow (`--shadow-card`, `--shadow-lift` on hover)
+- Buttons: pills; primary is gilt, ghost is an ink hairline, cloth is the filled secondary
+- The signature: `Habitat` paints a deterministic watercolour wash per species (seeded by species id) with a pooled darker edge; purchased backgrounds are painted inside the same wash shape
+- Drawn icons only (`src/components/Icon.tsx`, 24px grid, 2px rounded strokes); emoji appear only as the teacher's own content
 
 ## Components
-`btn-primary`, `btn-ghost`, `btn-light`, `btn-danger`, `panel`, `paper`, `input`, `chip`, `ProgressBar`, `LevelBadge` (gold hexagon), `StagePips` (5 dots, gold for Legendary), `ElementBadge` (custom glyphs), `RarityStars`, `Modal` (bottom sheet on phones), `Toggle`, `AwardGrid`.
+`btn-primary`, `btn-ghost`, `btn-light`, `btn-cloth`, `btn-danger`, `panel`, `paper`, `input`, `chip`, `ribbon`, `cloth`, `cloth-deep`, `ProgressBar` (element colour), `LevelBadge` ("Lv 7" tab, round seal at large size), `StagePips` (element colour), `ElementBadge`, `RarityStars`, `Modal` (bottom sheet on phones), `Toggle`, `AwardGrid`, `Icon`, `CoinIcon`.
 
 ## Motion
 - Idle loops: CSS only, 2–4 s, per-species style

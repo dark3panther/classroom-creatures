@@ -1,15 +1,83 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { ELEMENTS } from '../data/elements';
 import type { ElementType } from '../types';
 
+/** Watercolour tints per element: [pale under-wash, pooled pigment]. Light enough for a projector in a lit room. */
+const WASH: Record<ElementType, [string, string]> = {
+  fire: ['#ffe2cc', '#ffab7c'],
+  water: ['#d6efff', '#84c7f2'],
+  nature: ['#ddf2cb', '#9cd681'],
+  electric: ['#fff3bb', '#ffd75a'],
+  ice: ['#e7f8ff', '#a6def3'],
+  earth: ['#f3e4cb', '#d8ae80'],
+  shadow: ['#e6defa', '#ab96e4'],
+  light: ['#fff6da', '#ffe197'],
+  cosmic: ['#e3ddff', '#a493ff'],
+  air: ['#ebf7ff', '#b4dcf1'],
+};
+
+type Pt = [number, number];
+interface WashShape { under: string; main: string; second: string; bloom: string; specks: [number, number, number][] }
+
+/** small deterministic generator, so a species always gets the same painted plate */
+function rng(seed: string) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return () => {
+    h = (h + 0x6d2b79f5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function blob(r: () => number, cx: number, cy: number, rx: number, ry: number, n = 34, wobble = 0.09): string {
+  const ph = [r() * 6.28, r() * 6.28, r() * 6.28];
+  const pts: Pt[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const k = 1 + wobble * (Math.sin(2 * a + ph[0]) * 0.55 + Math.sin(3 * a + ph[1]) * 0.45 + Math.sin(5 * a + ph[2]) * 0.25) + (r() - 0.5) * wobble * 0.55;
+    pts.push([cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]);
+  }
+  const f = (p: Pt) => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+  let d = `M${f(pts[0])}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+    const c1: Pt = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+    const c2: Pt = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += `C${f(c1)} ${f(c2)} ${f(p2)}`;
+  }
+  return `${d}Z`;
+}
+
+const shapes = new Map<string, WashShape>();
+function washShape(seed: string): WashShape {
+  let w = shapes.get(seed);
+  if (!w) {
+    const r = rng(seed);
+    const dx = (r() - 0.5) * 8;
+    w = {
+      under: blob(r, 100 + dx * 1.6, 74, 92, 66, 30, 0.11),
+      main: blob(r, 100 - dx, 80, 80, 57, 40, 0.15),
+      second: blob(r, 100 + dx, 86, 62, 44, 30, 0.2),
+      bloom: blob(r, 82 + r() * 30, 58 + r() * 14, 26 + r() * 10, 16 + r() * 6, 18, 0.18),
+      specks: Array.from({ length: 16 }, () => [30 + r() * 140, 34 + r() * 90, 0.5 + r() * 1.3] as [number, number, number]),
+    };
+    shapes.set(seed, w);
+  }
+  return w;
+}
+
 /**
- * Scenic backdrops behind a creature. "bg-habitat" is the creature's home element;
- * the rest are unlockable backgrounds. Pure CSS/SVG so they scale to a projector.
+ * The field-guide plate behind a creature: a watercolour wash in its element's colour, painted once per species
+ * (pass the species id as `seed`). Unlockable backgrounds are painted inside the same wash shape.
  */
-export function Habitat({ element, background, children, className = '', rounded = 'rounded-[1.25rem]' }: {
-  element: ElementType; background?: string; children?: ReactNode; className?: string; rounded?: string;
+export function Habitat({ element, background, children, className = '', rounded = 'rounded-[10px]', seed }: {
+  element: ElementType; background?: string; children?: ReactNode; className?: string; rounded?: string; seed?: string;
 }) {
   const el = ELEMENTS[element];
+  const id = useId().replace(/:/g, '');
+  const shape = washShape(seed ?? element);
   const bg = background && background !== 'bg-habitat' ? background : `home-${element}`;
   const scenes: Record<string, { style: string; deco: ReactNode }> = {
     'bg-meadow': {
@@ -65,37 +133,39 @@ export function Habitat({ element, background, children, className = '', rounded
     </>,
   };
   const scene = scenes[bg];
-  const style = scene ? scene.style : `radial-gradient(120% 90% at 50% 0%, ${el.sky[0]} 0%, ${el.sky[1]} 100%)`;
+  const [pale, pooled] = WASH[element];
+  const mask = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 150' preserveAspectRatio='none'><path d='${shape.main}' fill='black'/></svg>`)}")`;
   return (
-    <div className={`relative overflow-hidden ${rounded} ${className}`} style={{ background: style }}>
-      <svg className="absolute inset-0 h-full w-full" aria-hidden preserveAspectRatio="none">
-        {scene ? scene.deco : <HomeDeco element={element} />}
-      </svg>
+    <div className={`relative overflow-hidden bg-white ${rounded} ${className}`}>
+      {scene ? (
+        <>
+          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 200 150" preserveAspectRatio="none" aria-hidden><path d={shape.under} fill={pale} opacity=".6" /></svg>
+          <div className="absolute inset-0" style={{ background: scene.style, maskImage: mask, WebkitMaskImage: mask, maskSize: '100% 100%', WebkitMaskSize: '100% 100%' }}>
+            <svg className="absolute inset-0 h-full w-full" aria-hidden preserveAspectRatio="none">{scene.deco}</svg>
+          </div>
+          <svg className="absolute inset-0 h-full w-full" viewBox="0 0 200 150" preserveAspectRatio="none" aria-hidden>
+            <path d={shape.main} fill="none" stroke="#16241c" strokeOpacity=".22" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+          </svg>
+        </>
+      ) : (
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 200 150" preserveAspectRatio="none" aria-hidden>
+          <defs>
+            <radialGradient id={`w${id}`} cx="50%" cy="44%" r="62%">
+              <stop offset="0" stopColor={pale} stopOpacity=".7" />
+              <stop offset=".7" stopColor={pooled} stopOpacity=".72" />
+              <stop offset="1" stopColor={pooled} stopOpacity="1" />
+            </radialGradient>
+          </defs>
+          <path d={shape.under} fill={pale} opacity=".75" />
+          <path d={shape.main} fill={`url(#w${id})`} />
+          <path d={shape.second} fill={pooled} opacity=".22" />
+          <path d={shape.bloom} fill="#fff" opacity=".32" />
+          <path d={shape.main} fill="none" stroke={pooled} strokeOpacity=".9" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+          <path d={shape.main} fill="none" stroke={el.color} strokeOpacity=".4" strokeWidth="1.1" vectorEffect="non-scaling-stroke" />
+          {shape.specks.map(([x, y, rr], i) => <ellipse key={i} cx={x} cy={y} rx={rr} ry={rr * 0.8} fill={el.color} opacity=".16" />)}
+        </svg>
+      )}
       <div className="relative h-full w-full">{children}</div>
     </div>
   );
-}
-
-function HomeDeco({ element }: { element: ElementType }) {
-  const el = ELEMENTS[element];
-  const ground = <ellipse cx="50%" cy="104%" rx="70%" ry="22%" fill="#ffffff" opacity=".22" />;
-  switch (element) {
-    case 'cosmic':
-    case 'shadow':
-      return <>{[[12, 18], [30, 40], [78, 14], [88, 46], [60, 26], [20, 70]].map(([x, y], i) => <circle key={i} cx={`${x}%`} cy={`${y}%`} r={1.6} fill="#fff" opacity=".85" className="cc-twinkle" style={{ animationDelay: `${i * 0.4}s` }} />)}{ground}</>;
-    case 'water':
-      return <>{[[14, 30, 5], [84, 22, 7], [70, 60, 4], [24, 66, 3]].map(([x, y, r], i) => <circle key={i} cx={`${x}%`} cy={`${y}%`} r={r} fill="none" stroke="#fff" strokeWidth="1.6" opacity=".6" />)}{ground}</>;
-    case 'fire':
-      return <><circle cx="82%" cy="20%" r="22" fill="#fff3c4" opacity=".55" />{ground}</>;
-    case 'nature':
-      return <><circle cx="16%" cy="22%" r="5" fill="#fff" opacity=".5" /><circle cx="84%" cy="30%" r="3.5" fill="#fff" opacity=".5" />{ground}</>;
-    case 'ice':
-    case 'air':
-      return <><ellipse cx="18%" cy="22%" rx="26" ry="9" fill="#fff" opacity=".7" /><ellipse cx="82%" cy="34%" rx="20" ry="7" fill="#fff" opacity=".6" />{ground}</>;
-    case 'light':
-    case 'electric':
-      return <><circle cx="50%" cy="38%" r="60" fill={el.glow} opacity=".35" />{ground}</>;
-    default:
-      return ground;
-  }
 }

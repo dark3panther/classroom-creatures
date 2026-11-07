@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, type ReactNode } from 'react';
 import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import type { ElementType, Rarity, Stage } from '../types';
+import { Icon } from './Icon';
 
 export function Modal({ open, onClose, children, wide, label, tone = 'paper' }: {
   open: boolean; onClose: () => void; children: ReactNode; wide?: boolean | 'xl'; label: string; tone?: 'paper' | 'night';
@@ -17,12 +18,12 @@ export function Modal({ open, onClose, children, wide, label, tone = 'paper' }: 
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-40 flex items-end justify-center p-0 sm:items-center sm:p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-night-950/70 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-cloth-950/55 backdrop-blur-[3px]" onClick={onClose} />
           <motion.div role="dialog" aria-modal aria-label={label}
-            className={`relative w-full ${width} max-h-[94vh] overflow-y-auto scroll-thin ${tone === 'paper' ? 'paper on-paper' : 'panel bg-night-800'} rounded-b-none sm:rounded-b-[1.5rem]`}
+            className={`relative w-full ${width} max-h-[94vh] overflow-y-auto scroll-thin ${tone === 'paper' ? 'paper on-paper' : 'cloth-deep on-cloth rounded-[var(--radius-card)]'} rounded-b-none !shadow-[var(--shadow-lift)] sm:rounded-b-[var(--radius-card)]`}
             initial={{ y: 40, scale: 0.97, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 320, damping: 28 }}>
-            <button onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-black/5 text-xl font-bold text-ink hover:bg-black/10">×</button>
+            <button onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-wash text-ink ring-1 ring-rule transition hover:bg-endpaper"><Icon name="close" size={18} strokeWidth={2.4} /></button>
             {children}
           </motion.div>
         </motion.div>
@@ -31,16 +32,14 @@ export function Modal({ open, onClose, children, wide, label, tone = 'paper' }: 
   );
 }
 
-export function ProgressBar({ pct, color = '#ffc93b', height = 12, className = '', track = 'rgb(43 33 64 / .12)', glow }: {
+export function ProgressBar({ pct, color = '#1d5643', height = 12, className = '', track = 'rgb(22 36 28 / .1)', glow }: {
   pct: number; color?: string; height?: number; className?: string; track?: string; glow?: boolean;
 }) {
   return (
     <div className={`relative overflow-hidden rounded-full ${className}`} style={{ height, background: track }}>
       <motion.div className="absolute inset-y-0 left-0 rounded-full"
-        style={{ background: `linear-gradient(90deg, ${color}, ${color}dd)`, boxShadow: glow ? `0 0 12px ${color}` : undefined }}
-        initial={false} animate={{ width: `${Math.max(0, Math.min(1, pct)) * 100}%` }} transition={{ type: 'spring', stiffness: 120, damping: 20 }}>
-        <div className="absolute inset-x-1 top-[2px] h-[35%] rounded-full bg-white/45" />
-      </motion.div>
+        style={{ background: color, boxShadow: glow ? `0 0 0 2px #fff, 0 0 14px ${color}` : 'inset 0 -1px 0 rgb(0 0 0 / .12)' }}
+        initial={false} animate={{ width: `${Math.max(0, Math.min(1, pct)) * 100}%` }} transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
     </div>
   );
 }
@@ -48,8 +47,8 @@ export function ProgressBar({ pct, color = '#ffc93b', height = 12, className = '
 export function ElementBadge({ element, small }: { element: ElementType; small?: boolean }) {
   const el = ELEMENTS[element];
   return (
-    <span className={`chip ${small ? '!text-[10px] !px-2 !py-0' : ''}`} style={{ background: el.color, color: '#fff' }}>
-      <ElementIcon element={element} size={small ? 10 : 12} />{el.name}
+    <span className={`chip text-ink ${small ? '!text-[11px] !px-2 !py-0.5' : ''}`} style={{ background: `color-mix(in srgb, ${el.color} 15%, white)`, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${el.color} 45%, white)` }}>
+      <ElementIcon element={element} size={small ? 11 : 13} color={el.color} />{el.name}
     </span>
   );
 }
@@ -77,27 +76,35 @@ export function RarityStars({ rarity, className = '' }: { rarity: Rarity; classN
       <span className="flex">{Array.from({ length: r.stars }).map((_, i) => (
         <svg key={i} width="12" height="12" viewBox="0 0 16 16"><polygon points="8,0.5 9.8,6.2 15.5,6.2 10.9,9.7 12.6,15.3 8,11.9 3.4,15.3 5.1,9.7 0.5,6.2 6.2,6.2" fill={r.color} /></svg>
       ))}</span>
-      <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: r.color }}>{r.name}</span>
+      <span className="text-[12px] font-bold text-ink-soft">{r.name}</span>
     </span>
   );
 }
 
-export function StagePips({ stage, dark }: { stage: Stage; dark?: boolean }) {
+export function StagePips({ stage, dark, color }: { stage: Stage; dark?: boolean; color?: string }) {
+  const on = color ?? (dark ? '#16241c' : '#ffffff');
+  const off = dark || color ? 'rgb(22 36 28 / .16)' : 'rgb(255 255 255 / .35)';
   return (
-    <span className="inline-flex items-center gap-1" title={`${STAGE_NAMES[stage]} (stage ${stage} of 5)`}>
+    <span className="inline-flex items-center gap-[3px]" title={`${STAGE_NAMES[stage]} (stage ${stage} of 5)`}>
       {[1, 2, 3, 4, 5].map((i) => (
-        <span key={i} className="h-2 w-2 rounded-full" style={{ background: i <= stage ? (i === 5 ? '#ffc93b' : dark ? '#8b5cf6' : '#fff') : dark ? 'rgb(43 33 64 / .15)' : 'rgb(255 255 255 / .3)' }} />
+        <span key={i} className="h-2 w-2 rounded-full" style={{ background: i <= stage ? on : off }} />
       ))}
     </span>
   );
 }
 
+/** The plate's level tab: white, bookcloth ring and numeral. Large size becomes a round seal. */
 export function LevelBadge({ level, size = 'md' }: { level: number; size?: 'sm' | 'md' | 'lg' }) {
-  const s = size === 'lg' ? 'h-14 w-14 text-2xl' : size === 'sm' ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg';
+  if (size === 'lg') {
+    return (
+      <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white font-display font-bold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.25)] ring-[2.5px] ring-cloth-800 tabular" title={`Level ${level}`}>
+        <span className="flex flex-col items-center"><span className="text-[12px] font-semibold">Lv</span><span className="text-2xl">{level}</span></span>
+      </div>
+    );
+  }
   return (
-    <div className={`relative grid ${s} shrink-0 place-items-center font-display font-bold text-[#3a2400]`}>
-      <svg viewBox="0 0 40 40" className="absolute inset-0 h-full w-full drop-shadow"><path d="M20 1 L36 10 L36 30 L20 39 L4 30 L4 10 Z" fill="url(#lvlg)" stroke="#c98400" strokeWidth="2.5" /><defs><linearGradient id="lvlg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe48a" /><stop offset="1" stopColor="#ffb81f" /></linearGradient></defs></svg>
-      <span className="relative leading-none">{level}</span>
+    <div className={`flex shrink-0 items-baseline gap-1 rounded-full bg-white font-display font-bold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.22)] ring-2 ring-cloth-800 tabular ${size === 'sm' ? 'px-2 py-1' : 'px-2.5 py-1.5'}`} title={`Level ${level}`}>
+      <span className="text-[12px] font-semibold">Lv</span><span className={size === 'sm' ? 'text-[16px]' : 'text-[19px]'}>{level}</span>
     </div>
   );
 }
@@ -105,7 +112,7 @@ export function LevelBadge({ level, size = 'md' }: { level: number; size?: 'sm' 
 export function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-3">
-      <h2 className="font-display text-xl font-semibold tracking-wide">{children}</h2>
+      <h2 className="font-display text-[22px] font-bold tracking-[-0.01em]">{children}</h2>
       {action}
     </div>
   );
@@ -119,7 +126,7 @@ export function Toggle({ checked, onChange, label, hint }: { checked: boolean; o
         {hint && <span className="block text-sm text-ink-soft">{hint}</span>}
       </span>
       <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-        className={`relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? 'bg-mint' : 'bg-ink/20'}`}>
+        className={`relative mt-1 h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? 'bg-leaf' : 'bg-ink/20'}`}>
         <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'left-6' : 'left-1'}`} />
       </button>
     </label>
