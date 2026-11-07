@@ -191,7 +191,7 @@ function Shop({ student }: { student: Student }) {
               {owned ? (
                 <button className="btn btn-light mt-1 !py-1 !text-xs" onClick={() => equip(student.id, it.slot, it.id)}><Icon name="check" size={14} strokeWidth={2.6} />Owned · Wear</button>
               ) : (
-                <button className="btn btn-primary mt-1 !py-1 !text-xs" disabled={!can}
+                <button className="btn btn-cloth mt-1 !py-1 !text-xs" disabled={!can}
                   onClick={() => { if (buy(student.id, it.id)) { if (sound) { playCoin(); setTimeout(playPop, 120); } equip(student.id, it.slot, it.id); notify(`${student.name.split(' ')[0]} bought ${it.name}!`); } }}>
                   <CoinIcon size={14} />{price}
                 </button>
