@@ -76,7 +76,7 @@ npm run app:mac
 
 This creates `release/Classroom Creatures-1.0.0-universal.dmg` (works on both Apple Silicon and Intel Macs). Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
 
-**Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and pushing a tag such as `v1.2.0` publishes a Release automatically.
+**Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and a Release is published either by pushing a tag such as `v1.3.0` or from **Actions → Release → Run workflow** with the version number (the tag is created for you).
 
 **First launch of a downloaded copy:** the app is not notarised by Apple (that needs a paid Apple Developer account), so macOS warns you the first time. Right-click (or Control-click) the app in Applications → **Open** → **Open**. On recent macOS versions you may instead need to go to System Settings → Privacy & Security and click **Open Anyway**. If macOS says the app "is damaged", run this once in Terminal:
 
