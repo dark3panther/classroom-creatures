@@ -39,6 +39,8 @@ export interface CreatureProps {
   treats?: number;
   /** chosen final path ('b' = mythical aspect with its own look and pixel aura) */
   branch?: 'a' | 'b';
+  /** play an ability's pixel animation (change `key` to cast again) */
+  cast?: { key: number; fx: PixelFxId; anchor?: [number, number]; size?: number; palette?: string[]; duration?: number } | null;
 }
 
 interface FxPlay { key: string; id: PixelFxId; anchor?: [number, number]; size?: number; duration?: number; options?: Record<string, unknown>; bodyFrac?: number }
@@ -85,7 +87,7 @@ const CYCLE: CreatureAction[] = ['jump', 'wave', 'ability', 'happy'];
 const MOOD_FACE: Record<Mood, Expression> = { happy: 'happy', excited: 'excited', proud: 'happy', calm: 'happy', sad: 'sad', sleepy: 'sleepy' };
 
 /** The animated creature: idle loop, feelings, reactions, particles and play. */
-export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0, branch }: CreatureProps) {
+export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0, branch, cast }: CreatureProps) {
   const sp = getSpecies(speciesId);
   const myth = stage === 5 && branch === 'b' ? BRANCHES[speciesId]?.b : undefined;
   const controls = useAnimationControls();
@@ -100,6 +102,11 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
     lastEvent.current = event.n;
     if (effects) setFx((list) => [...list.slice(-4), ...reactionFx(event, compact)]);
   }, [event, effects]);
+  useEffect(() => {
+    if (!cast || !effects) return;
+    setFx((list) => [...list.slice(-4), { key: `cast-${cast.key}`, id: cast.fx, anchor: cast.anchor, size: cast.size, duration: cast.duration ?? 2.6, options: cast.palette ? { palette: cast.palette } : undefined }]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cast?.key]);
   const cycle = useRef(0);
   const first = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout>>();

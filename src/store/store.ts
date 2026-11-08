@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { DEFAULT_NEGATIVE_CATEGORIES, ITEMS_BY_ID } from '../data/defaults';
-import { ADJUST_CATEGORY_ID, applyAward, refreshAll, undoBatch } from '../engine/awards';
+import { ADJUST_CATEGORY_ID, applyAward, refreshAll, refreshStudent as refreshStudentPure, undoBatch } from '../engine/awards';
 import { equipItem, purchase } from '../engine/shop';
+import { raiseAbility as raiseAbilityPure, resetAbilities as resetAbilitiesPure } from '../engine/abilities';
 import { approveEvolution as approveEvolutionPure, canChooseBranch, chooseBranch as chooseBranchPure, needsBranchChoice, pendingStage } from '../engine/evolution';
 import { buildDemoData, removeDemo } from '../engine/demo';
 import { validateProgression } from '../engine/progression';
@@ -55,6 +56,11 @@ interface Actions {
   adjustXp: (studentId: string, delta: number, note?: string) => boolean;
   /** one entry point for "Evolve": approves, or opens the path chooser when this evolution branches */
   startEvolution: (studentId: string) => void;
+  /** spend a skill point on an ability (cosmetic) */
+  raiseAbility: (studentId: string, abilityId: string) => boolean;
+  resetAbilities: (studentId: string) => void;
+  /** cosmetic interaction (pet / feed / play): only counts toward the Best Friends badge */
+  interact: (studentId: string, kind: 'pet' | 'feed' | 'play') => void;
   closeBranchPick: () => void;
   notify: (text: string, tone?: ToastTone) => void;
   setLocked: (v: boolean) => void;
@@ -259,6 +265,30 @@ export const useStore = create<Store>()((set, get) => {
       } else if (canChooseBranch(st)) set({ branchPick: { studentId, mode: 'choose' } });
     },
     closeBranchPick: () => set({ branchPick: null }),
+    raiseAbility: (studentId, abilityId) => {
+      const before = get().data;
+      const next = raiseAbilityPure(before, studentId, abilityId);
+      if (!next) return false;
+      const st = before.students.find((x) => x.id === studentId)!;
+      const after = next.students.find((x) => x.id === studentId)!;
+      const fresh = after.achievements.filter((a) => !st.achievements.some((b) => b.id === a.id));
+      if (fresh.length) set({ celebrations: [...get().celebrations, ...fresh.map((a) => ({ id: id(), type: 'achievement' as const, studentId, achievementId: a.id }))] });
+      commit(next);
+      return true;
+    },
+    resetAbilities: (studentId) => commit(resetAbilitiesPure(get().data, studentId)),
+    interact: (studentId, kind) => {
+      const before = get().data;
+      const st = before.students.find((x) => x.id === studentId);
+      if (!st) return;
+      const i = st.interactions ?? { pet: 0, feed: 0, play: 0 };
+      const bumped: AppData = { ...before, students: before.students.map((x) => (x.id === studentId ? { ...x, interactions: { ...i, [kind]: i[kind] + 1 } } : x)) };
+      const next = refreshStudentPure(bumped, studentId).data;
+      const after = next.students.find((x) => x.id === studentId)!;
+      const fresh = after.achievements.filter((a) => !st.achievements.some((b) => b.id === a.id));
+      if (fresh.length) set({ celebrations: [...get().celebrations, ...fresh.map((a) => ({ id: id(), type: 'achievement' as const, studentId, achievementId: a.id }))] });
+      commit(next);
+    },
     replayEvolution: (studentId, stage) => {
       const from = Math.max(1, stage - 1) as Stage;
       const st = get().data.students.find((s) => s.id === studentId);

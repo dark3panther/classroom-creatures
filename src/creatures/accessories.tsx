@@ -205,6 +205,14 @@ export function Accessories({ equipped, g, line }: { equipped: Equipped; g: Geo;
           </g>
         );
       })()}
+      {equipped.hat === 'hat-pith' && (
+        <g>
+          <ellipse cx={hx} cy={top + 6} rx={40} ry={8} fill="#d9c08a" stroke={line} strokeWidth={3} />
+          <path d={`M ${hx - 26} ${top + 4} Q ${hx - 26} ${top - 26} ${hx} ${top - 28} Q ${hx + 26} ${top - 26} ${hx + 26} ${top + 4} Z`} fill="#e8d3a2" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          <path d={`M ${hx - 25} ${top - 2} Q ${hx} ${top + 3} ${hx + 25} ${top - 2}`} fill="none" stroke="#1d5643" strokeWidth={5} />
+          <circle cx={hx} cy={top - 28} r={3} fill="#c9a96a" stroke={line} strokeWidth={1.5} />
+        </g>
+      )}
       {equipped.hat === 'hat-crown' && (
         <g className="cc-shine">
           <polygon points={`${hx - 28},${top + 10} ${hx - 32},${top - 22} ${hx - 14},${top - 6} ${hx},${top - 30} ${hx + 14},${top - 6} ${hx + 32},${top - 22} ${hx + 28},${top + 10}`} fill="#ffd23f" stroke={line} strokeWidth={3} strokeLinejoin="round" />
