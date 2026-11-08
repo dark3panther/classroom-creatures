@@ -1,6 +1,6 @@
 import { navigate } from '../lib/router';
 import { useEffect, useMemo, useState } from 'react';
-import { awardSound, playCoin, playCreature, playPop } from '../audio/sfx';
+import { awardSound, playCreature, playPop } from '../audio/sfx';
 import { MOODS } from '../engine/mood';
 import { useMood } from '../lib/useMood';
 import { AwardGrid } from '../components/AwardGrid';
@@ -13,7 +13,9 @@ import { ElementBadge, LevelBadge, Modal, ProgressBar, RarityStars } from '../co
 import { Creature, type CreatureAction } from '../creatures/Creature';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { Habitat } from '../creatures/Habitat';
-import { ACHIEVEMENTS, ITEMS, TAG_LABELS, SLOT_MANY } from '../data/defaults';
+import { ACHIEVEMENTS, ITEMS_BY_ID, SLOTS, TAG_LABELS } from '../data/defaults';
+import { ItemThumb } from '../components/ItemThumb';
+import { displayStage } from '../engine/progression';
 import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import { SPECIES, fieldNo, getSpecies } from '../data/species';
 import { challengeProgress } from '../engine/awards';
@@ -21,9 +23,9 @@ import { speciesChoices } from '../engine/roster';
 import { timeAgo } from '../engine/util';
 import { useStudentView } from '../lib/stats';
 import { useStore } from '../store/store';
-import type { Item, ItemSlot, Stage, Student } from '../types';
+import type { Stage, Student } from '../types';
 
-type Tab = 'award' | 'shop' | 'wardrobe' | 'badges' | 'history' | 'manage';
+type Tab = 'award' | 'look' | 'badges' | 'history' | 'manage';
 
 export function StudentProfile({ studentId, onClose }: { studentId: string | null; onClose: () => void }) {
   const student = useStore((s) => s.data.students.find((x) => x.id === studentId));
@@ -141,7 +143,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
       {/* tabs side */}
       <div className="border-t border-rule p-4 sm:p-6 lg:border-l lg:border-t-0">
         <div className="mb-4 mr-12 flex gap-1 overflow-x-auto rounded-full bg-wash p-1 ring-1 ring-rule" role="tablist">
-          {([['award', 'Award'], ['shop', 'Shop'], ['wardrobe', 'Wardrobe'], ['badges', 'Badges'], ['history', 'History'], ['manage', 'Manage']] as const).map(([k, l]) => (
+          {([['award', 'Award'], ['look', 'Look'], ['badges', 'Badges'], ['history', 'History'], ['manage', 'Manage']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
               className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 font-display font-semibold transition ${tab === k ? 'bg-cloth-800 text-white' : 'text-ink-soft hover:bg-white hover:text-ink'}`}>{l}</button>
           ))}
@@ -152,8 +154,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
             <AwardGrid onPick={(c) => { const o = award([student.id], c.id); if (o.length && settings.soundEnabled) awardSound(c.xp); }} />
           </div>
         )}
-        {tab === 'shop' && <Shop student={student} />}
-        {tab === 'wardrobe' && <Wardrobe student={student} />}
+        {tab === 'look' && <LookTab student={student} />}
         {tab === 'badges' && <Badges student={student} />}
         {tab === 'history' && <History student={student} />}
         {tab === 'manage' && <Manage student={student} onClose={onClose} />}
@@ -162,96 +163,32 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
   );
 }
 
-const SLOT_LABEL = SLOT_MANY;
-
-function unlockText(it: Item): string {
-  const u = it.unlock;
-  if (u.type === 'level') return `Reach Level ${u.level}`;
-  if (u.type === 'achievement') return `Badge: ${ACHIEVEMENTS.find((a) => a.id === u.id)?.name ?? u.id}`;
-  if (u.type === 'challenges') return `Complete ${u.count} challenges`;
-  if (u.type === 'shop') return `${u.price} coins in the Shop`;
-  return 'Free';
-}
-
-function Shop({ student }: { student: Student }) {
-  const buy = useStore((s) => s.buy);
-  const notify = useStore((s) => s.notify);
-  const equip = useStore((s) => s.equip);
-  const sound = useStore((s) => s.data.settings.soundEnabled);
-  const v = useStudentView(student)!;
-  const shop = ITEMS.filter((i) => i.unlock.type === 'shop');
-  const coins = student.coins ?? 0;
+/** Quick look at what the creature wears, with the way into the dressing room (shop and wardrobe live there). */
+function LookTab({ student }: { student: Student }) {
+  const settings = useStore((s) => s.data.settings);
+  const worn = SLOTS.filter(({ slot }) => student.equipped[slot] && !(slot === 'background' && student.equipped[slot] === 'bg-habitat'));
   return (
     <div>
       <div className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-[#fdf2d6] px-4 py-3 ring-1 ring-[#e7c77a]">
-        <span className="flex items-center gap-2 font-display text-xl font-bold text-[#6b4806]"><CoinIcon size={22} /><span className="tabular">{coins}</span> coins</span>
-        <span className="text-right text-[13px] text-[#6b4806]">Students earn 1 coin for every XP point.</span>
+        <span className="flex items-center gap-2 font-display text-xl font-bold text-[#6b4806]"><CoinIcon size={22} /><span className="tabular">{student.coins ?? 0}</span> coins</span>
+        <button className="btn btn-cloth" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Open the dressing room</button>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2">
-        {shop.map((it) => {
-          const price = it.unlock.type === 'shop' ? it.unlock.price : 0;
-          const owned = student.unlockedItems.includes(it.id);
-          const can = !owned && coins >= price;
-          return (
-            <div key={it.id} className={`flex flex-col rounded-xl p-2 text-center ring-1 ${owned ? 'bg-leaf-pale ring-leaf/30' : 'bg-wash ring-rule'}`}>
-              {it.slot === 'background' ? (
-                <Habitat element={v.species.element} background={it.id} className="aspect-square" rounded="rounded-xl"><span /></Habitat>
-              ) : (
-                <div className="aspect-square"><CreatureSvg species={v.species} stage={v.stage} equipped={{ [it.slot]: it.id }} effects={false} noShadow className="h-full w-full" /></div>
-              )}
-              <div className="mt-1 truncate text-xs font-extrabold">{it.name}</div>
-              {owned ? (
-                <button className="btn btn-light mt-1 !py-1 !text-xs" onClick={() => equip(student.id, it.slot, it.id)}><Icon name="check" size={14} strokeWidth={2.6} />Owned · Wear</button>
-              ) : (
-                <button className="btn btn-cloth mt-1 !py-1 !text-xs" disabled={!can}
-                  onClick={() => { if (buy(student.id, it.id)) { if (sound) { playCoin(); setTimeout(playPop, 120); } equip(student.id, it.slot, it.id); notify(`${student.name.split(' ')[0]} bought ${it.name}!`); } }}>
-                  <CoinIcon size={14} />{price}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function Wardrobe({ student }: { student: Student }) {
-  const equip = useStore((s) => s.equip);
-  const settings = useStore((s) => s.data.settings);
-  const v = useStudentView(student)!;
-  const slots: ItemSlot[] = ['outfit', 'hat', 'glasses', 'wings', 'magic', 'decoration', 'background'];
-  return (
-    <div className="flex flex-col gap-4">
-      {slots.map((slot) => (
-        <div key={slot}>
-          <div className="mb-1.5 flex items-center justify-between">
-            <span className="font-display text-[16px] font-bold text-ink">{SLOT_LABEL[slot]}</span>
-            {student.equipped[slot] && slot !== 'background' && <button className="text-[13px] font-bold text-cloth-800 underline-offset-2 hover:underline" onClick={() => equip(student.id, slot, null)}>Take off</button>}
-          </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
-            {ITEMS.filter((i) => i.slot === slot).map((it) => {
-              const owned = student.unlockedItems.includes(it.id);
-              const on = student.equipped[slot] === it.id;
-              return (
-                <button key={it.id} disabled={!owned} onClick={() => { equip(student.id, slot, on && slot !== 'background' ? null : it.id); if (settings.soundEnabled) playPop(); }}
-                  className={`relative rounded-xl p-1.5 text-center transition ${on ? 'bg-gilt-pale ring-2 ring-gilt-deep' : owned ? 'bg-wash ring-1 ring-rule hover:bg-endpaper' : 'bg-wash ring-1 ring-rule'}`}
-                  title={owned ? it.description : `Locked · ${unlockText(it)}`}>
-                  {slot === 'background' ? (
-                    <Habitat element={v.species.element} background={it.id} className="aspect-square" rounded="rounded-xl"><span /></Habitat>
-                  ) : (
-                    <div className="aspect-square" style={owned ? undefined : { filter: 'grayscale(1)', opacity: 0.4 }}>
-                      <CreatureSvg species={v.species} stage={v.stage} equipped={{ [slot]: it.id }} effects={false} noShadow className="h-full w-full" />
-                    </div>
-                  )}
-                  <div className="mt-1 truncate text-[11px] font-extrabold">{it.name}</div>
-                  {!owned && <div className="flex items-center justify-center gap-1 truncate text-[11px] font-bold text-ink-soft"><Icon name="lock" size={11} strokeWidth={2.4} className="shrink-0" />{unlockText(it)}</div>}
-                </button>
-              );
-            })}
-          </div>
+      <p className="mb-3 text-sm text-ink-soft">Shop, wardrobe, armor, trails and effects are all in the dressing room, where students can try things on before buying.</p>
+      {worn.length === 0 ? <p className="rounded-xl bg-wash p-4 text-sm font-bold text-ink-soft ring-1 ring-rule">Nothing equipped yet.</p> : (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {worn.map(({ slot, one }) => {
+            const it = ITEMS_BY_ID[student.equipped[slot]!];
+            if (!it) return null;
+            return (
+              <div key={slot} className="rounded-xl bg-white p-1.5 text-center ring-1 ring-rule">
+                <ItemThumb item={it} speciesId={student.speciesId} stage={displayStage(student, settings)} branch={student.branch} />
+                <div className="mt-1 truncate text-[12px] font-bold">{it.name}</div>
+                <div className="text-[11px] text-ink-soft">{one}</div>
+              </div>
+            );
+          })}
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -269,7 +206,7 @@ function Badges({ student }: { student: Student }) {
           const got = have.has(a.id);
           return (
             <div key={a.id} className={`flex items-center gap-2 rounded-2xl p-2 ${got ? '' : 'opacity-50 grayscale'}`} style={{ background: got ? `${a.color}22` : 'rgb(43 33 64 / .05)' }}>
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xl" style={{ background: got ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(22 36 28 / .07)' }}>{got ? a.icon : <Icon name="lock" size={18} className="text-ink-soft" />}</span>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xl" style={{ background: got ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(22 36 28 / .07)' }}>{got ? <Glyph icon={a.icon} size={20} /> : <Icon name="lock" size={18} className="text-ink-soft" />}</span>
               <span className="min-w-0 leading-tight">
                 <span className="block truncate text-sm font-extrabold">{a.name}</span>
                 <span className="block text-[11px] font-bold text-ink-soft">{got ? `Earned ${timeAgo(have.get(a.id)!, now)}` : a.description}</span>
