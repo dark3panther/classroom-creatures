@@ -1,7 +1,8 @@
 import { AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
-import { setSoundEnabled } from './audio/sfx';
+import { playClick, setSoundEnabled, setUiSounds, setVolume } from './audio/sfx';
 import { CelebrationHost } from './components/Celebrations';
+import { BranchChooserHost } from './components/Evolve';
 import { LockScreen } from './components/PinPad';
 import { Toasts } from './components/Toasts';
 import { TopBar } from './components/TopBar';
@@ -27,7 +28,17 @@ export default function App() {
   const route = useRoute();
 
   useEffect(() => { void init(); }, [init]);
+  const volume = useStore((s) => s.data.settings.soundVolume);
+  const uiSounds = useStore((s) => s.data.settings.uiSounds);
   useEffect(() => setSoundEnabled(sound), [sound]);
+  useEffect(() => setVolume(volume ?? 0.8), [volume]);
+  useEffect(() => setUiSounds(!!uiSounds), [uiSounds]);
+  // one soft click for any button press, when the teacher turned interface sounds on
+  useEffect(() => {
+    const on = (e: PointerEvent) => { if ((e.target as HTMLElement | null)?.closest('button')) playClick(); };
+    window.addEventListener('pointerdown', on);
+    return () => window.removeEventListener('pointerdown', on);
+  }, []);
   useEffect(() => {
     document.documentElement.classList.toggle('reduce-motion', reduced);
   }, [reduced]);
@@ -53,6 +64,7 @@ export default function App() {
     return (
       <>
         <Present />
+        <BranchChooserHost />
         <CelebrationHost />
         <Toasts />
       </>
@@ -71,6 +83,7 @@ export default function App() {
         {route.view === 'settings' && <SettingsView tab={route.tab} />}
       </main>
       <AnimatePresence>{!onboarded && !locked && <Onboarding />}</AnimatePresence>
+      <BranchChooserHost />
       <CelebrationHost />
       <Toasts />
     </div>

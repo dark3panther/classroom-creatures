@@ -1,3 +1,5 @@
+import { BRANCHES } from '../data/branches';
+import { MythicBack, MythicFilter, MythicFront, type OrnamentBox } from './mythic';
 import { Fragment, memo, useId, type ReactNode } from 'react';
 import { ELEMENTS, RARITIES } from '../data/elements';
 import type { Equipped, Expression, Species, Stage } from '../types';
@@ -657,18 +659,22 @@ export interface CreatureSvgProps {
   title?: string;
   /** force the original vector drawing (dev contact sheets) */
   classic?: boolean;
+  /** chosen final path for branching species ('b' = mythical) */
+  branch?: 'a' | 'b';
 }
 
 function CreatureSvgImpl(props: CreatureSvgProps) {
   const artStyle = useStore((s) => s.data.settings.artStyle ?? 'illustrated');
   if (artStyle === 'illustrated' && !props.classic && hasIllustration(props.species.id, props.stage)) {
-    return <IllustratedCreature sp={props.species} stage={props.stage} equipped={props.equipped} noShadow={props.noShadow} effects={props.effects} className={props.className} title={props.title} />;
+    return <IllustratedCreature sp={props.species} stage={props.stage} equipped={props.equipped} noShadow={props.noShadow} effects={props.effects} className={props.className} title={props.title} branch={props.branch} />;
   }
   return <VectorCreature {...props} />;
 }
 
-function VectorCreature({ species: sp, stage, expression = 'happy', equipped = {}, noShadow, effects = true, className, title }: CreatureSvgProps) {
+function VectorCreature({ species: sp, stage, expression = 'happy', equipped = {}, noShadow, effects = true, className, title, branch }: CreatureSvgProps) {
   const uid = useId().replace(/:/g, '');
+  const myth = stage === 5 && branch === 'b' ? BRANCHES[sp.id]?.b : undefined;
+  const mythBox: OrnamentBox = { cx: 100, top: 34, headR: 44, bottom: 184, left: 44, right: 156 };
   const g = geometry(sp, stage);
   const el = ELEMENTS[sp.element];
   const line = darken(sp.palette.shade, 0.55);
@@ -693,15 +699,17 @@ function VectorCreature({ species: sp, stage, expression = 'happy', equipped = {
           <stop offset="70%" stopColor={el.glow} stopOpacity={0.18} />
           <stop offset="100%" stopColor={el.glow} stopOpacity={0} />
         </radialGradient>
+        {myth && <MythicFilter id={`cc-myth-${uid}`} path={myth} />}
       </defs>
 
+      {myth && <MythicBack path={myth} b={mythBox} />}
       {!noShadow && <ellipse cx={100} cy={186} rx={52 * scale} ry={8 * scale} fill="#1a1033" opacity={g.floating ? 0.12 : 0.2} className={g.floating ? 'cc-shadow-pulse' : undefined} />}
       {effects && stage >= 4 && <circle cx={100} cy={112} r={stage === 5 ? 98 : 84} fill={`url(#${auraGrad})`} className="cc-pulse" />}
       {effects && (sp.rarity === 'epic' || sp.rarity === 'legendary') && (
         <circle cx={100} cy={112} r={92} fill="none" stroke={sp.rarity === 'legendary' ? '#ffd23f' : '#d6a6ff'} strokeWidth={2.5} strokeDasharray="4 10" opacity={0.6} className="cc-spin-slow" style={{ transformOrigin: '100px 112px' }} />
       )}
 
-      <g transform={`translate(100 184) scale(${scale}) translate(-100 -184)`}>
+      <g transform={`translate(100 184) scale(${scale}) translate(-100 -184)`} filter={myth ? `url(#cc-myth-${uid})` : undefined}>
         <g className="cc-body-root">
           <ElementFeatures c={c} layer="back" hatOn={hatOn} />
           <BackAccessories equipped={equipped} g={g} line={line} />
@@ -751,6 +759,7 @@ function VectorCreature({ species: sp, stage, expression = 'happy', equipped = {
           <ElementFeatures c={c} layer="front" hatOn={hatOn} />
         </g>
       </g>
+      {myth && <MythicFront path={myth} b={mythBox} still={!effects} />}
       {effects && <RarityFx sp={sp} />}
     </svg>
   );

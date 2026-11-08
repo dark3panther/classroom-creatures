@@ -5,14 +5,29 @@ import type { CreatureSound } from '../types';
  * Every function is a no-op when sound is disabled or audio is unavailable.
  */
 let ctx: AudioContext | null = null;
+let master: GainNode | null = null;
 let enabled = true;
+let volume = 0.8;
+let clicks = false;
 
 export function setSoundEnabled(v: boolean) { enabled = v; }
+/** 0..1 master volume (applied to every sound). */
+export function setVolume(v: number) {
+  volume = Math.max(0, Math.min(1, v));
+  if (master) master.gain.value = volume;
+}
+/** soft clicks on buttons (teacher setting, off by default) */
+export function setUiSounds(v: boolean) { clicks = v; }
 
 function ac(): AudioContext | null {
-  if (!enabled) return null;
+  if (!enabled || volume <= 0) return null;
   try {
-    if (!ctx) ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    if (!ctx) {
+      ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      master = ctx.createGain();
+      master.gain.value = volume;
+      master.connect(ctx.destination);
+    }
     if (ctx.state === 'suspended') void ctx.resume();
     return ctx;
   } catch {
@@ -32,7 +47,7 @@ function tone(freq: number, start: number, dur: number, type: OscillatorType = '
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  o.connect(g).connect(a.destination);
+  o.connect(g).connect(master ?? a.destination);
   o.start(t);
   o.stop(t + dur + 0.05);
 }
@@ -60,19 +75,65 @@ export function playAchievement() {
   [12, 7, 12, 19].forEach((n, i) => tone(semi(523, n), i * 0.09, 0.28, 'triangle', 0.13));
 }
 
-/** Rising shimmer while the creature glows. */
+/** Rising shimmer while the creature glows: a heartbeat that speeds up under a climbing sparkle. */
 export function playEvolutionCharge(duration = 2.2) {
-  tone(220, 0, duration, 'sawtooth', 0.04, 880);
-  tone(330, 0.2, duration - 0.2, 'triangle', 0.06, 1320);
-  for (let i = 0; i < 10; i++) tone(semi(880, (i * 5) % 24), 0.2 + i * (duration / 11), 0.12, 'sine', 0.05);
+  tone(220, 0, duration, 'sawtooth', 0.035, 880);
+  tone(330, 0.2, duration - 0.2, 'triangle', 0.055, 1320);
+  // heartbeat thumps, closer together as the light gathers
+  let t = 0;
+  for (let i = 0; i < 9 && t < duration - 0.2; i++) { tone(70, t, 0.16, 'sine', 0.22, 45); tone(95, t + 0.12, 0.12, 'sine', 0.12, 60); t += 0.5 - i * 0.045; }
+  for (let i = 0; i < 12; i++) tone(semi(880, [0, 4, 7, 12, 16, 19][i % 6] + (i >= 6 ? 12 : 0)), 0.25 + i * (duration / 13), 0.1, 'sine', 0.045);
 }
 
-/** Triumphant fanfare on the reveal. */
+/** Triumphant reveal: a low boom, a bright chord, then a bell sparkle that rings out. */
 export function playEvolutionReveal() {
+  tone(110, 0, 0.6, 'sine', 0.25, 55);
   const chord = [0, 4, 7, 12];
-  chord.forEach((n) => tone(semi(392, n), 0, 1.2, 'triangle', 0.1));
-  [12, 16, 19, 24].forEach((n, i) => tone(semi(392, n), 0.15 + i * 0.1, 0.5, 'square', 0.04));
-  tone(semi(392, 24), 0.6, 1.0, 'sine', 0.1);
+  chord.forEach((n) => tone(semi(392, n), 0.02, 1.4, 'triangle', 0.1));
+  [12, 16, 19, 24].forEach((n, i) => tone(semi(392, n), 0.15 + i * 0.1, 0.5, 'square', 0.035));
+  [24, 28, 31, 36, 31, 36].forEach((n, i) => tone(semi(392, n), 0.6 + i * 0.09, 0.9, 'sine', 0.06));
+}
+
+/** Coins changing hands in the shop. */
+export function playPurchase() {
+  [0, 7, 12].forEach((n, i) => tone(semi(988, n), i * 0.06, 0.16, 'square', 0.04));
+  tone(semi(988, 19), 0.2, 0.35, 'triangle', 0.1);
+}
+
+/** Putting an item on (or taking it off: pitch goes down). */
+export function playEquip(on = true) {
+  tone(on ? 523 : 659, 0, 0.09, 'triangle', 0.12, on ? 784 : 440);
+  tone(on ? 1047 : 523, 0.07, 0.12, 'sine', 0.06);
+}
+
+/** An item or ability unlocked: a short sparkle run. */
+export function playUnlock() {
+  [0, 4, 7, 11, 14].forEach((n, i) => tone(semi(784, n), i * 0.05, 0.22, 'sine', 0.08));
+}
+
+/** Munching, for feeding a snack. */
+export function playFeed() {
+  for (let i = 0; i < 3; i++) tone(180 + i * 25, i * 0.13, 0.07, 'square', 0.05, 120);
+  tone(880, 0.45, 0.18, 'triangle', 0.08, 1175);
+}
+
+/** A bouncy toy. */
+export function playToy() {
+  [0, 0.16, 0.3].forEach((t, i) => tone(440 - i * 40, t, 0.12, 'triangle', 0.1, 880 - i * 80));
+}
+
+/** An ability cast, coloured by element. */
+export function playAbility(element: string) {
+  const base: Record<string, number> = { fire: 330, water: 392, nature: 349, electric: 494, ice: 587, earth: 196, shadow: 233, light: 523, cosmic: 440, air: 466 };
+  const b = base[element] ?? 392;
+  tone(b, 0, 0.5, element === 'electric' ? 'square' : element === 'earth' ? 'sawtooth' : 'triangle', 0.08, b * (element === 'shadow' ? 0.5 : 2));
+  [0, 7, 12].forEach((n, i) => tone(semi(b * 2, n), 0.18 + i * 0.07, 0.25, 'sine', 0.06));
+}
+
+/** Soft button click (only when the teacher turned interface sounds on). */
+export function playClick() {
+  if (!clicks) return;
+  tone(1400, 0, 0.03, 'sine', 0.035, 900);
 }
 
 export function playClassCelebration() {

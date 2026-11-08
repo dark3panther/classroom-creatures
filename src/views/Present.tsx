@@ -167,7 +167,7 @@ function PresentTile({ s, w, onClick }: { s: Student; w: number; onClick: () => 
   return (
     <button onClick={onClick} className="paper group relative flex flex-col items-center p-2 pb-2.5 transition hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]" aria-label={`${firstName(s.name)}, level ${level}`}>
       <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[8px]">
-        <Creature speciesId={s.speciesId} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
+        <Creature speciesId={s.speciesId} stage={stage} branch={s.branch} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
         <span className="absolute left-1.5 top-1.5 flex items-baseline gap-0.5 rounded-full bg-white/95 px-2 py-0.5 font-display font-extrabold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.25)] ring-2 ring-cloth-800 tabular" aria-hidden>
           <span style={{ fontSize: Math.max(12, big * 0.42) }}>Lv</span><span style={{ fontSize: big }}>{level}</span>
         </span>
@@ -196,7 +196,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
     <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-endpaper/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
       <motion.div className="relative grid w-full max-w-5xl items-center gap-6 md:grid-cols-[1.1fr_1fr]" initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 20 }} onClick={(e) => e.stopPropagation()}>
         <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full border border-rule p-0 shadow-[var(--shadow-lift)]" rounded="rounded-[18px]">
-          <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
+          <Creature speciesId={sp.id} stage={stage} branch={s.branch} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
           <FloatingXP pulse={pulse} />
         </Habitat>
         <div>
@@ -268,8 +268,8 @@ function RandomPicker({ students, onDone }: { students: Student[]; onDone: (id: 
         {!done && <Mini s={prev} />}
         <motion.div key={done ? 'done' : 'spin'} className="relative h-[46vh] w-[46vh] max-w-[80vw]" animate={done ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 0.5 }}>
           <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className={`h-full w-full shadow-[var(--shadow-lift)] ring-[6px] ${done ? 'ring-gilt' : 'ring-white'}`} rounded="rounded-full">
-            {done ? <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} action={{ type: 'celebrate', key: 1 }} className="mx-auto h-full w-[80%]" sound={false} />
-              : <Creature speciesId={sp.id} stage={stage} equipped={s.equipped} effects={false} className="mx-auto h-full w-[80%]" sound={false} />}
+            {done ? <Creature speciesId={sp.id} stage={stage} branch={s.branch} equipped={s.equipped} action={{ type: 'celebrate', key: 1 }} className="mx-auto h-full w-[80%]" sound={false} />
+              : <Creature speciesId={sp.id} stage={stage} branch={s.branch} equipped={s.equipped} effects={false} className="mx-auto h-full w-[80%]" sound={false} />}
           </Habitat>
           {done && <Burst kind="confetti" count={30} spread={300} />}
         </motion.div>
@@ -290,7 +290,7 @@ function Mini({ s }: { s: Student }) {
   return (
     <div className="hidden h-[22vh] w-[22vh] opacity-40 md:block">
       <Habitat element={sp.element} seed={sp.id} className="h-full w-full ring-4 ring-white" rounded="rounded-full">
-        <Creature speciesId={sp.id} stage={displayStage(s, settings)} effects={false} className="mx-auto h-full w-[80%]" sound={false} />
+        <Creature speciesId={sp.id} stage={displayStage(s, settings)} branch={s.branch} effects={false} className="mx-auto h-full w-[80%]" sound={false} />
       </Habitat>
     </div>
   );

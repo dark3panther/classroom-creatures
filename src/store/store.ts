@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { DEFAULT_NEGATIVE_CATEGORIES, ITEMS_BY_ID } from '../data/defaults';
-import { applyAward, buyItem, refreshAll, undoBatch } from '../engine/awards';
+import { ADJUST_CATEGORY_ID, applyAward, buyItem, refreshAll, undoBatch } from '../engine/awards';
+import { approveEvolution as approveEvolutionPure, canChooseBranch, chooseBranch as chooseBranchPure, needsBranchChoice, pendingStage } from '../engine/evolution';
 import { buildDemoData, removeDemo } from '../engine/demo';
 import { validateProgression } from '../engine/progression';
 import { migrate } from '../engine/backup';
@@ -10,7 +11,8 @@ import type { AppData, AwardOutcome, Category, Challenge, ClassRoom, ItemSlot, S
 import { addSnapshot, dailySnapshot, loadData, requestPersistence, scheduleSave } from './storage';
 
 export type Celebration =
-  | { id: string; type: 'evolution'; studentId: string; from: Stage; to: Stage; replay?: boolean }
+  | { id: string; type: 'evolution'; studentId: string; from: Stage; to: Stage; replay?: boolean; branch?: 'a' | 'b' }
+  | { id: string; type: 'ready'; studentId: string; stage: Stage }
   | { id: string; type: 'levelup'; studentId: string; level: number }
   | { id: string; type: 'achievement'; studentId: string; achievementId: string }
   | { id: string; type: 'classGoal'; classId: string; goal: number }
@@ -29,6 +31,8 @@ interface UiState {
   lastAward: LastAward | null;
   toast: { id: string; text: string; tone: ToastTone } | null;
   locked: boolean;
+  /** the final-path chooser is open for this student */
+  branchPick: { studentId: string; mode: 'approve' | 'choose' } | null;
 }
 
 interface Actions {
@@ -41,6 +45,15 @@ interface Actions {
   recordPrize: (classId: string, prizeId: string) => void;
   dismissCelebration: (id: string) => void;
   replayEvolution: (studentId: string, stage: Stage) => void;
+  /** confirm a pending evolution (approval mode); `branch` picks the final path where a species branches */
+  approveEvolution: (studentId: string, branch?: 'a' | 'b') => boolean;
+  /** pick the final path for a creature that reached its final stage without choosing */
+  chooseBranch: (studentId: string, branch: 'a' | 'b') => boolean;
+  /** teacher correction of a student's XP (logged, undoable, never changes coins) */
+  adjustXp: (studentId: string, delta: number, note?: string) => boolean;
+  /** one entry point for "Evolve": approves, or opens the path chooser when this evolution branches */
+  startEvolution: (studentId: string) => void;
+  closeBranchPick: () => void;
   notify: (text: string, tone?: ToastTone) => void;
   setLocked: (v: boolean) => void;
 
@@ -89,13 +102,18 @@ export const useStore = create<Store>()((set, get) => {
     lastAward: null,
     toast: null,
     locked: false,
+    branchPick: null,
 
     init: async () => {
       let data = await loadData();
-      if (data) data = migrate(data);
       if (!data) {
-        data = buildDemoData();
+        data = migrate(buildDemoData());
         scheduleSave(data, 0);
+      } else {
+        const before = data.version;
+        data = migrate(data);
+        // keep a copy of the pre-upgrade data the first time a newer version opens it
+        if (before !== data.version) { void addSnapshot(await loadData() ?? data, `Before upgrading to Classroom Creatures ${__APP_VERSION__}`); scheduleSave(data, 0); }
       }
       set({ data, ready: true, locked: !!data.settings.pinHash });
       void requestPersistence();
@@ -113,6 +131,7 @@ export const useStore = create<Store>()((set, get) => {
         pulses[o.studentId] = { n: (pulses[o.studentId]?.n ?? 0) + 1, xp: o.xp, icon: cat.icon, coins: o.coins, kind: cat.xp < 0 ? 'bad' : 'good', categoryId: cat.id, levelUp: o.levelAfter > o.levelBefore, achievement: o.newAchievements.length > 0, milestone: o.newMilestoneRewards.length > 0 };
         for (const r of o.newMilestoneRewards) celebrations.push({ id: id(), type: 'milestone', studentId: o.studentId, label: r.label, icon: r.icon, atXp: r.atXp });
         if (o.evolved) celebrations.push({ id: id(), type: 'evolution', studentId: o.studentId, from: o.stageBefore, to: o.stageAfter });
+        else if (o.readyToEvolve) celebrations.push({ id: id(), type: 'ready', studentId: o.studentId, stage: o.stageAfter });
         else if (o.levelAfter > o.levelBefore) celebrations.push({ id: id(), type: 'levelup', studentId: o.studentId, level: o.levelAfter });
         for (const a of o.newAchievements) celebrations.push({ id: id(), type: 'achievement', studentId: o.studentId, achievementId: a });
       }
@@ -140,6 +159,9 @@ export const useStore = create<Store>()((set, get) => {
       // whole-class awards would queue one popup per student: keep evolutions, fold the rest
       const many = outcomes.length > 3;
       let queued = many ? celebrations.filter((c) => c.type === 'evolution' || c.type === 'classGoal' || c.type === 'milestone') : celebrations;
+      // several creatures became ready at once: one notice is enough, the queue lists them all
+      const ready = celebrations.filter((c) => c.type === 'ready');
+      if (many && ready.length) queued = [...queued, ready[0]];
       // several milestone rewards at once (whole-class award) → one combined popup
       const ms = queued.filter((c): c is Extract<Celebration, { type: 'milestone' }> => c.type === 'milestone');
       if (ms.length > 1) {
@@ -191,9 +213,47 @@ export const useStore = create<Store>()((set, get) => {
     },
 
     dismissCelebration: (cid) => set({ celebrations: get().celebrations.filter((c) => c.id !== cid) }),
+    approveEvolution: (studentId, branch) => {
+      const r = approveEvolutionPure(get().data, studentId, branch);
+      if (!r) return false;
+      const celebrations: Celebration[] = [{ id: id(), type: 'evolution', studentId, from: r.from, to: r.to, branch: r.branch }];
+      for (const a of r.newAchievements) celebrations.push({ id: id(), type: 'achievement', studentId, achievementId: a });
+      set({ celebrations: [...get().celebrations.filter((c) => !(c.type === 'ready' && c.studentId === studentId)), ...celebrations] });
+      commit(r.data);
+      return true;
+    },
+    chooseBranch: (studentId, branch) => {
+      const r = chooseBranchPure(get().data, studentId, branch);
+      if (!r) return false;
+      set({ celebrations: [...get().celebrations, { id: id(), type: 'evolution', studentId, from: 4, to: 5, branch, replay: true }] });
+      commit(r.data);
+      return true;
+    },
+    adjustXp: (studentId, delta, note) => {
+      const r = applyAward(get().data, [studentId], ADJUST_CATEGORY_ID, Date.now(), { xp: delta, note });
+      if (!r.outcomes.length) return false;
+      const o = r.outcomes[0];
+      const celebrations: Celebration[] = [];
+      if (o.evolved) celebrations.push({ id: id(), type: 'evolution', studentId, from: o.stageBefore, to: o.stageAfter });
+      else if (o.readyToEvolve) celebrations.push({ id: id(), type: 'ready', studentId, stage: o.stageAfter });
+      set({ celebrations: [...get().celebrations, ...celebrations], lastAward: { batchId: r.batchId, label: 'Teacher adjustment', icon: '✏️', count: 1, xp: o.xp, at: Date.now() } });
+      commit(r.data);
+      return true;
+    },
+    startEvolution: (studentId) => {
+      const d = get().data;
+      const st = d.students.find((s) => s.id === studentId);
+      if (!st) return;
+      if (pendingStage(st, d)) {
+        if (needsBranchChoice(st)) set({ branchPick: { studentId, mode: 'approve' } });
+        else get().approveEvolution(studentId);
+      } else if (canChooseBranch(st)) set({ branchPick: { studentId, mode: 'choose' } });
+    },
+    closeBranchPick: () => set({ branchPick: null }),
     replayEvolution: (studentId, stage) => {
       const from = Math.max(1, stage - 1) as Stage;
-      set({ celebrations: [...get().celebrations, { id: id(), type: 'evolution', studentId, from, to: stage, replay: true }] });
+      const st = get().data.students.find((s) => s.id === studentId);
+      set({ celebrations: [...get().celebrations, { id: id(), type: 'evolution', studentId, from, to: stage, replay: true, branch: stage === 5 ? st?.branch : undefined }] });
     },
     notify: (text, tone = 'success') => set({ toast: { id: id(), text, tone } }),
     setLocked: (v) => set({ locked: v }),
@@ -303,6 +363,13 @@ export const useStore = create<Store>()((set, get) => {
     updateSettings: (patch) => {
       const d = get().data;
       const settings = { ...d.settings, ...patch };
+      // switching back to automatic evolves every creature that was waiting for approval
+      if (patch.evolutionMode === 'auto' && d.settings.evolutionMode === 'approval') {
+        const waiting = d.students.filter((s) => pendingStage(s, d)).length;
+        commit(refreshAll({ ...d, settings }));
+        if (waiting) get().notify(`${waiting} creature${waiting === 1 ? '' : 's'} evolved`, 'success');
+        return null;
+      }
       if (patch.levelXp || patch.evolutionLevels) {
         const err = validateProgression(settings.levelXp, settings.evolutionLevels);
         if (err) return err;
@@ -335,3 +402,6 @@ export const useStore = create<Store>()((set, get) => {
 export function useCurrentClass(): ClassRoom | undefined {
   return useStore((s) => s.data.classes.find((c) => c.id === s.data.settings.currentClassId) ?? s.data.classes.find((c) => !c.archived));
 }
+
+// development builds expose the store for automated UI checks (never in production builds)
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __cc: typeof useStore }).__cc = useStore;

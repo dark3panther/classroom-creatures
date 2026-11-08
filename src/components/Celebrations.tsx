@@ -1,15 +1,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { playAchievement, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone } from '../audio/sfx';
+import { ReadyPopup } from './Evolve';
 import { Icon } from './Icon';
 import { PrizeWheel } from './PrizeWheel';
 import { Burst } from '../creatures/Burst';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { Habitat } from '../creatures/Habitat';
+import { PixelFx } from '../creatures/PixelFx';
+import { BRANCHES } from '../data/branches';
+import { elementPalette } from '../lib/color';
 import { ElementIcon } from './ui';
 import { Creature } from '../creatures/Creature';
 import { ACHIEVEMENTS_BY_ID } from '../data/defaults';
-import { ELEMENTS, STAGE_NAMES } from '../data/elements';
+import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import { fieldNo, getSpecies } from '../data/species';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
@@ -34,6 +38,7 @@ export function CelebrationHost() {
     case 'levelup': return <LevelUpPopup key={current.id} level={current.level} student={student!} onDone={close} sound={sound} />;
     case 'achievement': return <AchievementBanner key={current.id} id={current.achievementId} student={student!} onDone={close} sound={sound} />;
     case 'milestone': return <MilestonePopup key={current.id} c={current} student={student!} onDone={close} sound={sound} />;
+    case 'ready': return <ReadyPopup key={current.id} student={student!} stage={current.stage} onDone={close} />;
     case 'classGoal': return <ClassGoalOverlay key={current.id} c={current} name={classes.find((x) => x.id === current.classId)?.name ?? 'Your class'} onDone={close} sound={sound} />;
   }
 }
@@ -61,6 +66,10 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
 
   const showNew = phase === 'flash' || phase === 'reveal';
   const stage: Stage = showNew ? c.to : c.from;
+  const palette = elementPalette(el);
+  const def = BRANCHES[sp.id];
+  const chosen = c.branch ?? student.branch;
+  const path = c.to === 5 && def ? def[chosen === 'b' ? 'b' : 'a'] : undefined;
   const roman = (n: Stage) => ['I', 'II', 'III', 'IV', 'V'][n - 1];
 
   return (
@@ -84,17 +93,28 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
           {phase === 'reveal' && <motion.span className="hidden text-gilt sm:block" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }}><Icon name="arrowRight" size={44} strokeWidth={2.4} /></motion.span>}
 
           {/* the hero plate: the specimen as it changes */}
-          <div className="flex flex-col items-center">
-            <div className="paper relative w-[min(50vh,420px)] p-2 shadow-[var(--shadow-lift)]">
+          <div className="relative flex flex-col items-center">
+            {/* a pixel pillar of light rises behind the plate while the creature charges */}
+            {!reduced && (phase === 'charge' || phase === 'flash') && (
+              <div className="pointer-events-none absolute left-1/2 top-[48%] h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2" aria-hidden>
+                <PixelFx key={`pillar-${run}`} id="holy/holy-pillar" options={{ palette }} anchor={[0.5, 0.86]} bodyFrac={0.17} fps={30} lightOpacity={0.3} />
+              </div>
+            )}
+            <motion.div className="paper relative w-[min(50vh,420px)] p-2 shadow-[var(--shadow-lift)]"
+              animate={phase === 'charge' ? { boxShadow: [`0 0 0 0 ${el.glow}00`, `0 0 0 10px ${el.glow}aa, 0 0 60px 20px ${el.glow}88`, `0 0 0 4px ${el.glow}66, 0 0 30px 8px ${el.glow}55`] } : { boxShadow: '0 2px 4px rgb(22 36 28 / 0.08), 0 18px 34px -16px rgb(22 36 28 / 0.42)' }}
+              transition={phase === 'charge' ? { duration: 1.2, repeat: Infinity, repeatType: 'reverse' } : { duration: 0.4 }}>
               <motion.div key={showNew ? 'new' : 'old'} className="relative"
                 initial={showNew ? { clipPath: 'circle(0% at 50% 55%)' } : false}
                 animate={{ clipPath: 'circle(80% at 50% 55%)' }} transition={{ duration: showNew ? 0.9 : 0, ease: [0.2, 0.7, 0.2, 1] }}>
                 <Habitat element={sp.element} seed={sp.id} className="aspect-square w-full" rounded="rounded-[10px]">
+                  {/* the plate darkens while the creature turns to light */}
+                  <motion.div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 55%, ${el.color}cc, #0d2e23 72%)` }}
+                    initial={false} animate={{ opacity: phase === 'charge' ? 0.92 : 0 }} transition={{ duration: phase === 'charge' ? 0.8 : 0.3 }} />
                   {/* gathering energy */}
                   {phase === 'charge' && Array.from({ length: 14 }).map((_, i) => {
                     const a = (i / 14) * Math.PI * 2;
                     return (
-                      <motion.div key={i} className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full" style={{ background: el.color }}
+                      <motion.div key={i} className="absolute left-1/2 top-1/2 h-3 w-3" style={{ background: i % 2 ? el.glow : '#ffffff', boxShadow: `0 0 8px ${el.glow}` }}
                         initial={{ x: Math.cos(a) * 200, y: Math.sin(a) * 200, opacity: 0 }}
                         animate={{ x: 0, y: 0, opacity: [0, 1, 0] }} transition={{ duration: 1.1, delay: (i % 7) * 0.18, repeat: 1 }} />
                     );
@@ -103,8 +123,8 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
                     initial={showNew ? { scale: 0.6, opacity: 0 } : { scale: 0.9, opacity: 0 }}
                     animate={showNew ? { scale: 1, opacity: 1 } : { scale: phase === 'charge' ? [1, 1.06, 0.96, 1.08, 1] : 1, opacity: 1 }}
                     transition={showNew ? { type: 'spring', stiffness: 160, damping: 11, delay: 0.25 } : { duration: phase === 'charge' ? 2.4 : 0.5 }}
-                    style={{ filter: phase === 'charge' ? 'brightness(2.2) saturate(0)' : 'none', transition: 'filter 2.2s ease-in' }}>
-                    <CreatureSvg species={sp} stage={stage} equipped={student.equipped} expression={phase === 'reveal' ? 'excited' : 'wow'} className="mx-auto h-full w-[84%]" />
+                    style={{ filter: phase === 'charge' ? `brightness(0) invert(1) drop-shadow(0 0 10px ${el.glow}) drop-shadow(0 0 24px ${el.glow})` : 'none', transition: 'filter 1.6s ease-in' }}>
+                    <CreatureSvg species={sp} stage={stage} branch={stage === 5 ? (c.branch ?? student.branch) : undefined} equipped={student.equipped} expression={phase === 'reveal' ? 'excited' : 'wow'} className="mx-auto h-full w-[84%]" />
                   </motion.div>
                 </Habitat>
               </motion.div>
@@ -115,11 +135,18 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
                 </motion.div>
               )}
               {phase === 'reveal' && <><Burst key={`c${run}`} kind="confetti" count={28} spread={260} size={16} duration={1.8} /><Burst key={`e${run}`} kind={sp.element} count={16} spread={200} size={26} duration={1.4} /></>}
-            </div>
+              {phase === 'reveal' && !reduced && <PixelFx key={`burst-${run}`} id="holy/feather-burst" options={{ palette }} anchor={[0.5, 0.62]} bodyFrac={0.22} fps={30} lightOpacity={0.45} />}
+            </motion.div>
             <div className="mt-3 flex items-center gap-2 font-display text-xl font-bold text-white">
               <ElementIcon element={sp.element} size={20} color={el.color} />
               <span className="tabular text-white/75">{fieldNo(sp.id)}</span> {sp.name} · Stage {roman(stage)} · {STAGE_NAMES[stage]}
             </div>
+            {phase === 'reveal' && path && (
+              <motion.span className="mt-2 chip !px-3 !py-1 !text-[14px] text-white ring-1" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+                style={{ background: `color-mix(in srgb, ${RARITIES[path.rarity].color} 55%, transparent)`, ['--tw-ring-color' as string]: RARITIES[path.rarity].color }}>
+                {path.id === 'b' ? 'Mythical path' : 'Classic path'} · {path.title}
+              </motion.span>
+            )}
           </div>
         </div>
 
@@ -128,7 +155,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
             <motion.div className="mt-5 text-center" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 16 }}>
               <h2 className="gilt-text font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-7xl">Your creature evolved!</h2>
               <p className="mt-3 text-lg font-bold text-white sm:text-2xl">
-                {firstName(student.name)}’s {sp.name} became {STAGE_NAMES[c.to]}{c.to === 5 ? `, ${sp.legendTitle}!` : '!'} A new entry for the field guide.
+                {firstName(student.name)}’s {sp.name} became {STAGE_NAMES[c.to]}{c.to === 5 ? `, ${path?.title ?? sp.legendTitle}!` : '!'} A new entry for the field guide.
               </p>
               <div className="mt-6 flex justify-center gap-3">
                 <button className="btn btn-ghost" onClick={() => setRun((r) => r + 1)}><Icon name="replay" size={18} />Replay</button>
@@ -162,7 +189,7 @@ function LevelUpPopup({ level, student, onDone, sound }: { level: number; studen
     <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }} onClick={onDone}>
       <div className="relative flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 text-ink shadow-[var(--shadow-lift)] ring-[3px] ring-gilt">
         <div className="relative h-24 w-24 overflow-hidden rounded-full bg-wash ring-1 ring-rule">
-          <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} action={{ type: 'jump', key: 1 }} className="h-full w-full" sound={false} />
+          <Creature speciesId={student.speciesId} stage={stage} branch={student.branch} equipped={student.equipped} action={{ type: 'jump', key: 1 }} className="h-full w-full" sound={false} />
           <Burst kind="sparkle" count={10} spread={80} />
         </div>
         <div>
@@ -218,7 +245,7 @@ function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, 
           const stage = displayStage(s, settings);
           return (
             <motion.div key={s.id} className="h-16 w-16 sm:h-20 sm:w-20" initial={{ y: 40, opacity: 0 }} animate={{ y: [0, -24, 0], opacity: 1 }} transition={{ delay: 0.3 + i * 0.04, y: { repeat: Infinity, duration: 0.9, delay: i * 0.05 } }}>
-              <CreatureSvg species={sp} stage={stage} equipped={s.equipped} expression="excited" effects={false} className="h-full w-full" />
+              <CreatureSvg species={sp} stage={stage} branch={s.branch} equipped={s.equipped} expression="excited" effects={false} className="h-full w-full" />
             </motion.div>
           );
         })}

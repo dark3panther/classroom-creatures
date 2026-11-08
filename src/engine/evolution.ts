@@ -46,3 +46,25 @@ export function autoEvolutionEntries(s: Pick<Student, 'speciesId' | 'branch'>, f
   }
   return out;
 }
+
+/** A branching creature at its final stage that has not chosen a path yet (automatic mode evolves without asking). */
+export function canChooseBranch(s: Pick<Student, 'speciesId' | 'bestStage' | 'branch'>): boolean {
+  return s.bestStage >= BRANCH_STAGE && !!BRANCHES[s.speciesId] && !s.branch;
+}
+
+/** Choose the final path for a creature that already reached the final stage. */
+export function chooseBranch(data: AppData, studentId: string, branch: 'a' | 'b', now = Date.now()): EvolveResult | null {
+  const st = data.students.find((s) => s.id === studentId);
+  if (!st || !canChooseBranch(st)) return null;
+  let found = false;
+  const log = (st.evolutionLog ?? []).map((e) => {
+    if (e.stage === BRANCH_STAGE && e.speciesId === st.speciesId && !e.branch) { found = true; return { ...e, branch }; }
+    return e;
+  });
+  const evolutionLog = found ? log : [...log, { speciesId: st.speciesId, stage: BRANCH_STAGE, branch, at: now }];
+  let next: AppData = { ...data, students: data.students.map((s) => (s.id === studentId ? { ...s, branch, evolutionLog } : s)) };
+  const un = refreshStudent(next, studentId, now);
+  next = un.data;
+  const disc = recordDiscoveries(next, [studentId]);
+  return { data: disc.data, from: BRANCH_STAGE, to: BRANCH_STAGE, branch, newAchievements: un.newAchievements, discovered: disc.added };
+}

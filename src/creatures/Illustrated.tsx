@@ -4,6 +4,8 @@ import { ELEMENTS, RARITIES } from '../data/elements';
 import type { Equipped, Species, Stage } from '../types';
 import { Accessories, BackAccessories } from './accessories';
 import type { Geo } from './CreatureSvg';
+import { BRANCHES } from '../data/branches';
+import { MythicBack, MythicFilter, MythicFront, type OrnamentBox } from './mythic';
 import { star } from './shapes';
 
 /**
@@ -18,8 +20,8 @@ export function hasIllustration(id: string, stage: Stage): boolean {
   return `${id}-${stage}` in ANCHORS;
 }
 
-export function illustrationUrl(id: string, stage: Stage): string {
-  return `${import.meta.env.BASE_URL}creatures/${id}-${stage}.webp`;
+export function illustrationUrl(id: string, stage: Stage, variant = ''): string {
+  return `${import.meta.env.BASE_URL}creatures/${id}-${stage}${variant}.webp`;
 }
 
 // image (512px square) → svg viewBox coordinates
@@ -49,11 +51,14 @@ function geoFor(a: Anchor): { g: Geo; k: number; ox: number; oy: number } {
   return { g, k, ox: ex, oy: ey };
 }
 
-export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effects = true, className, title }: {
-  sp: Species; stage: Stage; equipped?: Equipped; noShadow?: boolean; effects?: boolean; className?: string; title?: string;
+export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effects = true, className, title, branch }: {
+  sp: Species; stage: Stage; equipped?: Equipped; noShadow?: boolean; effects?: boolean; className?: string; title?: string; branch?: 'a' | 'b';
 }) {
   const uid = useId().replace(/:/g, '');
-  const a = ANCHORS[`${sp.id}-${stage}`];
+  // the mythical path: bespoke art when it exists, otherwise the Legendary art with a colour grade and ornaments
+  const myth = stage === 5 && branch === 'b' ? BRANCHES[sp.id]?.b : undefined;
+  const bespoke = !!myth && `${sp.id}-5b` in ANCHORS;
+  const a = ANCHORS[bespoke ? `${sp.id}-5b` : `${sp.id}-${stage}`];
   const el = ELEMENTS[sp.element];
   const { g, k, ox, oy } = geoFor(a);
   const line = '#2b2140';
@@ -61,12 +66,14 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
   const shadowW = map(a.right - a.left) * 0.42;
   const rar = RARITIES[sp.rarity];
   const sparkles = [[30, 46], [172, 64], [24, 132], [178, 138]].slice(0, rar.stars - 1);
-  const sparkleColor = sp.rarity === 'legendary' ? '#ffd23f' : sp.rarity === 'epic' ? '#e9b6ff' : '#ffffff';
+  const sparkleColor = myth ? myth.colors[1] : sp.rarity === 'legendary' ? '#ffd23f' : sp.rarity === 'epic' ? '#e9b6ff' : '#ffffff';
   // accessories live in the vector frame, centred on the eyes and scaled to this head
   const frame = `translate(${ox} ${oy}) scale(${k})`;
   // the same anchors in plain svg coordinates, for effects that are placed around the whole creature
   const gAbs: Geo = { ...g, cx: ox, headCx: ox, headTop: oy + g.headTop * k, headCy: oy + g.headCy * k, headRx: g.headRx * k, headRy: g.headRy * k };
   const hasBack = !!(equipped.wings || equipped.decoration === 'deco-cape');
+  const box: OrnamentBox = { cx: IMG_X + map(a.cx), top: IMG_Y + map(a.top), bottom: IMG_Y + map(a.bottom), left: IMG_X + map(a.left), right: IMG_X + map(a.right), headR: gAbs.headRx };
+  const gradeId = `cc-myth-${uid}`;
 
   return (
     <svg viewBox="-8 -22 216 222" className={`${className ?? ''}${effects ? '' : ' cc-still'}`} role="img" aria-label={title ?? sp.name} overflow="visible">
@@ -76,6 +83,7 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
           <stop offset="70%" stopColor={el.glow} stopOpacity={0.15} />
           <stop offset="100%" stopColor={el.glow} stopOpacity={0} />
         </radialGradient>
+        {myth && !bespoke && <MythicFilter id={gradeId} path={myth} />}
       </defs>
       {!noShadow && <ellipse cx={IMG_X + map((a.left + a.right) / 2)} cy={IMG_Y + map(a.bottom) - 2} rx={shadowW} ry={7} fill="#1a1033" opacity={0.2} />}
       {effects && stage >= 4 && <circle cx={100} cy={110} r={stage === 5 ? 100 : 86} fill={`url(#${auraGrad})`} className="cc-pulse" />}
@@ -84,7 +92,9 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
       )}
       {equipped.magic === 'magic-rainbow' && <BackAccessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
       {hasBack && <g transform={frame}><BackAccessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>}
-      <image href={illustrationUrl(sp.id, stage)} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} />
+      {myth && <MythicBack path={myth} b={box} />}
+      <image href={illustrationUrl(sp.id, stage, bespoke ? 'b' : '')} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} />
+      {myth && <MythicFront path={myth} b={box} still={!effects} />}
       <g transform={frame}><Accessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>
       {equipped.magic && <Accessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
       {effects && sparkles.map(([x, y], i) => (

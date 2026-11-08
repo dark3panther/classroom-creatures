@@ -5,7 +5,9 @@ import { useMood } from '../lib/useMood';
 import { AwardGrid } from '../components/AwardGrid';
 import { FloatingXP } from '../components/StudentCard';
 import { ChocoStick } from '../components/Celebrations';
+import { EvolveBadge } from '../components/Evolve';
 import { CoinIcon, Glyph, Icon } from '../components/Icon';
+import { BRANCHES } from '../data/branches';
 import { ElementBadge, LevelBadge, Modal, ProgressBar, RarityStars } from '../components/ui';
 import { Creature, type CreatureAction } from '../creatures/Creature';
 import { CreatureSvg } from '../creatures/CreatureSvg';
@@ -54,7 +56,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
       {/* creature side */}
       <div className="p-4 sm:p-6">
         <Habitat element={sp.element} seed={sp.id} background={student.equipped.background} className="h-[300px] border border-rule sm:h-[380px]" rounded="rounded-[12px]">
-          <Creature speciesId={sp.id} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(student.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
+          <Creature speciesId={sp.id} stage={stage} branch={student.branch} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(student.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} interactive action={act} sound={settings.soundEnabled} className="mx-auto h-full w-[78%]" />
           <FloatingXP pulse={pulse} />
           <div className="absolute left-3 top-3 flex items-center gap-2"><LevelBadge level={prog.level} size="lg" /></div>
           <div className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 ring-1 ring-rule"><RarityStars rarity={sp.rarity} /></div>
@@ -96,10 +98,18 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
             <div className="mt-1.5 text-sm font-bold text-ink-soft">
               {prog.isMax ? 'Maximum level reached. Amazing!' : `${prog.toNext} XP to Level ${prog.level + 1}`}
             </div>
-            <div className="mt-2 text-sm font-bold">
-              {next ? <span className="flex items-center gap-1.5"><Icon name="target" size={16} className="shrink-0 text-cloth-800" /><span>Next evolution: <span className="text-cloth-800">{STAGE_NAMES[next.stage]}</span> at Level {next.level} · {next.xpNeeded} XP to go</span></span>
-                : <span className="flex items-center gap-1.5"><Icon name="crown" size={16} className="shrink-0 text-cloth-800" />{sp.name} has reached its Legendary Form!</span>}
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold">
+              {v.evo.ready ? <span className="flex items-center gap-1.5"><Icon name="sparkle" size={16} className="shrink-0 text-gilt-deep" /><span>Ready to evolve into <span className="text-cloth-800">{STAGE_NAMES[v.evo.next!]}</span>!</span></span>
+                : next ? <span className="flex items-center gap-1.5"><Icon name="target" size={16} className="shrink-0 text-cloth-800" /><span>Next evolution: <span className="text-cloth-800">{STAGE_NAMES[next.stage]}</span> at Level {next.level} · {next.xpNeeded} XP to go</span></span>
+                : <span className="flex items-center gap-1.5"><Icon name="crown" size={16} className="shrink-0 text-cloth-800" />{sp.name} has reached its final form{student.branch === 'b' && BRANCHES[sp.id] ? `: ${BRANCHES[sp.id].b.title}` : ''}!</span>}
+              <EvolveBadge student={student} className="ml-auto" />
             </div>
+            {v.evo.next && (
+              <div className="mt-2">
+                <div className="flex justify-between text-[12px] font-bold text-ink-soft"><span>Evolution progress</span><span className="tabular">{Math.round(v.evo.pct * 100)}%</span></div>
+                <ProgressBar pct={v.evo.pct} height={10} color={v.evo.ready ? '#f4b631' : '#1d5643'} className="mt-1" />
+              </div>
+            )}
           </div>
 
           {/* evolution path */}

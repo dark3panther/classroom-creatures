@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { awardSound } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
+import { EvolutionQueue, useEvolutionQueue } from '../components/Evolve';
 import { PrizeWheel } from '../components/PrizeWheel';
 import { StudentCard } from '../components/StudentCard';
 import { Glyph, Icon } from '../components/Icon';
@@ -39,6 +40,8 @@ export function Dashboard() {
   const [adding, setAdding] = useState(false);
   const [creating, setCreating] = useState(false);
   const [wheel, setWheel] = useState(false);
+  const [evolving, setEvolving] = useState(false);
+  const queue = useEvolutionQueue(cls?.id);
 
   const lastAwardAt = useMemo(() => {
     const m = new Map<string, number>();
@@ -131,6 +134,11 @@ export function Dashboard() {
           <Icon name={selecting ? 'check' : 'select'} size={18} />{selecting ? 'Done selecting' : 'Select students'}
         </button>
         <button className="btn btn-ghost" onClick={() => setAdding(true)}><Icon name="plus" size={18} />Add students</button>
+        {queue.ready.length + queue.choose.length > 0 && (
+          <button className="btn btn-cloth" onClick={() => setEvolving(true)}>
+            <Icon name="sparkle" size={18} />Evolutions<span className="grid h-6 min-w-6 place-items-center rounded-full bg-gilt px-1.5 text-[13px] text-gilt-ink tabular">{queue.ready.length + queue.choose.length}</span>
+          </button>
+        )}
         <div className="flex w-full flex-wrap items-center gap-2 lg:ml-auto lg:w-auto">
           <label className="relative min-w-[150px] flex-1 sm:flex-none">
             <span className="sr-only">Search students by name or creature</span>
@@ -198,6 +206,7 @@ export function Dashboard() {
         </div>
       </Modal>
       <AnimatePresence>{wheel && <PrizeWheel classId={cls.id} onClose={() => setWheel(false)} />}</AnimatePresence>
+      <EvolutionQueue classId={cls.id} open={evolving} onClose={() => setEvolving(false)} />
       <AddStudentsModal open={adding} onClose={() => setAdding(false)} classId={cls.id} />
       <StudentProfile studentId={profile} onClose={() => setProfile(null)} />
     </div>
@@ -276,7 +285,7 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
           {levelUps.map(({ s, at, level }) => (
             <li key={`${s.id}-${at}`}>
               <button className="flex w-full items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-wash" onClick={() => onOpen(s.id)}>
-                <span className="h-10 w-10"><CreatureSvg species={getSpecies(s.speciesId)} stage={displayStage(s, settings)} effects={false} noShadow className="h-full w-full" /></span>
+                <span className="h-10 w-10"><CreatureSvg species={getSpecies(s.speciesId)} stage={displayStage(s, settings)} branch={s.branch} effects={false} noShadow className="h-full w-full" /></span>
                 <span className="flex-1 text-sm"><b>{firstName(s.name)}</b> reached <b className="text-cloth-800">Level {level}</b><br /><span className="text-[13px] text-ink-soft">{timeAgo(at)}</span></span>
               </button>
             </li>

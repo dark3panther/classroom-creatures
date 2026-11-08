@@ -10,6 +10,7 @@ import { fieldNo } from '../data/species';
 import { studentView } from '../lib/stats';
 import { useStore } from '../store/store';
 import type { Category, Student } from '../types';
+import { EvolveBadge } from './Evolve';
 import { CoinIcon, Glyph, Icon } from './Icon';
 import { ElementIcon, LevelBadge, ProgressBar, StagePips } from './ui';
 
@@ -65,13 +66,14 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
       <button type="button" className="relative block rounded-[var(--radius-card)] text-left" onClick={() => (selecting ? onToggle(student.id) : onOpen(student.id))}
         aria-label={selecting ? `${selected ? 'Deselect' : 'Select'} ${student.name}` : `Open ${student.name}`} aria-pressed={selecting ? selected : undefined}>
         <Habitat element={species.element} seed={species.id} background={student.equipped.background} className="mx-2 mt-2 h-36 sm:h-40" rounded="rounded-[8px]">
-          <Creature speciesId={student.speciesId} stage={stage} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={treats} mood={mood} ambient={3} compact className="mx-auto h-full w-[82%]" />
+          <Creature speciesId={student.speciesId} stage={stage} branch={student.branch} equipped={student.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={treats} mood={mood} ambient={3} compact className="mx-auto h-full w-[82%]" />
           {!selecting && mood !== 'calm' && (
             <span className="chip absolute bottom-1.5 left-1.5 bg-white/90 !px-2 text-[11px] text-ink ring-1 ring-rule" title={`${species.name} feels ${m.label.toLowerCase()}`}>
               <span className="h-2 w-2 rounded-full" style={{ background: m.color }} />{m.label}
             </span>
           )}
           <div className="absolute left-1.5 top-1.5"><LevelBadge level={prog.level} size="sm" /></div>
+          {!selecting && <EvolveBadge student={student} className="absolute bottom-1.5 right-1.5" />}
           {selecting && (
             <span className={`absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full ring-2 ${selected ? 'bg-gilt text-gilt-ink ring-white' : 'bg-white/80 text-transparent ring-ink/30'}`}>
               <Icon name="check" size={18} strokeWidth={3} />

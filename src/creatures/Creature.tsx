@@ -1,6 +1,7 @@
 import { motion, useAnimationControls } from 'framer-motion';
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { playCreature, playPet, playPop } from '../audio/sfx';
+import { BRANCHES, type Motif } from '../data/branches';
 import { getSpecies } from '../data/species';
 import type { Equipped, Expression, Mood, Stage } from '../types';
 import { Burst, type BurstKind } from './Burst';
@@ -35,6 +36,8 @@ export interface CreatureProps {
   event?: Pulse;
   /** chocolate treats earned and not handed out yet: the creature holds one */
   treats?: number;
+  /** chosen final path ('b' = mythical aspect with its own look and pixel aura) */
+  branch?: 'a' | 'b';
 }
 
 interface FxPlay { key: string; id: PixelFxId; anchor?: [number, number]; size?: number; duration?: number; options?: Record<string, unknown>; bodyFrac?: number }
@@ -62,12 +65,19 @@ function reactionFx(e: Pulse, compact?: boolean): FxPlay[] {
 const MOOD_FX: Partial<Record<Mood, PixelFxId>> = { happy: 'status/charmed', excited: 'holy/blessing', proud: 'holy/halo', sleepy: 'status/sleep' };
 const COMPACT_POW = 0.36;
 
+/** the looping pixel aura each mythical aspect wears */
+const MYTH_AURA: Partial<Record<Motif, PixelFxId>> = {
+  frostflame: 'status/burning', stormtide: 'holy/divine-shield', voidvolt: 'status/cursed', sunfrost: 'pickups/crystal-shard',
+  amethyst: 'pickups/crystal-shard', dawn: 'status/burning', moon: 'holy/divine-shield', nebula: 'holy/divine-shield',
+};
+
 const CYCLE: CreatureAction[] = ['jump', 'wave', 'ability', 'happy'];
 const MOOD_FACE: Record<Mood, Expression> = { happy: 'happy', excited: 'excited', proud: 'happy', calm: 'happy', sad: 'sad', sleepy: 'sleepy' };
 
 /** The animated creature: idle loop, feelings, reactions, particles and play. */
-export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0 }: CreatureProps) {
+export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0, branch }: CreatureProps) {
   const sp = getSpecies(speciesId);
+  const myth = stage === 5 && branch === 'b' ? BRANCHES[speciesId]?.b : undefined;
   const controls = useAnimationControls();
   const [expr, setExpr] = useState<Expression | null>(null);
   const [burst, setBurst] = useState<{ kind: BurstKind | 'hearts'; key: number } | null>(null);
@@ -176,16 +186,17 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
             style={interactive ? { transform: `perspective(600px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 6}deg) translateX(${tilt.x * 3}%)` } : undefined}>
             {interactive ? (
               <button type="button" onClick={onClick} className="block h-full w-full rounded-full" aria-label={`Play with ${sp.name} (tap to play, hold to pet)`}>
-                <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" />
+                <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" branch={branch} />
               </button>
             ) : (
-              <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" />
+              <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" branch={branch} />
             )}
           </div>
         </motion.div>
       </div>
       {effects && shownMood === 'sad' && <EmotionFx mood="sad" compact={compact} />}
-      {effects && !current && MOOD_FX[mood] && <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={compact ? 20 : 30} />}
+      {effects && myth && !compact && MYTH_AURA[myth.motif] && <PixelFx key={`myth-${myth.motif}`} id={MYTH_AURA[myth.motif]!} options={{ palette: myth.aura }} fps={24} />}
+      {effects && !current && !myth && MOOD_FX[mood] && <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={compact ? 20 : 30} />}
       {effects && treats > 0 && (
         <>
           <PixelFx key="treat" id="pickups/choco-stick" anchor={[0.8, 0.98]} size={compact ? 0.42 : 0.45} options={{ shadow: false }} fps={compact ? 20 : 30} />
