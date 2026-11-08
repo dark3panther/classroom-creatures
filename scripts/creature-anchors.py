@@ -1,7 +1,7 @@
 """Measure accessory anchor points on every illustrated creature image.
 
 usage: python3 scripts/creature-anchors.py   (reads public/creatures/*.webp)
-Writes src/data/creatureArt.json: { "<id>-<stage>": {top, bottom, left, right, cx, headW, eyes:[[x,y],[x,y]] | null} }
+Writes src/data/creatureArt.json (hand corrections in scripts/creature-anchor-overrides.json are applied last): { "<id>-<stage>": {top, bottom, left, right, cx, headW, eyes:[[x,y],[x,y]] | null} }
 in 512px image coordinates. Eyes are found as the two largest dark, filled blobs in the
 upper body (thin outlines are removed first), which is what glasses need to line up.
 """
@@ -66,6 +66,12 @@ for f in sorted(Path('public/creatures').glob('*.webp')):
     else:
         guessed = False
     out[f.stem] = dict(top=top, bottom=bottom, left=left, right=right, cx=cx, headW=headW, eyes=eyes, guessed=guessed)
+# hand corrections for images the measurement misreads (e.g. storm clouds widening the head band)
+ov = Path('scripts/creature-anchor-overrides.json')
+if ov.exists():
+    for k, patch in json.loads(ov.read_text()).items():
+        if k in out and not k.startswith('_'):
+            out[k].update(patch)
 Path('src/data/creatureArt.json').write_text(json.dumps(out, separators=(',', ':')))
 miss = [k for k, v in out.items() if v['guessed']]
 print(len(out), 'images;', len(miss), 'with estimated eyes:', ' '.join(miss))

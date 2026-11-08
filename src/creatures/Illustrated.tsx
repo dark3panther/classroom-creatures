@@ -92,9 +92,10 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
       )}
       {equipped.magic === 'magic-rainbow' && <BackAccessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
       {hasBack && <g transform={frame}><BackAccessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>}
-      {myth && <MythicBack path={myth} b={box} />}
+      {/* painted mythical art carries its own motif; the drawn ornaments are for the graded fallback */}
+      {myth && !bespoke && <MythicBack path={myth} b={box} />}
       <image href={illustrationUrl(sp.id, stage, bespoke ? 'b' : '')} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} />
-      {myth && <MythicFront path={myth} b={box} still={!effects} />}
+      {myth && !bespoke && <MythicFront path={myth} b={box} still={!effects} />}
       <g transform={frame}><Accessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>
       {equipped.magic && <Accessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
       {effects && sparkles.map(([x, y], i) => (

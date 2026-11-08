@@ -11,7 +11,7 @@ Ideas for the next versions, roughly in order of classroom value.
 6. **Sound and music packs**: an optional calm background track and a quieter "library mode" sound set.
 7. **Trading cards**: print a student's creature card (name, stage, element, first badge) as a sticker sheet.
 8. **More pixel effects** with the pixelfx skill: element-specific evolution bursts (fire ring, frost nova, leaf storm, lightning call) and a pixel "nom nom" when a treat is handed out.
-9. **Painted mythical forms**: bespoke artwork for the ten mythical final forms (the pipeline already picks up `public/creatures/<id>-5b.webp`), then new mythical species.
+9. **Painted mythical forms**: the remaining seven (Autumn Elder, Voidvolt, Sunfrost Monarch, Amethyst Heart, Dawn Watcher, Moonbringer, Tempest Monarch), with the same Gemini prompts used for the first three; then new mythical species.
 10. **Ability reset for teachers**: take back a creature's skill points so it can choose again.
 
 ## Later

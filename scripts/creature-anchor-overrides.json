@@ -1,0 +1,4 @@
+{
+  "_why": "Corrections applied by creature-anchors.py after measuring. splashlet-5b: its storm clouds and a curled tendril were read as the head and an eye.",
+  "splashlet-5b": { "cx": 292, "headW": 320, "eyes": [[271, 209], [335, 211]] }
+}

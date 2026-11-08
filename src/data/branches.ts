@@ -6,7 +6,8 @@ import type { Stage } from '../types';
  *
  * Path B is drawn from the Legendary artwork with a new colour grade and its own ornaments and pixel aura.
  * When purpose-made art exists as `public/creatures/<id>-5b.webp` (with an anchor entry `<id>-5b`),
- * it is used instead and the colour grade is skipped.
+ * it is used instead and the colour grade and drawn ornaments are skipped. Painted so far (Gemini, from
+ * each species' Legendary art): emberpup, splashlet, orbitoad.
  */
 export type Motif = 'frostflame' | 'stormtide' | 'autumn' | 'voidvolt' | 'sunfrost' | 'amethyst' | 'dawn' | 'moon' | 'nebula' | 'tempest';
 

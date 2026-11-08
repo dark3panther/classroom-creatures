@@ -175,7 +175,7 @@ Every creature has illustrated artwork for all five stages (150 images in `publi
 
 - `scripts/slice-lineup.py <lineup.png> <id>` cuts a lineup into `<id>-1.webp` … `<id>-5.webp` (needs Python with Pillow, NumPy and SciPy).
 - `scripts/creature-anchors.py` measures where each creature's head and eyes are and writes `src/data/creatureArt.json`, which is how hats, glasses and other accessories line up on the illustrations.
-- **Mythical forms** are drawn from the Legendary art with a colour grade and ornaments (`src/creatures/mythic.tsx`). To give one its own painting, add `public/creatures/<id>-5b.webp` and an anchor entry `<id>-5b` in `src/data/creatureArt.json`; the app uses it automatically.
+- **Mythical forms**: Frostflame Warden, Stormtide Herald and Nebula Prince are painted, generated with Google Gemini (Nano Banana Pro) from each species' own Legendary art, so the creature, pose and style carry over. The other seven are still drawn from the Legendary art with a colour grade and ornaments (`src/creatures/mythic.tsx`). To add a painting, put `public/creatures/<id>-5b.webp` (512×512, transparent, same height and floor line as `<id>-5.webp`) in place and run `scripts/creature-anchors.py`; the app picks it up automatically. If the measurement misreads an image, correct it in `scripts/creature-anchor-overrides.json`.
 - The original vector drawings are still in the app. Teachers can switch to them in **Settings → Classroom & PIN → Illustrated creature art**, and any species without an illustration automatically uses them. Open `?sheet` in development to see the vector set, or `?sheet&art` for the illustrations.
 
 ## Adding new creatures
