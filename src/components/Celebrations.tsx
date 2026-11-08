@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { playAchievement, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone } from '../audio/sfx';
 import { ReadyPopup } from './Evolve';
-import { Icon } from './Icon';
+import { Glyph, Icon } from './Icon';
 import { PrizeWheel } from './PrizeWheel';
 import { Burst } from '../creatures/Burst';
 import { CreatureSvg } from '../creatures/CreatureSvg';
@@ -213,7 +213,7 @@ function AchievementBanner({ id, student, onDone, sound }: { id: string; student
     <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} onClick={onDone}>
       <div className="relative flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 text-ink shadow-[var(--shadow-lift)] ring-[3px]" style={{ ['--tw-ring-color' as string]: a.color }}>
         <div className="relative grid h-20 w-20 place-items-center rounded-full text-4xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)` }}>
-          <motion.span initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 12 }}>{a.icon}</motion.span>
+          <motion.span initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 12 }} style={{ color: `color-mix(in srgb, ${a.color} 75%, #16241c)` }}><Glyph icon={a.icon} size={38} /></motion.span>
           <Burst kind="sparkle" count={10} spread={70} />
         </div>
         <div>

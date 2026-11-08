@@ -185,6 +185,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
   const pulse = useStore((st) => st.pulses[id]);
   const award = useStore((st) => st.award);
   const locked = useStore((st) => st.locked);
+  const shopWhileLocked = useStore((st) => st.data.settings.shopWhileLocked);
   const [act, setAct] = useState<{ type: CreatureAction; key: number } | null>({ type: 'celebrate', key: 1 });
   const [showAward, setShowAward] = useState(false);
   const mood = useMood(s);
@@ -218,6 +219,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
           ) : (
             <div className="mt-4 flex gap-3">
               {!locked && <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}><Icon name="star" size={22} />Give points</button>}
+              {(!locked || shopWhileLocked) && <button className="btn btn-light py-4 text-xl" onClick={() => navigate(`/creature/${s.id}`)}><Icon name="book" size={22} />Profile</button>}
               <button className="btn btn-ghost py-4 text-xl" onClick={onClose}>Close</button>
             </div>
           )}

@@ -298,7 +298,7 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
         <ul className="flex flex-col gap-1">
           {recentAch.map(({ s, a }) => (
             <li key={`${s.id}-${a.id}`} className="flex items-center gap-2 px-1 py-1 text-sm">
-              <span className="grid h-8 w-8 place-items-center rounded-full text-lg" style={{ background: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 18%, white)` }}>{ACHIEVEMENTS_BY_ID[a.id]?.icon}</span>
+              <span className="grid h-8 w-8 place-items-center rounded-full text-lg" style={{ background: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 18%, white)`, color: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 75%, #16241c)` }}><Glyph icon={ACHIEVEMENTS_BY_ID[a.id]?.icon ?? ''} size={17} /></span>
               <span className="flex-1"><b>{firstName(s.name)}</b> · {ACHIEVEMENTS_BY_ID[a.id]?.name}<br /><span className="text-[13px] text-ink-soft">{timeAgo(a.at)}</span></span>
             </li>
           ))}

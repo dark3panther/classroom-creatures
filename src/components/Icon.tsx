@@ -65,6 +65,16 @@ const PATHS: Record<string, ReactNode> = {
   ball: <><circle cx="12" cy="12" r="8.5" /><path d="M12 8.2l3.3 2.4-1.3 3.9h-4l-1.3-3.9z" /><path d="M12 8.2V3.5M15.3 10.6l4.5-1.4M14 14.5l2.8 3.8M10 14.5l-2.8 3.8M8.7 10.6L4.2 9.2" /></>,
   runner: <><circle cx="14.5" cy="4.8" r="1.8" /><path d="M9 21l2.4-5.4L8.8 13l1.7-5 4 3.2 3.3.3" /><path d="M11.4 15.6l3.4 2V21M10.5 8L6.5 9.5 5 12.5" /></>,
   hourglass: <><path d="M7 3.5h10M7 20.5h10" /><path d="M8 3.5c0 5 8 5 8 8.5s-8 3.5-8 8.5M16 3.5c0 5-8 5-8 8.5s8 3.5 8 8.5" /></>,
+  // achievement badges
+  paw: <><ellipse cx="12" cy="15.5" rx="4.6" ry="3.8" /><circle cx="6.2" cy="10.5" r="1.9" /><circle cx="9.6" cy="6.6" r="1.9" /><circle cx="14.4" cy="6.6" r="1.9" /><circle cx="17.8" cy="10.5" r="1.9" /></>,
+  medal: <><path d="M8 3l2.5 6M16 3l-2.5 6" /><circle cx="12" cy="15" r="5.5" /><path d="M12 12.3l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z" /></>,
+  dna: <><path d="M7 3c0 6 10 6 10 12s-10 3-10 6M17 3c0 6-10 6-10 12s10 3 10 6" /><path d="M8.5 7h7M8.5 17h7M10 12h4" /></>,
+  headphones: <><path d="M4 15v-3a8 8 0 0 1 16 0v3" /><rect x="3" y="14" width="4.5" height="6.5" rx="1.5" /><rect x="16.5" y="14" width="4.5" height="6.5" rx="1.5" /></>,
+  flag: <><path d="M5 21V4" /><path d="M5 4.5h11l-2 3.5 2 3.5H5" /></>,
+  hundred: <><path d="M4 8.5l2-1.5v10M10.5 7a2.5 2.5 0 0 0-2.5 2.5v5a2.5 2.5 0 0 0 5 0v-5A2.5 2.5 0 0 0 10.5 7zM17.5 7a2.5 2.5 0 0 0-2.5 2.5v5a2.5 2.5 0 0 0 5 0v-5A2.5 2.5 0 0 0 17.5 7z" /><path d="M3.5 20h17" /></>,
+  shootingStar: <><path d="M14 4l1.4 2.9 3.2.5-2.3 2.2.5 3.2L14 11.3 11.2 12.8l.5-3.2L9.4 7.4l3.2-.5z" /><path d="M9 13l-5.5 5.5M11 16l-3.5 3.5M6 11l-3 3" /></>,
+  shield: <path d="M12 3l7.5 3v5.5c0 4.8-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.7-7.5-9.5V6z" />,
+  cape: <><circle cx="12" cy="5.5" r="2.5" /><path d="M8.5 9h7l3.5 11.5H5z" /><path d="M12 9v11.5" /></>,
 };
 
 /** The teacher picks behaviour icons as emoji; every one in the picker (and the defaults) has a drawn twin. */
@@ -73,6 +83,9 @@ const EMOJI_ICON: Record<string, string> = {
   '🎨': 'palette', '🧩': 'puzzle', '🏠': 'house', '💪': 'dumbbell', '🎵': 'music', '🔢': 'hash', '🧹': 'broom', '😊': 'smile',
   '🚀': 'rocket', '🏆': 'trophy', '🌈': 'rainbow', '🍎': 'apple', '✏️': 'pencil', '🔬': 'microscope', '⚽': 'ball', '🎯': 'target',
   '💛': 'heart', '🙊': 'speechOff', '🏃': 'runner', '📝': 'hourglass', '🙉': 'earOff',
+  // achievement badges
+  '👣': 'paw', '📚': 'book', '🦸': 'cape', '🏅': 'medal', '🧬': 'dna', '🎧': 'headphones', '🚩': 'flag', '💯': 'hundred',
+  '🌠': 'shootingStar', '🛡️': 'shield', '👑': 'crown',
 };
 
 export type IconName = keyof typeof PATHS;

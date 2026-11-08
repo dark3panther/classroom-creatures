@@ -13,6 +13,9 @@ import { flushSave } from './store/storage';
 import { useStore } from './store/store';
 import { Creaturedex } from './views/Creaturedex';
 import { Customize } from './views/Customize';
+import { CreatureProfile } from './views/CreatureProfile';
+import { Icon } from './components/Icon';
+import { navigate } from './lib/router';
 import { Dashboard } from './views/Dashboard';
 import { Onboarding } from './views/Onboarding';
 import { Present } from './views/Present';
@@ -24,6 +27,7 @@ export default function App() {
   const init = useStore((s) => s.init);
   const locked = useStore((s) => s.locked);
   const onboarded = useStore((s) => s.data.settings.onboarded);
+  const shopWhileLocked = useStore((s) => s.data.settings.shopWhileLocked);
   const sound = useStore((s) => s.data.settings.soundEnabled);
   const reduced = useStore((s) => s.data.settings.reducedMotion);
   const route = useRoute();
@@ -72,6 +76,21 @@ export default function App() {
     );
   }
 
+  // students may open a creature's profile and dressing room from Presentation Mode while the teacher controls are locked
+  if (locked && (route.view === 'creature' || route.view === 'customize') && shopWhileLocked) {
+    return (
+      <div className="min-h-full">
+        <header className="cloth on-cloth sticky top-0 z-30 flex items-center gap-3 px-4 py-2.5 sm:px-6">
+          <button className="btn btn-ghost" onClick={() => navigate('/present')}><Icon name="back" size={18} />Back to Presentation Mode</button>
+          <span className="ml-auto flex items-center gap-1.5 text-[13px] font-semibold text-white/75"><Icon name="lock" size={15} />Teacher controls are locked</span>
+        </header>
+        <main>{route.view === 'customize' ? <Customize studentId={route.id} /> : <CreatureProfile studentId={route.id} />}</main>
+        <BranchChooserHost />
+        <CelebrationHost />
+        <Toasts />
+      </div>
+    );
+  }
   if (locked) return <LockScreen />;
 
   return (
@@ -83,6 +102,7 @@ export default function App() {
         {route.view === 'rewards' && <Rewards />}
         {route.view === 'settings' && <SettingsView tab={route.tab} />}
         {route.view === 'customize' && <Customize studentId={route.id} />}
+        {route.view === 'creature' && <CreatureProfile studentId={route.id} />}
       </main>
       <AnimatePresence>{!onboarded && !locked && <Onboarding />}</AnimatePresence>
       <BranchChooserHost />

@@ -1,3 +1,4 @@
+import { navigate } from '../lib/router';
 import { useEffect, useMemo, useState } from 'react';
 import { awardSound, playCoin, playCreature, playPop } from '../audio/sfx';
 import { MOODS } from '../engine/mood';
@@ -72,6 +73,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
         <div className="mt-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-[34px] font-extrabold leading-tight tracking-[-0.02em]">{student.name}</h2>
+            <button className="btn btn-cloth !py-1.5 !text-sm" onClick={() => navigate(`/creature/${student.id}`)}><Icon name="book" size={15} />Creature profile</button>
             {student.isDemo && <span className="chip bg-berry/10 text-berry ring-1 ring-berry/30">Demo</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-ink-soft">

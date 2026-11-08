@@ -10,7 +10,7 @@ import type { CategoryTag, Challenge, Student } from '../types';
 import { ChocoStick } from '../components/Celebrations';
 import { ItemThumb } from '../components/ItemThumb';
 import { unlockLabel } from '../engine/shop';
-import { Icon } from '../components/Icon';
+import { Glyph, Icon } from '../components/Icon';
 import { timeAgo } from '../engine/util';
 
 const SLOT_LABEL = SLOT_ONE;
@@ -79,7 +79,7 @@ export function Rewards() {
             const got = students.filter((s) => s.achievements.some((x) => x.id === a.id)).length;
             return (
               <div key={a.id} className="panel flex items-center gap-3 p-3">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl text-3xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${a.color} 45%, white)` }}>{a.icon}</span>
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl text-3xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${a.color} 45%, white)`, color: `color-mix(in srgb, ${a.color} 75%, #16241c)` }}><Glyph icon={a.icon} size={28} /></span>
                 <div className="min-w-0">
                   <div className="font-display text-lg font-bold leading-tight">{a.name}</div>
                   <div className="text-[13px] text-ink-soft">{a.description}</div>
