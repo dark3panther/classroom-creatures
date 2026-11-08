@@ -1,6 +1,6 @@
 import { BRANCHES, BRANCH_STAGE } from '../data/branches';
 import type { AppData, EvolutionEntry, Stage, Student } from '../types';
-import { refreshStudent } from './awards';
+import { refreshClasses, refreshStudent } from './awards';
 import { recordDiscoveries } from './collection';
 import { stageForXp } from './progression';
 
@@ -34,7 +34,8 @@ export function approveEvolution(data: AppData, studentId: string, branch?: 'a' 
   const un = refreshStudent(next, studentId, now);
   next = un.data;
   const disc = recordDiscoveries(next, [studentId]);
-  return { data: disc.data, from, to, branch: chosen, newAchievements: un.newAchievements, discovered: disc.added };
+  const out = disc.added.length ? refreshClasses(disc.data, [st.classId], now) : disc.data;
+  return { data: out, from, to, branch: chosen, newAchievements: un.newAchievements, discovered: disc.added };
 }
 
 /** Log entries for stages gained automatically (several stages can be crossed by one big award). */
@@ -66,5 +67,6 @@ export function chooseBranch(data: AppData, studentId: string, branch: 'a' | 'b'
   const un = refreshStudent(next, studentId, now);
   next = un.data;
   const disc = recordDiscoveries(next, [studentId]);
-  return { data: disc.data, from: BRANCH_STAGE, to: BRANCH_STAGE, branch, newAchievements: un.newAchievements, discovered: disc.added };
+  const out = disc.added.length ? refreshClasses(disc.data, [st.classId], now) : disc.data;
+  return { data: out, from: BRANCH_STAGE, to: BRANCH_STAGE, branch, newAchievements: un.newAchievements, discovered: disc.added };
 }

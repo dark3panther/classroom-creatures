@@ -86,7 +86,8 @@ function loop(now: number) {
   raf = ticks.size ? requestAnimationFrame(loop) : 0;
   if (!raf) last = 0;
 }
-function subscribe(t: Tick) {
+/** Join the shared animation clock (one requestAnimationFrame for every effect on screen). */
+export function subscribe(t: Tick) {
   ticks.add(t);
   if (!raf) raf = requestAnimationFrame(loop);
   return () => { ticks.delete(t); };

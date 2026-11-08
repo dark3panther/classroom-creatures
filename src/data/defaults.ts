@@ -63,7 +63,9 @@ export interface AchievementDef {
     | { kind: 'skills'; min: number }
     | { kind: 'skillMax'; min: number }
     | { kind: 'branch' }
-    | { kind: 'interactions'; min: number };
+    | { kind: 'interactions'; min: number }
+    | { kind: 'evoMaster' }
+    | { kind: 'collection'; pct: number };
   /** what the achievement gives (shown on the badge); the item itself unlocks through its own rule */
   reward?: string;
 }
@@ -74,15 +76,26 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'helpful-hero', name: 'Helpful Hero', description: 'Help classmates 10 times.', icon: '🦸', color: '#ff6fa3', rule: { kind: 'tagCount', tag: 'helping', min: 10 } },
   { id: 'english-star', name: 'English Star', description: 'Participate in English 20 times.', icon: '⭐', color: '#24b47e', rule: { kind: 'tagCount', tag: ['english', 'participation'], min: 20 } },
   { id: 'perfect-effort', name: 'Perfect Effort', description: 'Complete 10 tasks.', icon: '🏅', color: '#36c2b4', rule: { kind: 'tagCount', tag: ['work', 'homework'], min: 10 } },
-  { id: 'evolution-master', name: 'Evolution Master', description: 'Evolve your creature for the first time.', icon: '🧬', color: '#f97316', rule: { kind: 'stage', min: 2 } },
+  { id: 'evolution-master', name: 'First Evolution', description: 'Evolve your creature for the first time.', icon: '🧬', color: '#f97316', rule: { kind: 'stage', min: 2 }, reward: 'Hero Medal' },
   { id: 'great-listener', name: 'Great Listener', description: 'Show good listening 10 times.', icon: '🎧', color: '#f97316', rule: { kind: 'tagCount', tag: 'listening', min: 10 } },
   { id: 'team-captain', name: 'Team Captain', description: 'Earn Teamwork 10 times.', icon: '🚩', color: '#0ea5e9', rule: { kind: 'tagCount', tag: 'teamwork', min: 10 } },
   { id: 'creative-spark', name: 'Creative Spark', description: 'Earn Creativity 10 times.', icon: '🎨', color: '#ec4899', rule: { kind: 'tagCount', tag: 'creativity', min: 10 } },
   { id: 'century', name: 'Century Club', description: 'Earn 100 XP in total.', icon: '💯', color: '#ef4444', rule: { kind: 'xp', min: 100 } },
   { id: 'rising-star', name: 'Rising Star', description: 'Reach Level 5.', icon: '🌠', color: '#4f8cff', rule: { kind: 'level', min: 5 } },
   { id: 'advanced-form', name: 'Mighty Form', description: 'Reach the Advanced stage.', icon: '🛡️', color: '#9b51e0', rule: { kind: 'stage', min: 4 } },
-  { id: 'living-legend', name: 'Living Legend', description: 'Reach Level 10 and the Legendary Form.', icon: '👑', color: '#f2a20c', rule: { kind: 'stage', min: 5 } },
-  { id: 'challenge-champ', name: 'Challenge Champion', description: 'Complete 5 challenges.', icon: '🏆', color: '#eab308', rule: { kind: 'challenges', min: 5 } },
+  { id: 'living-legend', name: 'First Legendary', description: 'Reach the Legendary Form.', icon: '👑', color: '#f2a20c', rule: { kind: 'stage', min: 5 }, reward: 'Aurora Peaks' },
+  { id: 'challenge-champ', name: 'Challenge Champion', description: 'Complete 5 challenges.', icon: '🏆', color: '#eab308', rule: { kind: 'challenges', min: 5 }, reward: 'Champion Cape' },
+  // ── 1.4: creature achievements ──
+  { id: 'customizer', name: 'Customization Expert', description: 'Wear items in 5 different slots at once.', icon: '🎨', color: '#c2366b', rule: { kind: 'equipped', min: 5 } },
+  { id: 'item-collector', name: 'Wardrobe Collector', description: 'Own 10 items.', icon: '🧩', color: '#0ea5e9', rule: { kind: 'items', min: 10 } },
+  { id: 'ability-adept', name: 'Ability Adept', description: 'Awaken your creature’s first ability.', icon: '⭐', color: '#4f8cff', rule: { kind: 'skills', min: 1 } },
+  { id: 'ability-master', name: 'Ability Master', description: 'Raise any ability to its highest rank.', icon: '🏆', color: '#9b51e0', rule: { kind: 'skillMax', min: 3 } },
+  { id: 'evo-master', name: 'Evolution Master', description: 'Reach the final form with all four abilities awake.', icon: '👑', color: '#f2a20c', rule: { kind: 'evoMaster' } },
+  { id: 'mythic-path', name: 'Mythical Path', description: 'Choose a mythical final form.', icon: '🌠', color: '#c42a6e', rule: { kind: 'branch' } },
+  { id: 'best-friends', name: 'Best Friends', description: 'Pet, feed or play with your creature 25 times.', icon: '💛', color: '#ff6fa3', rule: { kind: 'interactions', min: 25 }, reward: 'Heart Trail' },
+  { id: 'creature-collector', name: 'Creature Collector', description: 'Your class discovers a quarter of the field guide.', icon: '📖', color: '#24b47e', rule: { kind: 'collection', pct: 0.25 }, reward: 'Star Trail' },
+  { id: 'field-researcher', name: 'Field Researcher', description: 'Your class discovers half of the field guide.', icon: '🔬', color: '#36c2b4', rule: { kind: 'collection', pct: 0.5 }, reward: 'Star Guardian Armor' },
+  { id: 'master-collector', name: 'Master Collector', description: 'Your class discovers three quarters of the field guide.', icon: '🏆', color: '#eab308', rule: { kind: 'collection', pct: 0.75 }, reward: 'Crystal Cave' },
 ];
 
 /** Dressing-room categories in display order: singular and plural labels. */
@@ -149,6 +162,43 @@ export const ITEMS: Item[] = [
   { id: 'deco-scarf', name: 'Cozy Scarf', slot: 'decoration', unlock: { type: 'achievement', id: 'team-captain' }, description: 'Warm like teamwork.' },
   { id: 'deco-medal', name: 'Hero Medal', slot: 'decoration', unlock: { type: 'achievement', id: 'evolution-master' }, description: 'Awarded for evolving.' },
   { id: 'deco-cape', name: 'Champion Cape', slot: 'decoration', unlock: { type: 'achievement', id: 'challenge-champ' }, description: 'For challenge champions.' },
+
+  // ── 1.4: armor ──
+  { id: 'armor-leather', name: 'Adventurer Vest', slot: 'armor', unlock: { type: 'shop', price: 55 }, description: 'Stitched leather with a brass buckle.' },
+  { id: 'armor-leaf', name: 'Leaf Mail', slot: 'armor', unlock: { type: 'level', level: 5 }, description: 'Overlapping leaves, light as a breeze.' },
+  { id: 'armor-knight', name: 'Knight Plate', slot: 'armor', unlock: { type: 'shop', price: 140 }, rare: true, description: 'Polished silver for the bravest hearts.' },
+  { id: 'armor-crystal', name: 'Crystal Guard', slot: 'armor', unlock: { type: 'stage', stage: 4 }, description: 'Grows on creatures that reach the Advanced stage.' },
+  { id: 'armor-star', name: 'Star Guardian Armor', slot: 'armor', unlock: { type: 'collection', pct: 0.5 }, description: 'For classes that discover half of the field guide.' },
+  // ── 1.4: rare, seasonal and evolution pieces ──
+  { id: 'hat-crystal', name: 'Crystal Crown', slot: 'hat', unlock: { type: 'shop', price: 200 }, rare: true, description: 'Five prism points that catch the light.' },
+  { id: 'hat-feather', name: 'Feathered Cap', slot: 'hat', unlock: { type: 'shop', price: 50 }, description: 'A storyteller’s cap with a long plume.' },
+  { id: 'hat-blossom', name: 'Blossom Crown', slot: 'hat', unlock: { type: 'shop', price: 45 }, season: { from: [3, 1], to: [5, 31], label: 'Spring' }, description: 'Fresh flowers, only in spring.' },
+  { id: 'hat-leafcrown', name: 'Autumn Leaf Crown', slot: 'hat', unlock: { type: 'shop', price: 45 }, season: { from: [9, 1], to: [11, 30], label: 'Autumn' }, description: 'Golden leaves, only in autumn.' },
+  { id: 'glasses-sun', name: 'Summer Shades', slot: 'glasses', unlock: { type: 'shop', price: 40 }, season: { from: [6, 1], to: [8, 31], label: 'Summer' }, description: 'Sunny-day shades, only in summer.' },
+  { id: 'deco-snowscarf', name: 'Snowflake Scarf', slot: 'decoration', unlock: { type: 'shop', price: 45 }, season: { from: [12, 1], to: [2, 28], label: 'Winter' }, description: 'Knitted snowflakes, only in winter.' },
+  { id: 'deco-evobadge', name: 'Evolution Badge', slot: 'decoration', unlock: { type: 'stage', stage: 3 }, description: 'Worn by creatures that have evolved twice.' },
+  { id: 'wings-phoenix', name: 'Phoenix Wings', slot: 'wings', unlock: { type: 'shop', price: 180 }, rare: true, description: 'Feathers that glow like sunrise.' },
+  // ── 1.4: trails (pixel particles that follow the creature) ──
+  { id: 'trail-sparkle', name: 'Sparkle Trail', slot: 'trail', unlock: { type: 'level', level: 2 }, description: 'Little pixel sparkles.' },
+  { id: 'trail-ember', name: 'Ember Trail', slot: 'trail', unlock: { type: 'shop', price: 60 }, description: 'Warm embers drift upward.' },
+  { id: 'trail-bubble', name: 'Bubble Trail', slot: 'trail', unlock: { type: 'shop', price: 60 }, description: 'Bubbles float and pop.' },
+  { id: 'trail-leaf', name: 'Leaf Trail', slot: 'trail', unlock: { type: 'shop', price: 60 }, description: 'Leaves tumble behind.' },
+  { id: 'trail-snow', name: 'Snow Trail', slot: 'trail', unlock: { type: 'shop', price: 70 }, description: 'A soft fall of snow.' },
+  { id: 'trail-star', name: 'Star Trail', slot: 'trail', unlock: { type: 'collection', pct: 0.25 }, description: 'For classes that discover a quarter of the field guide.' },
+  { id: 'trail-heart', name: 'Heart Trail', slot: 'trail', unlock: { type: 'achievement', id: 'best-friends' }, description: 'For creatures who are best friends.' },
+  { id: 'trail-rainbow', name: 'Rainbow Trail', slot: 'trail', unlock: { type: 'shop', price: 150 }, rare: true, description: 'Every colour, pixel by pixel.' },
+  // ── 1.4: special effects (pixel art) ──
+  { id: 'fx-shield', name: 'Guardian Shield', slot: 'magic', unlock: { type: 'shop', price: 90 }, description: 'A shimmering pixel shield.' },
+  { id: 'fx-orbs', name: 'XP Orbs', slot: 'magic', unlock: { type: 'level', level: 6 }, description: 'Glowing orbs of hard work.' },
+  { id: 'fx-crystals', name: 'Floating Crystals', slot: 'magic', unlock: { type: 'shop', price: 110 }, description: 'Crystals that turn slowly in the air.' },
+  { id: 'fx-gems', name: 'Gem Orbit', slot: 'magic', unlock: { type: 'shop', price: 160 }, rare: true, description: 'A spinning treasure gem.' },
+  { id: 'fx-beam', name: 'Legend Beam', slot: 'magic', unlock: { type: 'stage', stage: 5 }, description: 'A beam of light for final forms.' },
+  // ── 1.4: pixel-art places ──
+  { id: 'bg-pixel-meadow', name: 'Pixel Meadow', slot: 'background', unlock: { type: 'level', level: 3 }, description: 'Fences, flowers and a sunny sky.' },
+  { id: 'bg-pixel-forest', name: 'Mushroom Forest', slot: 'background', unlock: { type: 'shop', price: 70 }, description: 'Tall trees, red mushrooms, fireflies.' },
+  { id: 'bg-pixel-beach', name: 'Pixel Beach', slot: 'background', unlock: { type: 'shop', price: 80 }, description: 'Waves, shells and a little palm tree.' },
+  { id: 'bg-pixel-village', name: 'Lantern Village', slot: 'background', unlock: { type: 'shop', price: 120 }, rare: true, description: 'Rooftops and lanterns under the stars.' },
+  { id: 'bg-pixel-cave', name: 'Crystal Cave', slot: 'background', unlock: { type: 'collection', pct: 0.75 }, description: 'For classes that discover three quarters of the field guide.' },
 ];
 
 export const ITEMS_BY_ID: Record<string, Item> = Object.fromEntries(ITEMS.map((i) => [i.id, i]));

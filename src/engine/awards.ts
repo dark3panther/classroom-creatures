@@ -11,7 +11,7 @@ type Prog = Pick<Settings, 'levelXp' | 'evolutionLevels'> & { evolutionMode?: Se
 /** Synthetic category used for a teacher's manual XP correction. */
 export const ADJUST_CATEGORY_ID = 'teacher-adjust';
 
-export function achievementMet(def: AchievementDef, s: Student, settings: Prog): boolean {
+export function achievementMet(def: AchievementDef, s: Student, settings: Prog, cls?: Pick<ClassRoom, 'discovered'>): boolean {
   const r = def.rule;
   switch (r.kind) {
     case 'xp': return s.xp >= r.min;
@@ -29,6 +29,8 @@ export function achievementMet(def: AchievementDef, s: Student, settings: Prog):
     case 'skillMax': return Object.values(s.skills ?? {}).some((v) => v >= r.min);
     case 'branch': return s.bestStage >= 5 && s.branch === 'b';
     case 'interactions': { const i = s.interactions; return (i ? i.pet + i.feed + i.play : 0) >= r.min; }
+    case 'evoMaster': return displayStage(s, settings) >= 5 && Object.values(s.skills ?? {}).filter((v) => v > 0).length >= 4;
+    case 'collection': return !!cls && collectionStats(cls).pct >= r.pct;
   }
 }
 
@@ -92,8 +94,9 @@ function refreshUnlocks(s: Student, data: AppData, now: number) {
   }
   const newAchievements: string[] = [];
   const have = new Set(s.achievements.map((a) => a.id));
+  const clsForAch = data.classes.find((c) => c.id === s.classId);
   for (const def of ACHIEVEMENTS) {
-    if (!have.has(def.id) && achievementMet(def, s, data.settings)) {
+    if (!have.has(def.id) && achievementMet(def, s, data.settings, clsForAch)) {
       s.achievements = [...s.achievements, { id: def.id, at: now }];
       newAchievements.push(def.id);
     }
@@ -103,6 +106,20 @@ function refreshUnlocks(s: Student, data: AppData, now: number) {
   const newItems = qualifiedItems(s, data.settings, cls).filter((id) => !owned.has(id));
   if (newItems.length) s.unlockedItems = [...s.unlockedItems, ...newItems];
   return { newAchievements, newItems, newChallenges };
+}
+
+/** Re-run unlock checks for every student in these classes (a discovery can unlock class collection rewards). */
+export function refreshClasses(data: AppData, classIds: string[], now = Date.now()): AppData {
+  const ids = new Set(classIds);
+  if (!ids.size) return data;
+  const next = { ...data };
+  next.students = data.students.map((s) => {
+    if (!ids.has(s.classId)) return s;
+    const copy = { ...s };
+    refreshUnlocks(copy, next, now);
+    return copy;
+  });
+  return next;
 }
 
 /** Re-run unlock checks for one student (after an evolution, a purchase or a skill change). */
@@ -222,7 +239,8 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
       const st = disc.data.students.find((x) => x.id === o.studentId);
       if (st && o.evolved) o.discovered = disc.added.filter((k) => k.startsWith(`${st.speciesId}-`));
     }
-    return { data: disc.data, outcomes, batchId };
+    const touched = [...new Set(disc.data.students.filter((x) => evolvedIds.includes(x.id)).map((x) => x.classId))];
+    return { data: disc.added.length ? refreshClasses(disc.data, touched, now) : disc.data, outcomes, batchId };
   }
   return { data: next, outcomes, batchId };
 }
@@ -266,7 +284,7 @@ export function undoBatch(data: AppData, batchId: string): AppData {
     draft.achievements = s.achievements.filter((a) => {
       if (a.at < e.at) return true;
       const def = ACHIEVEMENTS.find((d) => d.id === a.id);
-      return def ? achievementMet(def, draft, data.settings) : true;
+      return def ? achievementMet(def, draft, data.settings, data.classes.find((c) => c.id === draft.classId)) : true;
     });
     const q = new Set(qualifiedItems(draft, data.settings));
     draft.unlockedItems = s.unlockedItems.filter((id) => q.has(id) || keepsOnUndo(id));

@@ -5,11 +5,16 @@ export type Route =
   | { view: 'creatures' }
   | { view: 'rewards' }
   | { view: 'settings'; tab?: string }
-  | { view: 'present' };
+  | { view: 'present' }
+  | { view: 'creature'; id: string; tab?: string }
+  | { view: 'customize'; id: string };
 
 export function parseHash(hash: string): Route {
-  const [, view, arg] = hash.replace(/^#/, '').split('/');
+  const [, view, arg, sub] = hash.replace(/^#/, '').split('/');
   switch (view) {
+    case 'creature':
+      if (!arg) return { view: 'classroom' };
+      return sub === 'customize' ? { view: 'customize', id: arg } : { view: 'creature', id: arg, tab: sub };
     case 'creatures': return { view: 'creatures' };
     case 'rewards': return { view: 'rewards' };
     case 'settings': return { view: 'settings', tab: arg };

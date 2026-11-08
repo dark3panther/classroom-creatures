@@ -22,6 +22,7 @@ export function BackAccessories({ equipped, g, line }: { equipped: Equipped; g: 
       {equipped.wings === 'wings-angel' && <WingPair type="feather" g={g} line={line} fill="#ffffff" accent="#e6f0ff" scale={1} cls="cc-flap" />}
       {equipped.wings === 'wings-butterfly' && <WingPair type="butterfly" g={g} line={line} fill="#ff9ad5" accent="#ffd36b" scale={1} cls="cc-flap" />}
       {equipped.wings === 'wings-dragon' && <WingPair type="bat" g={g} line={line} fill="#3fb37f" accent="#ffd23f" scale={1.25} cls="cc-flap" />}
+      {equipped.wings === 'wings-phoenix' && <WingPair type="feather" g={g} line={line} fill="#ff8a3d" accent="#ffd23f" scale={1.3} cls="cc-flap" />}
     </>
   );
 }
@@ -34,6 +35,21 @@ export function Accessories({ equipped, g, line }: { equipped: Equipped; g: Geo;
   return (
     <>
       {equipped.outfit && <Outfit id={equipped.outfit} g={g} line={line} />}
+      {equipped.armor && <Armor id={equipped.armor} g={g} line={line} />}
+      {equipped.decoration === 'deco-snowscarf' && (
+        <g>
+          <path d={`M ${hx - g.headRx * 0.72} ${g.neckY - 6} Q ${hx} ${g.neckY + 12} ${hx + g.headRx * 0.72} ${g.neckY - 6} L ${hx + g.headRx * 0.7} ${g.neckY + 6} Q ${hx} ${g.neckY + 24} ${hx - g.headRx * 0.7} ${g.neckY + 6} Z`} fill="#eaf6ff" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          <path d={`M ${hx - 22} ${g.neckY + 10} l -4 26 l 12 2 l 3 -24 Z`} fill="#cfe8ff" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          {[-0.45, 0, 0.45].map((k) => <g key={k} transform={`translate(${hx + g.headRx * k} ${g.neckY + 5 + Math.abs(k) * -6})`} stroke="#4f8cff" strokeWidth={1.8} strokeLinecap="round"><path d="M0 -5 V5 M-4.3 -2.5 L4.3 2.5 M-4.3 2.5 L4.3 -2.5" /></g>)}
+        </g>
+      )}
+      {equipped.decoration === 'deco-evobadge' && (
+        <g transform={`translate(${hx + g.headRx * 0.32} ${g.chestY + 2})`}>
+          <circle r={11} fill="#1d5643" stroke={line} strokeWidth={2.5} />
+          <circle r={7.5} fill="none" stroke="#f4b631" strokeWidth={1.5} />
+          <path d="M-5 2 L0 -3 L5 2 M-5 6 L0 1 L5 6" fill="none" stroke="#f4b631" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      )}
       {equipped.decoration === 'deco-bowtie' && (
         <g transform={`translate(${hx} ${g.neckY + 4})`}>
           <path d="M0 0 L-16 -9 L-16 9 Z M0 0 L16 -9 L16 9 Z" fill="#e5484d" stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
@@ -145,6 +161,50 @@ export function Accessories({ equipped, g, line }: { equipped: Equipped; g: Geo;
           <circle cx={hx} cy={top - 22} r={4} fill="#ffe066" stroke={line} strokeWidth={2} />
         </g>
       )}
+      {equipped.glasses === 'glasses-sun' && (
+        <g stroke={line} strokeWidth={2.5} strokeLinejoin="round">
+          {ex.map((x) => <rect key={x} x={x - er * 1.7} y={g.eyeY - er * 1.25} width={er * 3.4} height={er * 2.5} rx={er * 1.1} fill="#2b2140" />)}
+          {ex.map((x) => <path key={`h${x}`} d={`M ${x - er * 1.1} ${g.eyeY - er * 0.5} l ${er * 0.8} ${-er * 0.4}`} stroke="#ffffff" strokeWidth={1.8} opacity={0.7} />)}
+          <path d={`M ${ex[0] + er * 1.7} ${g.eyeY - er * 0.4} L ${ex[1] - er * 1.7} ${g.eyeY - er * 0.4}`} stroke="#f08a24" strokeWidth={3} />
+        </g>
+      )}
+      {equipped.hat === 'hat-crystal' && (
+        <g className="cc-shine">
+          {[-2, -1, 0, 1, 2].map((i) => {
+            const x = hx + i * 13, h = 24 - Math.abs(i) * 5;
+            return <polygon key={i} points={`${x - 6},${top + 6} ${x},${top + 6 - h} ${x + 6},${top + 6}`} fill={i % 2 ? '#c9b6ff' : '#8fe4ff'} stroke={line} strokeWidth={2.5} strokeLinejoin="round" />;
+          })}
+          <rect x={hx - 34} y={top + 3} width={68} height={9} rx={4} fill="#e6f8ff" stroke={line} strokeWidth={2.5} />
+          <polygon points={`${hx},${top + 4} ${hx + 4},${top + 7.5} ${hx},${top + 11} ${hx - 4},${top + 7.5}`} fill="#ff5fa2" />
+        </g>
+      )}
+      {equipped.hat === 'hat-feather' && (
+        <g>
+          <path d={`M ${hx - 30} ${top + 8} Q ${hx - 26} ${top - 20} ${hx} ${top - 22} Q ${hx + 26} ${top - 20} ${hx + 30} ${top + 8} Z`} fill="#2f6aa8" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          <path d={`M ${hx - 36} ${top + 8} Q ${hx} ${top + 14} ${hx + 36} ${top + 8}`} fill="none" stroke={line} strokeWidth={3} />
+          <path d={`M ${hx + 14} ${top - 10} C ${hx + 40} ${top - 46} ${hx + 64} ${top - 34} ${hx + 70} ${top - 50} C ${hx + 56} ${top - 22} ${hx + 36} ${top - 14} ${hx + 18} ${top - 4} Z`} fill="#e5484d" stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
+          <path d={`M ${hx + 18} ${top - 8} Q ${hx + 44} ${top - 30} ${hx + 66} ${top - 46}`} fill="none" stroke="#ffb3b5" strokeWidth={1.5} />
+        </g>
+      )}
+      {(equipped.hat === 'hat-blossom' || equipped.hat === 'hat-leafcrown') && (() => {
+        const blossom = equipped.hat === 'hat-blossom';
+        return (
+          <g>
+            <path d={`M ${hx - 32} ${top + 6} Q ${hx} ${top - 4} ${hx + 32} ${top + 6}`} fill="none" stroke={blossom ? '#5aa64e' : '#9a6431'} strokeWidth={4} strokeLinecap="round" />
+            {[-2, -1, 0, 1, 2].map((i) => {
+              const x = hx + i * 14, y = top + 3 - (2 - Math.abs(i)) * 2;
+              return blossom ? (
+                <g key={i} transform={`translate(${x} ${y})`}>
+                  {[0, 72, 144, 216, 288].map((a) => <ellipse key={a} cx={0} cy={-5} rx={3.6} ry={5} transform={`rotate(${a})`} fill={i % 2 ? '#ffd1e6' : '#ff9ccd'} stroke={line} strokeWidth={1.4} />)}
+                  <circle r={2.6} fill="#ffd23f" stroke={line} strokeWidth={1} />
+                </g>
+              ) : (
+                <ellipse key={i} cx={x} cy={y - 4} rx={6} ry={10} transform={`rotate(${i * 18} ${x} ${y})`} fill={['#e8641d', '#f6a83c', '#c43c1d', '#f6a83c', '#e8641d'][i + 2]} stroke={line} strokeWidth={1.8} />
+              );
+            })}
+          </g>
+        );
+      })()}
       {equipped.hat === 'hat-crown' && (
         <g className="cc-shine">
           <polygon points={`${hx - 28},${top + 10} ${hx - 32},${top - 22} ${hx - 14},${top - 6} ${hx},${top - 30} ${hx + 14},${top - 6} ${hx + 32},${top - 22} ${hx + 28},${top + 10}`} fill="#ffd23f" stroke={line} strokeWidth={3} strokeLinejoin="round" />
@@ -180,6 +240,68 @@ export function Accessories({ equipped, g, line }: { equipped: Equipped; g: Geo;
 }
 
 /** Clothes, drawn over the chest so they fit both illustrated and classic creatures. */
+/** Armor is drawn over clothing, on the chest and shoulders. */
+function Armor({ id, g, line }: { id: string; g: Geo; line: string }) {
+  const hx = g.headCx;
+  const top = g.neckY - 2;
+  const w = Math.max(28, g.bodyRx * 0.92);
+  const h = Math.max(24, Math.min(g.bottom - top - 14, w * 1.05));
+  const plate = `M ${hx - w * 0.66} ${top + 2} Q ${hx} ${top + 12} ${hx + w * 0.66} ${top + 2} L ${hx + w * 0.72} ${top + h * 0.72} Q ${hx} ${top + h * 0.98} ${hx - w * 0.72} ${top + h * 0.72} Z`;
+  const pauldron = (c: string, k = 1) => (
+    <>
+      <ellipse cx={hx - w * 0.74} cy={top + 6} rx={w * 0.3 * k} ry={w * 0.2 * k} fill={c} stroke={line} strokeWidth={2.5} />
+      <ellipse cx={hx + w * 0.74} cy={top + 6} rx={w * 0.3 * k} ry={w * 0.2 * k} fill={c} stroke={line} strokeWidth={2.5} />
+    </>
+  );
+  switch (id) {
+    case 'armor-leather': return (
+      <g>
+        <path d={`M ${hx - w * 0.66} ${top + 2} L ${hx - w * 0.12} ${top + 10} L ${hx - w * 0.14} ${top + h * 0.9} Q ${hx - w * 0.5} ${top + h * 0.86} ${hx - w * 0.72} ${top + h * 0.72} Z`} fill="#a0602e" stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={`M ${hx + w * 0.66} ${top + 2} L ${hx + w * 0.12} ${top + 10} L ${hx + w * 0.14} ${top + h * 0.9} Q ${hx + w * 0.5} ${top + h * 0.86} ${hx + w * 0.72} ${top + h * 0.72} Z`} fill="#a0602e" stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={`M ${hx - w * 0.6} ${top + h * 0.2} l ${w * 0.4} ${h * 0.05} M ${hx + w * 0.6} ${top + h * 0.2} l ${-w * 0.4} ${h * 0.05}`} stroke="#e0b07a" strokeWidth={1.6} strokeDasharray="3 3" />
+        <rect x={hx - w * 0.75} y={top + h * 0.55} width={w * 1.5} height={7} rx={3} fill="#6b3a1f" stroke={line} strokeWidth={2} />
+        <rect x={hx - 6} y={top + h * 0.55 - 2} width={12} height={11} rx={2} fill="#ffd23f" stroke={line} strokeWidth={2} />
+      </g>
+    );
+    case 'armor-leaf': return (
+      <g>
+        {[0, 1, 2].map((row) => [-2, -1, 0, 1, 2].slice(row === 2 ? 1 : 0, row === 2 ? 4 : 5).map((i) => {
+          const x = hx + i * w * 0.3 + (row % 2 ? w * 0.15 : 0), y = top + 8 + row * h * 0.24;
+          return <path key={`${row}${i}`} d={`M ${x} ${y - 9} C ${x + 8} ${y - 4} ${x + 7} ${y + 6} ${x} ${y + 10} C ${x - 7} ${y + 6} ${x - 8} ${y - 4} ${x} ${y - 9} Z`} fill={(row + i) % 2 ? '#7cc46a' : '#4f9a43'} stroke={line} strokeWidth={1.8} strokeLinejoin="round" />;
+        }))}
+      </g>
+    );
+    case 'armor-knight': return (
+      <g>
+        {pauldron('#c9d3df')}
+        <path d={plate} fill="#dfe6ee" stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={`M ${hx} ${top + 10} V ${top + h * 0.9}`} stroke="#9aa8b8" strokeWidth={2.5} />
+        <path d={`M ${hx - w * 0.5} ${top + h * 0.3} Q ${hx} ${top + h * 0.4} ${hx + w * 0.5} ${top + h * 0.3}`} fill="none" stroke="#ffffff" strokeWidth={2.5} opacity={0.8} />
+        {[-0.55, 0.55].map((k) => <circle key={k} cx={hx + w * k} cy={top + h * 0.12} r={2.4} fill="#9aa8b8" />)}
+        <path d={`M ${hx} ${top + h * 0.38} l 7 4 v 7 q -7 7 -7 7 q 0 0 -7 -7 v -7 Z`} fill="#e5484d" stroke={line} strokeWidth={2} strokeLinejoin="round" />
+      </g>
+    );
+    case 'armor-crystal': return (
+      <g>
+        {pauldron('#bdeefe', 0.9)}
+        <path d={plate} fill="#a9e6fb" fillOpacity={0.85} stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={`M ${hx - w * 0.6} ${top + 6} L ${hx - w * 0.15} ${top + h * 0.5} L ${hx - w * 0.66} ${top + h * 0.7} M ${hx + w * 0.6} ${top + 6} L ${hx + w * 0.15} ${top + h * 0.5} L ${hx + w * 0.66} ${top + h * 0.7} M ${hx - w * 0.15} ${top + h * 0.5} L ${hx + w * 0.15} ${top + h * 0.5} L ${hx} ${top + h * 0.88} Z`} fill="#e6f8ff" fillOpacity={0.6} stroke="#5fb8d8" strokeWidth={1.6} strokeLinejoin="round" />
+        <polygon points={`${hx},${top + 12} ${hx + 6},${top + h * 0.3} ${hx},${top + h * 0.46} ${hx - 6},${top + h * 0.3}`} fill="#d6a6ff" stroke={line} strokeWidth={1.6} className="cc-shine" />
+      </g>
+    );
+    case 'armor-star': return (
+      <g>
+        {pauldron('#ffd23f', 0.85)}
+        <path d={plate} fill="#24305e" stroke={line} strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={`M ${hx - w * 0.7} ${top + h * 0.62} Q ${hx} ${top + h * 0.9} ${hx + w * 0.7} ${top + h * 0.62}`} fill="none" stroke="#ffd23f" strokeWidth={3} />
+        <polygon points={star(hx, top + h * 0.36, w * 0.24)} fill="#ffd23f" stroke={line} strokeWidth={1.6} className="cc-shine" />
+        {[-0.45, 0.5].map((k) => <polygon key={k} points={star(hx + w * k, top + h * 0.18, 3.2)} fill="#fff6c4" />)}
+      </g>
+    );
+    default: return null;
+  }
+}
+
 function Outfit({ id, g, line }: { id: string; g: Geo; line: string }) {
   const hx = g.headCx;
   const top = g.neckY - 4;
