@@ -7,7 +7,7 @@ import { approveEvolution as approveEvolutionPure, canChooseBranch, chooseBranch
 import { buildDemoData, removeDemo } from '../engine/demo';
 import { validateProgression } from '../engine/progression';
 import { migrate } from '../engine/backup';
-import { addStudents as addStudentsPure, emptyData, newClass, pickSpecies } from '../engine/roster';
+import { addStudents as addStudentsPure, emptyData, newClass, pickSpecies, resetProgress as resetProgressPure } from '../engine/roster';
 import { uid } from '../engine/util';
 import type { AppData, AwardOutcome, Category, Challenge, ClassRoom, ItemSlot, Settings, Stage, Student } from '../types';
 import { addSnapshot, dailySnapshot, loadData, requestPersistence, scheduleSave } from './storage';
@@ -61,6 +61,8 @@ interface Actions {
   resetAbilities: (studentId: string) => void;
   /** cosmetic interaction (pet / feed / play): only counts toward the Best Friends badge */
   interact: (studentId: string, kind: 'pet' | 'feed' | 'play') => void;
+  /** teacher only: start one student's game progress over (a safety snapshot is saved first) */
+  resetStudent: (studentId: string) => Promise<void>;
   closeBranchPick: () => void;
   notify: (text: string, tone?: ToastTone) => void;
   setLocked: (v: boolean) => void;
@@ -277,6 +279,12 @@ export const useStore = create<Store>()((set, get) => {
       return true;
     },
     resetAbilities: (studentId) => commit(resetAbilitiesPure(get().data, studentId)),
+    resetStudent: async (studentId) => {
+      const d = get().data;
+      await addSnapshot(d, `Before resetting ${d.students.find((s) => s.id === studentId)?.name ?? 'a student'}`);
+      set({ celebrations: get().celebrations.filter((c) => !('studentId' in c) || c.studentId !== studentId), lastAward: null });
+      commit(resetProgressPure(get().data, studentId));
+    },
     interact: (studentId, kind) => {
       const before = get().data;
       const st = before.students.find((x) => x.id === studentId);
@@ -354,14 +362,14 @@ export const useStore = create<Store>()((set, get) => {
       const st = d.students.find((s) => s.id === sid);
       if (!st) return;
       const others = d.students.filter((s) => s.classId === st.classId && s.id !== sid);
-      get().updateStudent(sid, { speciesId: pickSpecies(others, Math.random, [st.speciesId]) });
+      get().updateStudent(sid, { speciesId: pickSpecies(others, Math.random, [st.speciesId, ...(d.settings.disabledSpecies ?? [])]) });
     },
     randomizeClass: (classId) => {
       const d = get().data;
       const assigned: Pick<Student, 'speciesId'>[] = [];
       const students = d.students.map((s) => {
         if (s.classId !== classId) return s;
-        const speciesId = pickSpecies(assigned);
+        const speciesId = pickSpecies(assigned, Math.random, d.settings.disabledSpecies ?? []);
         assigned.push({ speciesId });
         return { ...s, speciesId };
       });

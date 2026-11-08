@@ -101,3 +101,16 @@ export function parseNames(text: string): string[] {
   });
   return names.map((n) => n.replace(/\s+/g, ' ').trim()).filter((n) => n.length > 0 && n.length <= 60);
 }
+
+/**
+ * Start a student's game progress again (teacher only, after a typed confirmation and a safety snapshot):
+ * XP, coins, evolution, abilities, items, badges and their award history go back to the start.
+ * The student, their name, their creature and its nickname stay; class discoveries are never taken away.
+ */
+export function resetProgress(data: AppData, studentId: string, now = Date.now()): AppData {
+  const st = data.students.find((s) => s.id === studentId);
+  if (!st) return data;
+  const fresh = newStudent(st.name, st.classId, st.speciesId, now);
+  const reset: Student = { ...fresh, id: st.id, createdAt: st.createdAt, ...(st.nickname ? { nickname: st.nickname } : {}), ...(st.isDemo ? { isDemo: true } : {}) };
+  return { ...data, students: data.students.map((s) => (s.id === studentId ? reset : s)), events: data.events.filter((e) => e.studentId !== studentId) };
+}

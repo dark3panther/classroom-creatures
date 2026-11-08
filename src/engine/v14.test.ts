@@ -186,3 +186,34 @@ describe('class encyclopedia', () => {
     expect(st.species).toBe(3);
   });
 });
+
+describe('teacher reset', () => {
+  it('starts one student over and leaves classmates and class discoveries alone', async () => {
+    const { resetProgress } = await import('./roster');
+    const { data, ids } = classWith(['A', 'B']);
+    let d = give(data, ids[0], 40);
+    d = give(d, ids[1], 10);
+    const disc = d.classes[0].discovered!.length;
+    d = resetProgress({ ...d, students: d.students.map((s) => (s.id === ids[0] ? { ...s, nickname: 'Sparky' } : s)) }, ids[0], NOW);
+    const a = student(d, ids[0]);
+    expect(a.xp).toBe(0);
+    expect(a.coins).toBe(0);
+    expect(a.bestStage).toBe(1);
+    expect(a.nickname).toBe('Sparky');
+    expect(d.events.some((e) => e.studentId === ids[0])).toBe(false);
+    expect(student(d, ids[1]).xp).toBe(50);
+    expect(d.classes[0].discovered!.length).toBe(disc);
+  });
+});
+
+describe('teacher creature choices', () => {
+  it('new students, re-rolls and student choices skip switched-off creatures', async () => {
+    const { pickSpecies, speciesChoices } = await import('./roster');
+    const { SPECIES } = await import('../data/species');
+    const off = SPECIES.slice(0, 25).map((s) => s.id);
+    const { data } = classWith(['A', 'B', 'C', 'D', 'E', 'F', 'G'], { disabledSpecies: off });
+    expect(data.students.every((s) => !off.includes(s.speciesId))).toBe(true);
+    for (let i = 0; i < 20; i++) expect(off).not.toContain(pickSpecies([], mulberry32(i), off));
+    expect(speciesChoices([], 3, mulberry32(4), off).every((id) => !off.includes(id))).toBe(true);
+  });
+});

@@ -270,6 +270,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
   const move = useStore((s) => s.moveStudent);
   const notify = useStore((s) => s.notify);
   const classes = useStore((s) => s.data.classes);
+  const disabledSpecies = useStore((s) => s.data.settings.disabledSpecies);
   const all = useStore((s) => s.data.students);
   const [name, setName] = useState(student.name);
   const [mode, setMode] = useState<'none' | 'pick' | 'choose'>('none');
@@ -294,7 +295,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
         <p className="text-sm text-ink-soft">Changing creature keeps all XP, levels, badges and items.</p>
         <div className="mt-2 flex flex-wrap gap-2">
           <button className="btn btn-light" onClick={() => { randomize(student.id); notify('New random creature!'); }}><Icon name="dice" size={18} />Random</button>
-          <button className="btn btn-light" onClick={() => { setChoices(speciesChoices(classmates, 3)); setMode('choose'); }}><Icon name="choose" size={18} />Let student choose (3)</button>
+          <button className="btn btn-light" onClick={() => { setChoices(speciesChoices(classmates, 3, Math.random, disabledSpecies ?? [])); setMode('choose'); }}><Icon name="choose" size={18} />Let student choose (3)</button>
           <button className="btn btn-light" onClick={() => setMode(mode === 'pick' ? 'none' : 'pick')}><Icon name="book" size={18} />Pick any creature</button>
         </div>
         {mode === 'choose' && (

@@ -11,9 +11,11 @@ import { useStore } from '../store/store';
 import { Glyph, Icon } from '../components/Icon';
 import type { Category, CategoryTag, Settings as SettingsT } from '../types';
 import { CreateClassModal } from './Dashboard';
+import { CreaturesTab } from './TeacherCreatures';
+import { playAward, setVolume } from '../audio/sfx';
 
 const TABS = [
-  ['classes', 'Classes'], ['behaviours', 'Behaviours'], ['progression', 'XP & Evolution'], ['classroom', 'Classroom & PIN'], ['backup', 'Backup & Data'],
+  ['classes', 'Classes'], ['behaviours', 'Behaviours'], ['progression', 'XP & Evolution'], ['creatures', 'Creatures & Shop'], ['classroom', 'Classroom & PIN'], ['backup', 'Backup & Data'],
 ] as const;
 
 export function SettingsView({ tab = 'classes' }: { tab?: string }) {
@@ -29,6 +31,7 @@ export function SettingsView({ tab = 'classes' }: { tab?: string }) {
         {tab === 'classes' && <ClassesTab />}
         {tab === 'behaviours' && <BehavioursTab />}
         {tab === 'progression' && <ProgressionTab />}
+        {tab === 'creatures' && <CreaturesTab />}
         {tab === 'classroom' && <ClassroomTab />}
         {tab === 'backup' && <BackupTab />}
       </div>
@@ -242,7 +245,14 @@ function ClassroomTab() {
       <div className="mt-2 divide-y divide-ink/10">
         <Toggle label="Illustrated creature art" hint="Painted creature artwork. Turn off for the classic drawn style (blinks and changes expression, lighter on very old computers)."
           checked={(settings.artStyle ?? 'illustrated') === 'illustrated'} onChange={(v) => updateSettings({ artStyle: v ? 'illustrated' : 'classic' })} />
-        <Toggle label="Sound effects" hint="Award chimes, level-up fanfares and creature voices." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />
+        <Toggle label="Sound effects" hint="Award chimes, evolution, shop and creature sounds. Turn off to mute everything." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />
+        <label className={`flex items-center gap-4 py-2 ${settings.soundEnabled ? '' : 'opacity-50'}`}>
+          <span className="min-w-[140px]"><span className="block font-bold">Volume</span><span className="block text-sm text-ink-soft tabular">{Math.round((settings.soundVolume ?? 0.8) * 100)}%</span></span>
+          <input type="range" min={0} max={100} step={5} disabled={!settings.soundEnabled} value={Math.round((settings.soundVolume ?? 0.8) * 100)}
+            onChange={(e) => updateSettings({ soundVolume: Number(e.target.value) / 100 })} className="h-2 flex-1 cursor-pointer accent-[#1d5643]" aria-label="Sound volume" />
+          <button className="btn btn-light !py-1.5 !text-sm" disabled={!settings.soundEnabled} onClick={() => { setVolume(settings.soundVolume ?? 0.8); playAward(5); }}>Test</button>
+        </label>
+        <Toggle label="Button clicks" hint="A soft click on every button. Off by default so the classroom stays calm." checked={!!settings.uiSounds} onChange={(v) => updateSettings({ uiSounds: v })} />
         <Toggle label="Reduce motion" hint="Calmer animations for sensitive learners or slower computers. The evolution sequence becomes a quick reveal." checked={settings.reducedMotion} onChange={(v) => updateSettings({ reducedMotion: v })} />
         <Toggle label="Behaviour deductions (−XP)" hint="Behaviour deductions such as talking without permission. They take away XP only (never coins), can never undo an evolution or go below 0 XP, and students never lose their creature."
           checked={settings.negativeEnabled} onChange={(v) => updateSettings({ negativeEnabled: v })} />
