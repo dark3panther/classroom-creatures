@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useRoute } from '../lib/router';
 import { useStore } from '../store/store';
 import { Glyph, Icon } from './Icon';
 
@@ -11,6 +12,9 @@ export function Toasts() {
   const undo = useStore((s) => s.undo);
   const toast = useStore((s) => s.toast);
   const bigMoment = useStore((s) => s.celebrations[0]?.type === 'evolution' || s.celebrations[0]?.type === 'classGoal');
+  // students using their creature while teacher controls are locked never see the award Undo
+  const route = useRoute();
+  const studentView = useStore((s) => s.locked) && (route.view === 'creature' || route.view === 'customize');
   const [showUndo, setShowUndo] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -37,7 +41,7 @@ export function Toasts() {
             {toast.text}
           </motion.div>
         )}
-        {showUndo && last && !bigMoment && (
+        {showUndo && last && !bigMoment && !studentView && (
           <motion.div key={last.batchId} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
             className="cloth on-cloth pointer-events-auto flex items-center gap-3 rounded-full py-2 pl-5 pr-2 shadow-[var(--shadow-lift)]" role="status">
             <span className="text-[#f6cb62]" aria-hidden><Glyph icon={last.icon} size={22} /></span>

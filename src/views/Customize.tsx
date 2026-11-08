@@ -79,11 +79,11 @@ function Room({ student }: { student: Student }) {
       <div className="flex flex-wrap items-center gap-3">
         <button className="btn btn-ghost !px-3" onClick={() => navigate(`/creature/${student.id}`)} aria-label="Back to the creature profile"><Icon name="back" size={18} /></button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-[30px] font-extrabold leading-tight tracking-[-0.02em] sm:text-[38px]">Dressing room</h1>
-          <div className="flex items-center gap-1.5 text-[15px] text-ink-soft">
-            <ElementIcon element={sp.element} size={14} color={ELEMENTS[sp.element].color} />
+          <h1 className="whitespace-nowrap font-display text-[26px] font-extrabold leading-tight tracking-[-0.02em] sm:text-[38px]">Dressing room</h1>
+          <p className="text-[15px] leading-snug text-ink-soft">
+            <span className="mr-1 inline-block align-[-2px]"><ElementIcon element={sp.element} size={14} color={ELEMENTS[sp.element].color} /></span>
             <b className="text-ink">{student.nickname ?? sp.name}</b> · {firstName(student.name)}’s {sp.name}, {STAGE_NAMES[stage]}
-          </div>
+          </p>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#fdf2d6] px-4 py-2 ring-1 ring-[#e7c77a]" aria-label={`${student.coins} coins`}>
           <CoinIcon size={22} /><span className="font-display text-2xl font-extrabold text-[#6b4806] tabular">{student.coins ?? 0}</span>

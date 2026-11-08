@@ -221,7 +221,7 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
       {effects && !current && !myth && MOOD_FX[mood] && <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={compact ? 20 : 30} />}
       {effects && treats > 0 && (
         <>
-          <PixelFx key="treat" id="pickups/choco-stick" anchor={[0.8, 0.98]} size={compact ? 0.42 : 0.45} options={{ shadow: false }} fps={compact ? 20 : 30} />
+          <PixelFx key="treat" id="pickups/choco-stick" anchor={compact ? [0.8, 0.98] : [0.78, 0.9]} size={compact ? 0.42 : 0.2} options={{ shadow: false }} fps={compact ? 20 : 30} />
           {treats > 1 && <span className="absolute bottom-[4%] right-[4%] grid h-5 min-w-5 place-items-center rounded-full bg-[#d8242f] px-1 text-[10px] font-extrabold text-white ring-2 ring-white">×{treats}</span>}
         </>
       )}

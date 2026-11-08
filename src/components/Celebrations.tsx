@@ -97,7 +97,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
             {/* a pixel pillar of light rises behind the plate while the creature charges */}
             {!reduced && (phase === 'charge' || phase === 'flash') && (
               <div className="pointer-events-none absolute left-1/2 top-[48%] h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2" aria-hidden>
-                <PixelFx key={`pillar-${run}`} id="holy/holy-pillar" options={{ palette }} anchor={[0.5, 0.86]} bodyFrac={0.17} fps={30} lightOpacity={0.3} />
+                <PixelFx key={`pillar-${run}`} id="holy/holy-pillar" options={{ palette }} anchor={[0.5, 0.83]} bodyFrac={0.17} fps={30} lightOpacity={0.3} />
               </div>
             )}
             <motion.div className="paper relative w-[min(50vh,420px)] p-2 shadow-[var(--shadow-lift)]"
@@ -137,7 +137,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
               {phase === 'reveal' && <><Burst key={`c${run}`} kind="confetti" count={28} spread={260} size={16} duration={1.8} /><Burst key={`e${run}`} kind={sp.element} count={16} spread={200} size={26} duration={1.4} /></>}
               {phase === 'reveal' && !reduced && <PixelFx key={`burst-${run}`} id="holy/feather-burst" options={{ palette }} anchor={[0.5, 0.62]} bodyFrac={0.22} fps={30} lightOpacity={0.45} />}
             </motion.div>
-            <div className="mt-3 flex items-center gap-2 font-display text-xl font-bold text-white">
+            <div className="relative z-10 mt-4 flex items-center gap-2 rounded-full bg-cloth-950/80 px-4 py-1.5 font-display text-xl font-bold text-white">
               <ElementIcon element={sp.element} size={20} color={el.color} />
               <span className="tabular text-white/75">{fieldNo(sp.id)}</span> {sp.name} · Stage {roman(stage)} · {STAGE_NAMES[stage]}
             </div>
@@ -165,7 +165,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
           )}
         </AnimatePresence>
         {phase !== 'reveal' && (
-          <motion.p className="mt-5 font-display text-2xl font-semibold text-white" animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.4 }}>
+          <motion.p className="mt-5 font-display text-2xl font-semibold text-white" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ repeat: Infinity, duration: 1.4 }}>
             What? {firstName(student.name)}’s {sp.name} is evolving…
           </motion.p>
         )}
