@@ -1,41 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { clearFrame, createFrame, createFx } from '../vendor/pixelfx/core/index.js';
-import * as cartoonPow from '../vendor/pixelfx/fx/explosions/cartoon-pow.js';
-import * as halo from '../vendor/pixelfx/fx/holy/halo.js';
-import * as blessing from '../vendor/pixelfx/fx/holy/blessing.js';
-import * as sunburst from '../vendor/pixelfx/fx/holy/sunburst.js';
-import * as chocoStick from '../vendor/pixelfx/fx/pickups/choco-stick.js';
-import * as collectBurst from '../vendor/pixelfx/fx/pickups/collect-burst.js';
-import * as powerStar from '../vendor/pixelfx/fx/pickups/power-star.js';
-import * as heartPickup from '../vendor/pixelfx/fx/pickups/heart-pickup.js';
-import * as charmed from '../vendor/pixelfx/fx/status/charmed.js';
-import * as confused from '../vendor/pixelfx/fx/status/confused.js';
-import * as sleep from '../vendor/pixelfx/fx/status/sleep.js';
-import * as slowed from '../vendor/pixelfx/fx/status/slowed.js';
-import * as stunned from '../vendor/pixelfx/fx/status/stunned.js';
-import * as confetti from '../vendor/pixelfx/fx/ui/confetti.js';
-import * as exclamation from '../vendor/pixelfx/fx/ui/exclamation.js';
-import * as levelUp from '../vendor/pixelfx/fx/ui/level-up.js';
-import * as burning from '../vendor/pixelfx/fx/status/burning.js';
-import * as frozen from '../vendor/pixelfx/fx/status/frozen.js';
-import * as haste from '../vendor/pixelfx/fx/status/haste.js';
-import * as cursed from '../vendor/pixelfx/fx/status/cursed.js';
-import * as petrified from '../vendor/pixelfx/fx/status/petrified.js';
-import * as rage from '../vendor/pixelfx/fx/status/rage.js';
-import * as divineShield from '../vendor/pixelfx/fx/holy/divine-shield.js';
-import * as heal from '../vendor/pixelfx/fx/holy/heal.js';
-import * as holyPillar from '../vendor/pixelfx/fx/holy/holy-pillar.js';
-import * as resurrection from '../vendor/pixelfx/fx/holy/resurrection.js';
-import * as featherBurst from '../vendor/pixelfx/fx/holy/feather-burst.js';
-import * as gemSpin from '../vendor/pixelfx/fx/pickups/gem-spin.js';
-import * as crystalShard from '../vendor/pixelfx/fx/pickups/crystal-shard.js';
-import * as xpOrb from '../vendor/pixelfx/fx/pickups/xp-orb.js';
-import * as lootBeam from '../vendor/pixelfx/fx/pickups/loot-beam.js';
-import * as plasma from '../vendor/pixelfx/fx/explosions/plasma-explosion.js';
-import * as firework from '../vendor/pixelfx/fx/explosions/firework-burst.js';
-import * as implosion from '../vendor/pixelfx/fx/explosions/implosion.js';
-import * as dirtBlast from '../vendor/pixelfx/fx/explosions/dirt-explosion.js';
-import * as smallBlast from '../vendor/pixelfx/fx/explosions/small-explosion.js';
 
 /**
  * Pixel art effects from the pixelfx library, played live over a creature.
@@ -45,17 +9,63 @@ import * as smallBlast from '../vendor/pixelfx/fx/explosions/small-explosion.js'
 type FxModule = any;
 /** effects that paint the stand-in's face (eyes, blush): those pixels are dropped so our creature shows through */
 const PAINTS_BODY = new Set(['holy/halo', 'status/charmed', 'status/burning', 'status/frozen', 'status/cursed', 'status/petrified', 'status/rage', 'holy/divine-shield']);
-const FX: Record<string, FxModule> = {
-  'explosions/cartoon-pow': cartoonPow, 'holy/halo': halo, 'holy/blessing': blessing, 'holy/sunburst': sunburst,
-  'pickups/choco-stick': chocoStick, 'pickups/collect-burst': collectBurst, 'pickups/power-star': powerStar, 'pickups/heart-pickup': heartPickup,
-  'status/charmed': charmed, 'status/confused': confused, 'status/sleep': sleep, 'status/slowed': slowed, 'status/stunned': stunned,
-  'ui/confetti': confetti, 'ui/exclamation': exclamation, 'ui/level-up': levelUp,
-  'status/burning': burning, 'status/frozen': frozen, 'status/haste': haste, 'status/cursed': cursed, 'status/petrified': petrified, 'status/rage': rage,
-  'holy/divine-shield': divineShield, 'holy/heal': heal, 'holy/holy-pillar': holyPillar, 'holy/resurrection': resurrection, 'holy/feather-burst': featherBurst,
-  'pickups/gem-spin': gemSpin, 'pickups/crystal-shard': crystalShard, 'pickups/xp-orb': xpOrb, 'pickups/loot-beam': lootBeam,
-  'explosions/plasma-explosion': plasma, 'explosions/firework-burst': firework, 'explosions/implosion': implosion, 'explosions/dirt-explosion': dirtBlast, 'explosions/small-explosion': smallBlast,
-};
+const FX = {
+  'explosions/cartoon-pow': () => import('../vendor/pixelfx/fx/explosions/cartoon-pow.js'),
+  'holy/halo': () => import('../vendor/pixelfx/fx/holy/halo.js'),
+  'holy/blessing': () => import('../vendor/pixelfx/fx/holy/blessing.js'),
+  'holy/sunburst': () => import('../vendor/pixelfx/fx/holy/sunburst.js'),
+  'pickups/choco-stick': () => import('../vendor/pixelfx/fx/pickups/choco-stick.js'),
+  'pickups/collect-burst': () => import('../vendor/pixelfx/fx/pickups/collect-burst.js'),
+  'pickups/power-star': () => import('../vendor/pixelfx/fx/pickups/power-star.js'),
+  'pickups/heart-pickup': () => import('../vendor/pixelfx/fx/pickups/heart-pickup.js'),
+  'status/charmed': () => import('../vendor/pixelfx/fx/status/charmed.js'),
+  'status/confused': () => import('../vendor/pixelfx/fx/status/confused.js'),
+  'status/sleep': () => import('../vendor/pixelfx/fx/status/sleep.js'),
+  'status/slowed': () => import('../vendor/pixelfx/fx/status/slowed.js'),
+  'status/stunned': () => import('../vendor/pixelfx/fx/status/stunned.js'),
+  'ui/confetti': () => import('../vendor/pixelfx/fx/ui/confetti.js'),
+  'ui/exclamation': () => import('../vendor/pixelfx/fx/ui/exclamation.js'),
+  'ui/level-up': () => import('../vendor/pixelfx/fx/ui/level-up.js'),
+  'status/burning': () => import('../vendor/pixelfx/fx/status/burning.js'),
+  'status/frozen': () => import('../vendor/pixelfx/fx/status/frozen.js'),
+  'status/haste': () => import('../vendor/pixelfx/fx/status/haste.js'),
+  'status/cursed': () => import('../vendor/pixelfx/fx/status/cursed.js'),
+  'status/petrified': () => import('../vendor/pixelfx/fx/status/petrified.js'),
+  'status/rage': () => import('../vendor/pixelfx/fx/status/rage.js'),
+  'holy/divine-shield': () => import('../vendor/pixelfx/fx/holy/divine-shield.js'),
+  'holy/heal': () => import('../vendor/pixelfx/fx/holy/heal.js'),
+  'holy/holy-pillar': () => import('../vendor/pixelfx/fx/holy/holy-pillar.js'),
+  'holy/resurrection': () => import('../vendor/pixelfx/fx/holy/resurrection.js'),
+  'holy/feather-burst': () => import('../vendor/pixelfx/fx/holy/feather-burst.js'),
+  'pickups/gem-spin': () => import('../vendor/pixelfx/fx/pickups/gem-spin.js'),
+  'pickups/crystal-shard': () => import('../vendor/pixelfx/fx/pickups/crystal-shard.js'),
+  'pickups/xp-orb': () => import('../vendor/pixelfx/fx/pickups/xp-orb.js'),
+  'pickups/loot-beam': () => import('../vendor/pixelfx/fx/pickups/loot-beam.js'),
+  'explosions/plasma-explosion': () => import('../vendor/pixelfx/fx/explosions/plasma-explosion.js'),
+  'explosions/firework-burst': () => import('../vendor/pixelfx/fx/explosions/firework-burst.js'),
+  'explosions/implosion': () => import('../vendor/pixelfx/fx/explosions/implosion.js'),
+  'explosions/dirt-explosion': () => import('../vendor/pixelfx/fx/explosions/dirt-explosion.js'),
+  'explosions/small-explosion': () => import('../vendor/pixelfx/fx/explosions/small-explosion.js'),
+} satisfies Record<string, () => Promise<FxModule>>;
 export type PixelFxId = keyof typeof FX;
+
+// each effect's code loads the first time it plays (and all of them are warmed up once the app is idle)
+const loaded = new Map<PixelFxId, FxModule>();
+const loading = new Map<PixelFxId, Promise<FxModule>>();
+function loadFx(id: PixelFxId): Promise<FxModule> {
+  let p = loading.get(id);
+  if (!p) {
+    p = FX[id]().then((m) => { loaded.set(id, m); return m; });
+    loading.set(id, p);
+  }
+  return p;
+}
+/** Load every effect in the background so the first evolution or ability plays without a gap. */
+export function warmPixelFx() {
+  const run = () => { for (const id of Object.keys(FX) as PixelFxId[]) void loadFx(id); };
+  const idle = (globalThis as { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;
+  if (idle) idle(run); else setTimeout(run, 1500);
+}
 
 export interface PixelFxProps {
   id: PixelFxId;
@@ -93,13 +103,25 @@ export function subscribe(t: Tick) {
   return () => { ticks.delete(t); };
 }
 
-export function PixelFx({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options, duration, onDone, fps = 30, className = '', lightOpacity = 1 }: PixelFxProps) {
+export function PixelFx(props: PixelFxProps) {
+  const [mod, setMod] = useState<FxModule | null>(() => loaded.get(props.id) ?? null);
+  useEffect(() => {
+    let live = true;
+    const ready = loaded.get(props.id);
+    if (ready) setMod(() => ready);
+    else void loadFx(props.id).then((m) => { if (live) setMod(() => m); });
+    return () => { live = false; };
+  }, [props.id]);
+  if (!mod || mod !== loaded.get(props.id)) return null;
+  return <FxCanvas {...props} mod={mod} />;
+}
+
+function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options, duration, onDone, fps = 30, className = '', lightOpacity = 1, mod }: PixelFxProps & { mod: FxModule }) {
   const box = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLCanvasElement>(null);
   const lightRef = useRef<HTMLCanvasElement>(null);
   const done = useRef(onDone);
   done.current = onDone;
-  const mod = FX[id];
   const [W, H] = mod.meta.size as [number, number];
   const [OX, OY] = mod.meta.origin as [number, number];
 

@@ -11,7 +11,8 @@
     "typecheck": "tsc -b",
     "app": "npm run build && electron .",
     "app:mac": "npm run build && electron-builder --mac",
-    "app:mac-zip": "npm run build && electron-builder --mac zip --arm64 --x64"
+    "app:mac-zip": "npm run build && electron-builder --mac zip --arm64 --x64",
+    "test:e2e": "node scripts/e2e.mjs"
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",

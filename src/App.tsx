@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'framer-motion';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { playClick, setSoundEnabled, setUiSounds, setVolume } from './audio/sfx';
 import { CelebrationHost } from './components/Celebrations';
 import { BranchChooserHost } from './components/Evolve';
@@ -7,20 +7,23 @@ import { LockScreen } from './components/PinPad';
 import { Toasts } from './components/Toasts';
 import { TopBar } from './components/TopBar';
 import { CreatureSvg } from './creatures/CreatureSvg';
+import { warmPixelFx } from './creatures/PixelFx';
 import { getSpecies } from './data/species';
 import { useRoute } from './lib/router';
 import { flushSave } from './store/storage';
 import { useStore } from './store/store';
-import { Creaturedex } from './views/Creaturedex';
-import { Customize } from './views/Customize';
-import { CreatureProfile } from './views/CreatureProfile';
 import { Icon } from './components/Icon';
 import { navigate } from './lib/router';
 import { Dashboard } from './views/Dashboard';
 import { Onboarding } from './views/Onboarding';
 import { Present } from './views/Present';
-import { Rewards } from './views/Rewards';
-import { SettingsView } from './views/Settings';
+
+// screens away from the classroom load on first visit, so the app starts faster
+const Creaturedex = lazy(() => import('./views/Creaturedex').then((m) => ({ default: m.Creaturedex })));
+const Customize = lazy(() => import('./views/Customize').then((m) => ({ default: m.Customize })));
+const CreatureProfile = lazy(() => import('./views/CreatureProfile').then((m) => ({ default: m.CreatureProfile })));
+const Rewards = lazy(() => import('./views/Rewards').then((m) => ({ default: m.Rewards })));
+const SettingsView = lazy(() => import('./views/Settings').then((m) => ({ default: m.SettingsView })));
 
 export default function App() {
   const ready = useStore((s) => s.ready);
@@ -32,7 +35,7 @@ export default function App() {
   const reduced = useStore((s) => s.data.settings.reducedMotion);
   const route = useRoute();
 
-  useEffect(() => { void init(); }, [init]);
+  useEffect(() => { void init(); warmPixelFx(); }, [init]);
   const volume = useStore((s) => s.data.settings.soundVolume);
   const uiSounds = useStore((s) => s.data.settings.uiSounds);
   useEffect(() => setSoundEnabled(sound), [sound]);
@@ -84,7 +87,7 @@ export default function App() {
           <button className="btn btn-ghost" onClick={() => navigate('/present')}><Icon name="back" size={18} />Back to Presentation Mode</button>
           <span className="ml-auto flex items-center gap-1.5 text-[13px] font-semibold text-white/75"><Icon name="lock" size={15} />Teacher controls are locked</span>
         </header>
-        <main>{route.view === 'customize' ? <Customize studentId={route.id} /> : <CreatureProfile studentId={route.id} />}</main>
+        <main><Suspense fallback={null}>{route.view === 'customize' ? <Customize studentId={route.id} /> : <CreatureProfile studentId={route.id} />}</Suspense></main>
         <BranchChooserHost />
         <CelebrationHost />
         <Toasts />
@@ -96,14 +99,14 @@ export default function App() {
   return (
     <div className="min-h-full">
       <TopBar route={route} />
-      <main>
+      <main><Suspense fallback={null}>
         {route.view === 'classroom' && <Dashboard />}
         {route.view === 'creatures' && <Creaturedex />}
         {route.view === 'rewards' && <Rewards />}
         {route.view === 'settings' && <SettingsView tab={route.tab} />}
         {route.view === 'customize' && <Customize studentId={route.id} />}
         {route.view === 'creature' && <CreatureProfile studentId={route.id} />}
-      </main>
+      </Suspense></main>
       <AnimatePresence>{!onboarded && !locked && <Onboarding />}</AnimatePresence>
       <BranchChooserHost />
       <CelebrationHost />
