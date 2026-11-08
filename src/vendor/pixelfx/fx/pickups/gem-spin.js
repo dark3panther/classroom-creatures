@@ -24,6 +24,7 @@ const pose = (t, T) => ({ y: -HOVER - 1.8 * Math.sin((t / T) * TAU), spin: (t / 
 
 export function drawBack(p, t, o) {
   const C = fit(o.palette, 8), T = meta.duration, { y, spin } = pose(t, T), lift = (-y - HOVER + 2) / 4;
+  if (o.shadow === false) return; // Classroom Creatures: floating beside a creature there is no floor
   blobShadow(p, 0, 8 - lift * 1.5, 0.75 - lift * 0.2);
   // light refracted through the stone, sliding over the floor as it turns
   for (let k = 0; k < 3; k++) {

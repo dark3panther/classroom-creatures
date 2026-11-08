@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import { clearFrame, createFrame, createFx } from '../vendor/pixelfx/core/index.js';
 
 /**
@@ -8,7 +8,7 @@ import { clearFrame, createFrame, createFx } from '../vendor/pixelfx/core/index.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FxModule = any;
 /** effects that paint the stand-in's face (eyes, blush): those pixels are dropped so our creature shows through */
-const PAINTS_BODY = new Set(['holy/halo', 'status/charmed', 'status/burning', 'status/frozen', 'status/cursed', 'status/petrified', 'status/rage', 'holy/divine-shield']);
+const PAINTS_BODY = new Set(['holy/blessing', 'holy/halo', 'status/charmed', 'status/burning', 'status/frozen', 'status/cursed', 'status/petrified', 'status/rage', 'holy/divine-shield']);
 const FX = {
   'explosions/cartoon-pow': () => import('../vendor/pixelfx/fx/explosions/cartoon-pow.js'),
   'holy/halo': () => import('../vendor/pixelfx/fx/holy/halo.js'),
@@ -81,6 +81,8 @@ export interface PixelFxProps {
   onDone?: () => void;
   fps?: number;
   className?: string;
+  /** extra styles on the effect layer (e.g. a mask that keeps the creature's face clear) */
+  style?: CSSProperties;
   /** strength of the additive light layer (big effects can wash out a light page) */
   lightOpacity?: number;
 }
@@ -116,7 +118,7 @@ export function PixelFx(props: PixelFxProps) {
   return <FxCanvas {...props} mod={mod} />;
 }
 
-function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options, duration, onDone, fps = 30, className = '', lightOpacity = 1, mod }: PixelFxProps & { mod: FxModule }) {
+function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options, duration, onDone, fps = 30, className = '', style, lightOpacity = 1, mod }: PixelFxProps & { mod: FxModule }) {
   const box = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLCanvasElement>(null);
   const lightRef = useRef<HTMLCanvasElement>(null);
@@ -195,7 +197,7 @@ function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options
   }, [id, duration, fps, size, bodyFrac, anchor[0], anchor[1], JSON.stringify(options ?? {})]);
 
   return (
-    <div ref={box} className={`pointer-events-none absolute inset-0 ${className}`} aria-hidden>
+    <div ref={box} className={`pointer-events-none absolute inset-0 ${className}`} style={style} aria-hidden>
       <canvas ref={colorRef} width={W} height={H} className="absolute" style={{ imageRendering: 'pixelated' }} />
       <canvas ref={lightRef} width={W} height={H} className="absolute" style={{ imageRendering: 'pixelated', mixBlendMode: 'screen', opacity: lightOpacity }} />
     </div>

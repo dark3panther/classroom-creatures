@@ -2,7 +2,7 @@
 
 Ideas for the next versions, roughly in order of classroom value.
 
-## 1.3 candidates
+## Next candidates
 1. **Seating-chart view**: arrange cards like the real classroom (drag and drop), so awarding is "tap the desk".
 2. **Team / table points**: groups of 4–6 students with a shared team creature and team awards.
 3. **Attendance toggle**: mark absent students so whole-class awards skip them and nobody "falls behind".
@@ -11,10 +11,12 @@ Ideas for the next versions, roughly in order of classroom value.
 6. **Sound and music packs**: an optional calm background track and a quieter "library mode" sound set.
 7. **Trading cards**: print a student's creature card (name, stage, element, first badge) as a sticker sheet.
 8. **More pixel effects** with the pixelfx skill: element-specific evolution bursts (fire ring, frost nova, leaf storm, lightning call) and a pixel "nom nom" when a treat is handed out.
+9. **Painted mythical forms**: bespoke artwork for the ten mythical final forms (the pipeline already picks up `public/creatures/<id>-5b.webp`), then new mythical species.
+10. **Ability reset for teachers**: take back a creature's skill points so it can choose again.
 
 ## Later
 - **Optional sync** between two computers (e.g. teacher laptop and classroom PC) using a backup file in a shared folder, then a proper sync service.
-- **Student kiosk mode**: students tap their own name to see their creature (view only, no awards).
+- **Student kiosk mode**: students tap their own name to open their creature without going through Presentation Mode (1.4 already lets them open it from there while teacher controls are locked).
 - **Localisation**: Bahasa Malaysia / Bahasa Indonesia, Arabic and Mandarin interface strings for the many non-native English speakers.
 - **Accessibility pass**: colour-blind friendly element colours, larger text option, screen-reader labels on every card action.
 - **Teacher analytics**: behaviour trends over the term (private to the teacher, never shown in Presentation Mode).

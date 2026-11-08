@@ -69,18 +69,28 @@ const MOOD_FX: Partial<Record<Mood, PixelFxId>> = { happy: 'status/charmed', exc
 const COMPACT_POW = 0.36;
 
 /** pixel-art special effects a student can equip (magic slot) */
-const EQUIP_FX: Record<string, { id: PixelFxId; anchor?: [number, number]; size?: number; palette?: string[] }> = {
-  'fx-shield': { id: 'holy/divine-shield', palette: ['#0b3a66', '#1f6fa8', '#3fb6e8', '#8fe4ff', '#e6fbff', '#ffffff'] },
-  'fx-orbs': { id: 'pickups/xp-orb', anchor: [0.82, 0.42], size: 0.55 },
-  'fx-crystals': { id: 'pickups/crystal-shard', anchor: [0.16, 0.5], size: 0.6 },
-  'fx-gems': { id: 'pickups/gem-spin', anchor: [0.84, 0.36], size: 0.5 },
-  'fx-beam': { id: 'pickups/loot-beam', anchor: [0.5, 0.97], size: 0.9 },
+interface EquipFx { id: PixelFxId; anchor?: [number, number]; size?: number; palette?: string[]; shadow?: boolean; large?: { anchor?: [number, number]; size?: number; clearCentre?: boolean } }
+/**
+ * Pixel-art special effects a student can equip (magic slot). On large views (profile, dressing room)
+ * the pixels get big, so effects that would cover the creature move aside or keep only their rim.
+ */
+const EQUIP_FX: Record<string, EquipFx> = {
+  'fx-shield': { id: 'holy/divine-shield', palette: ['#0b3a66', '#1f6fa8', '#3fb6e8', '#8fe4ff', '#e6fbff', '#ffffff'], large: { clearCentre: true } },
+  'fx-orbs': { id: 'pickups/xp-orb', anchor: [0.82, 0.42], size: 0.55, shadow: false },
+  'fx-crystals': { id: 'pickups/crystal-shard', anchor: [0.16, 0.5], size: 0.6, shadow: false },
+  'fx-gems': { id: 'pickups/gem-spin', anchor: [0.84, 0.36], size: 0.5, shadow: false },
+  'fx-beam': { id: 'pickups/loot-beam', anchor: [0.5, 0.97], size: 0.9, large: { anchor: [0.86, 0.9], size: 0.42 } },
 };
+/** keeps a full-body effect's rim and clears the middle, where the creature's face is */
+const CLEAR_CENTRE = { maskImage: 'radial-gradient(ellipse 50% 52% at 50% 56%, transparent 62%, #000 86%)', WebkitMaskImage: 'radial-gradient(ellipse 50% 52% at 50% 56%, transparent 62%, #000 86%)' };
 
-/** the looping pixel aura each mythical aspect wears */
-const MYTH_AURA: Partial<Record<Motif, PixelFxId>> = {
-  frostflame: 'status/burning', stormtide: 'holy/divine-shield', voidvolt: 'status/cursed', sunfrost: 'pickups/crystal-shard',
-  amethyst: 'pickups/crystal-shard', dawn: 'status/burning', moon: 'holy/divine-shield', nebula: 'holy/divine-shield',
+/**
+ * The pixel particles drifting around each mythical aspect (on large views, unless a trail is worn).
+ * Particles stay around the creature; full-body pixel effects scaled to a big plate covered its face.
+ */
+const MYTH_AURA: Partial<Record<Motif, string>> = {
+  frostflame: 'trail-snow', stormtide: 'trail-bubble', voidvolt: 'trail-star', sunfrost: 'trail-snow',
+  amethyst: 'trail-sparkle', dawn: 'trail-sparkle', moon: 'trail-star', nebula: 'trail-star',
 };
 
 const CYCLE: CreatureAction[] = ['jump', 'wave', 'ability', 'happy'];
@@ -215,14 +225,20 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
       {effects && shownMood === 'sad' && <EmotionFx mood="sad" compact={compact} />}
       {effects && equipped?.magic && EQUIP_FX[equipped.magic] && (() => {
         const f = EQUIP_FX[equipped.magic!];
-        return <PixelFx key={`equip-${equipped.magic}`} id={f.id} anchor={f.anchor} size={f.size} options={f.palette ? { palette: f.palette } : undefined} fps={compact ? 16 : 24} lightOpacity={0.6} />;
+        const big = compact ? undefined : f.large;
+        const options = { ...(f.palette ? { palette: f.palette } : {}), ...(f.shadow === false ? { shadow: false } : {}) };
+        return <PixelFx key={`equip-${equipped.magic}`} id={f.id} anchor={big?.anchor ?? f.anchor} size={big?.size ?? f.size} options={options} fps={compact ? 16 : 24} lightOpacity={0.6} style={big?.clearCentre ? CLEAR_CENTRE : undefined} />;
       })()}
-      {effects && myth && !compact && MYTH_AURA[myth.motif] && <PixelFx key={`myth-${myth.motif}`} id={MYTH_AURA[myth.motif]!} options={{ palette: myth.aura }} fps={24} />}
-      {effects && !current && !myth && MOOD_FX[mood] && <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={compact ? 20 : 30} />}
+      {effects && myth && !compact && !equipped?.trail && MYTH_AURA[myth.motif] && <Trail key={`myth-${myth.motif}`} id={MYTH_AURA[myth.motif]!} />}
+      {effects && !current && !myth && MOOD_FX[mood] && (compact
+        ? <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={20} />
+        // large views: a smaller stand-in with its head where the creature's head is, so the pixels stay fine
+        : mood === 'excited' ? <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={30} />
+        : <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={30} bodyFrac={0.34} anchor={[0.5, 0.65]} />)}
       {effects && treats > 0 && (
         <>
           <PixelFx key="treat" id="pickups/choco-stick" anchor={compact ? [0.8, 0.98] : [0.78, 0.9]} size={compact ? 0.42 : 0.2} options={{ shadow: false }} fps={compact ? 20 : 30} />
-          {treats > 1 && <span className="absolute bottom-[4%] right-[4%] grid h-5 min-w-5 place-items-center rounded-full bg-[#d8242f] px-1 text-[10px] font-extrabold text-white ring-2 ring-white">×{treats}</span>}
+          {treats > 1 && <span className={`absolute grid h-5 min-w-5 place-items-center rounded-full bg-[#d8242f] px-1 text-[10px] font-extrabold text-white ring-2 ring-white ${compact ? 'bottom-[4%] right-[4%]' : 'left-[81%] top-[83%]'}`}>×{treats}</span>}
         </>
       )}
       {fx.map((f) => (

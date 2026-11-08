@@ -17,7 +17,7 @@ import { useStore } from '../store/store';
 import type { Equipped, Item, ItemSlot, Student } from '../types';
 
 const SLOT_ICON: Record<ItemSlot, string> = {
-  hat: 'crown', glasses: 'target', outfit: 'user', armor: 'pin', wings: 'wave', decoration: 'star', background: 'book', trail: 'sparkle', magic: 'bolt',
+  hat: 'crown', glasses: 'target', outfit: 'user', armor: 'shield', wings: 'wings', decoration: 'star', background: 'book', trail: 'sparkle', magic: 'bolt',
 };
 
 /** Dressing room: the creature in the middle, categories on the left, items on the right. Try anything on before buying. */

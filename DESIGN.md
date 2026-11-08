@@ -265,7 +265,25 @@ White 12px tiles with a rule ring and the card shadow; a 44px tinted icon square
 One drawn set on a 24px grid with 2px round strokes. A behaviour's emoji is shown through its drawn twin when one exists. The coin has its own two-tone ochre drawing.
 
 ### Big Moments
-Evolution and whole-class celebrations take the full screen in deep bookcloth with linen. The new form sits on a large plate with a rotated round seal (gilt ring, field number, roman stage); headline in gilt display type; actions are a ghost Replay and a gilt primary.
+Evolution and whole-class celebrations take the full screen in deep bookcloth with linen. An evolution charges first: the plate darkens to the element colour, the creature turns to white light under a pixel pillar in the element palette, the caption (field number, species, current stage) sits on a cloth-950 pill above the effect layer, and a white flash hands over to the reveal. The new form then sits on a large plate beside the old one, with a rotated round seal (gilt ring, field number, roman stage); a mythical form adds a rarity-tinted path chip; headline in gilt display type; actions are a ghost Replay and a gilt primary. Skip is always offered.
+
+### Creature Profile
+A two-column page on the endpaper. Left: one large plate holding the creature on its wash, a mood chip, the evolve badge, and a row of light buttons (Pet, Feed, Play, Sing) with the Dressing room as the cloth action. Feed and Play open a wash tray of pixel snacks and toys. Right: a stack of paper sheets: level and XP as monumental numerals over an element-coloured bar; the evolution line as five small plates (the current one gilt-pale with a gilt-deep ring, undiscovered ones as silhouettes); personality; abilities; achievements; forms revealed. Coins sit top-right in the ochre coin pill.
+
+### Dressing Room
+Category list on the left (light pills with a count, the current one bookcloth), the creature on a large plate in the middle with the selected item tried on and an action panel under it, item cards on the right. The worn items are chips with a remove button under the plate. Item cards: white, the item shown on the student's own creature, name in the display face, one state chip (Wearing in leaf, Owned in leaf-pale, a coin price in ochre, Locked in ink-soft). Rare cards take a gilt-deep ring and a gilt Rare chip; seasonal cards say until when. Buying is always the cloth button ("Buy and wear · 60"), never gilt.
+
+### Ability Tree
+Four rows joined by a thin rule spine. Each row: a pixel icon tile, the name at title size with its tier, a one-line description, rank diamonds, and the action (gilt "Awaken · 1 point" or "Rank up", light "Use"). Asleep abilities are dimmed with the level they wake at.
+
+### Field Guide Cards
+Plates without the award foot: the creature (or its ink silhouette on the wash until discovered), field number, forms found, name or "???", element chip, rarity stars, and a mythical-path chip in berry when the species has one. Class milestones are four wide sheets above the grid; a reached one takes a gilt ring and says so.
+
+### Teacher Tables
+The progression table is a paper sheet with a wash header row, rule dividers, tabular numerals right-aligned, a 36px creature thumbnail per row and small light actions (Profile, Adjust XP, Reset in brick text). Confirmations that cannot be undone ask for the student's name and use the danger button.
+
+### Pixel Layer
+Pixel art is the RPG layer around the illustrated creatures: effects from the vendored pixelfx library, trail particles, snacks, toys, ability icons and painted pixel scenes. All of it runs on one shared animation clock and loads on first use. On large views (profile, dressing room, spotlight) the pixels get big, so an effect must never cover the creature's face: full-body effects keep only their rim (a radial mask) or move beside the creature, mood effects use a smaller stand-in whose head sits at the creature's head, and floating pickups drop their floor shadow. Mythical forms wear drifting particles, not a full-body aura.
 
 ### Motion
 Creatures idle with CSS loops (bob, float, hop, sway, breathe) chosen per species; UI uses Framer springs (plates stiffness 400, modals 320) and 120 to 150ms transitions on buttons and inputs. Every loop stops under Reduce Motion, from the OS or the in-app setting.
@@ -279,6 +297,8 @@ Creatures idle with CSS loops (bob, float, hop, sway, breathe) chosen per specie
 - **Do** tint element and behaviour colours onto white with a ring of the same hue and keep the text ink.
 - **Do** set changeable numbers in tabular figures and give monumental numerals one message per band in Present and the profile.
 - **Do** use the drawn 24px stroke icon set for every control.
+- **Do** keep purchases deterministic and visible: the price on the card, the student's coins in view, one cloth button to buy.
+- **Do** check a pixel effect on the largest view it can appear in before shipping it.
 
 ### Don't:
 - **Don't** use gilt on a resting surface, a decorative border or a heading on paper.
@@ -288,3 +308,5 @@ Creatures idle with CSS loops (bob, float, hop, sway, breathe) chosen per specie
 - **Don't** build hierarchy from uppercase or letterspaced labels; use the size scale.
 - **Don't** put emoji in chrome; emoji appear only as the teacher's own behaviour, prize and badge content.
 - **Don't** let coins borrow gilt; currency is ochre.
+- **Don't** add loot boxes, random rolls for money or anything that can be bought twice.
+- **Don't** let a pixel effect sit on a creature's face, or replace creature art with emoji.

@@ -32,10 +32,17 @@ Both are bundled via Fontsource (no network). Hierarchy is by scale steps; no tr
 ## Components
 `btn-primary`, `btn-ghost`, `btn-light`, `btn-cloth`, `btn-danger`, `panel`, `paper`, `input`, `chip`, `ribbon`, `cloth`, `cloth-deep`, `ProgressBar` (element colour), `LevelBadge` ("Lv 7" tab, round seal at large size), `StagePips` (element colour), `ElementBadge`, `RarityStars`, `Modal` (bottom sheet on phones), `Toggle`, `AwardGrid`, `Icon`, `CoinIcon`.
 
+Added in 1.4: `EvolveBadge` ("Ready to evolve" gilt chip), `EvolutionQueue` and `BranchChooser` (`components/Evolve.tsx`), `AbilityTree` and `AbilityIcon` (`components/Abilities.tsx`), `ItemThumb` (an item shown on the student's own creature), `PixelSprite` and `Trail` (`creatures/pixel.tsx`), and the screens `CreatureProfile`, `Customize` (dressing room), `Creaturedex` (field guide) and `TeacherCreatures` (Settings → Creatures & Shop). Component rules are in `DESIGN.md`.
+
+## Pixel layer (1.4)
+- Effects from the vendored pixelfx library, trail particles, pixel snacks, toys and ability icons; one shared `requestAnimationFrame` clock; each effect module loads on first use and all are warmed while the app is idle
+- On large views an effect never covers the creature's face: full-body effects keep their rim (radial mask) or move aside, mood effects use a smaller stand-in, floating pickups have no floor shadow
+- Mythical final forms: colour grade + ornaments (`creatures/mythic.tsx`) + drifting particles; a bespoke `public/creatures/<id>-5b.webp` is used when present
+
 ## Motion
 - Idle loops: CSS only, 2–4 s, per-species style
 - Reactions: Framer Motion, ≤ 0.9 s, squash-and-stretch
-- Celebrations: ≤ 16 particles per burst; evolution sequence ~3.5 s with a Skip button
+- Celebrations: ≤ 16 particles per burst; evolution sequence (charge, flash, reveal) ~4 s with a Skip button
 - Everything respects *Reduce motion* (setting) and `prefers-reduced-motion`
 
 ## Creature art rules

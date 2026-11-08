@@ -9,3 +9,7 @@ https://github.com/rehan-remade/hollow-crown, Copyright (c) 2026 rehan-remade, M
 
 **Patch Pixel.** The font in `gallery/fonts` is Patch's own and is not covered by this repository's MIT license. See
 `gallery/fonts/NOTICE.md`.
+
+**Local changes in Classroom Creatures.** `fx/pickups/xp-orb.js`, `crystal-shard.js` and `gem-spin.js` accept
+`shadow: false` to skip their floor shadow and floor light, because they float beside a creature here (as
+`choco-stick.js` already allowed).

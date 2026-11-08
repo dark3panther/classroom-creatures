@@ -1,6 +1,6 @@
 # Classroom Creatures
 
-A gamified classroom management app for Grade 2 and Grade 3 teachers. Every student gets their own original fantasy creature. The teacher awards XP for positive behaviour, and the creatures celebrate, level up, evolve through five forms, unlock badges and accessories, and appear on a projector-friendly presentation screen.
+A gamified classroom management app for Grade 2 and Grade 3 teachers. Every student gets their own original fantasy creature. The teacher awards XP for positive behaviour, and the creatures celebrate, level up and evolve through five forms (ten of them can take a mythical final path). Students dress their creature up with the coins they earn, awaken its abilities and play with it, and the class fills in a field guide of every form it discovers. It all shows on a projector-friendly presentation screen.
 
 - **Runs locally.** No accounts, no student emails, no cloud, no paid services. Works offline once installed.
 - **Saves automatically** to the browser's IndexedDB (with a localStorage mirror), plus daily safety snapshots and downloadable backup files.
@@ -9,11 +9,30 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/classroom.jpg" alt="The Classroom dashboard: student cards with illustrated creatures, moods, coins and quick award buttons" width="900"></p>
 
-| Presentation mode | Prize wheel | Shop |
+| Creature profile | Dressing room | Evolution |
 |---|---|---|
-| <img src="docs/screenshots/presentation.jpg" alt="Presentation mode on a projector" width="300"> | <img src="docs/screenshots/prize-wheel.jpg" alt="The class prize wheel" width="300"> | <img src="docs/screenshots/shop.jpg" alt="The coin shop in a student's profile" width="300"> |
+| <img src="docs/screenshots/creature-profile.jpg" alt="A creature's profile: the mythical Nebula Prince form, level 10, its evolution line, personality and abilities" width="300"> | <img src="docs/screenshots/dressing-room.jpg" alt="The dressing room: item categories, the creature trying on butterfly wings, and item cards marked owned or with a coin price" width="300"> | <img src="docs/screenshots/evolution.jpg" alt="The evolution reveal: stage IV beside the new mythical stage V form, Your creature evolved!" width="300"> |
+
+| Field guide | Teacher controls | Presentation mode |
+|---|---|---|
+| <img src="docs/screenshots/field-guide.jpg" alt="The class field guide: discovery progress, class milestones with rewards, and creature cards, undiscovered ones as silhouettes" width="300"> | <img src="docs/screenshots/teacher-controls.jpg" alt="Settings, Creatures and Shop: evolution mode, one creature waiting, and the class progression table" width="300"> | <img src="docs/screenshots/presentation.jpg" alt="Presentation mode on a projector" width="300"> |
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
+
+## What's new in 1.4: the creature RPG update
+
+- **Evolution can be a class moment.** Choose **Automatic** (creatures evolve as soon as they have the XP) or **Teacher approval** in Settings → Creatures & Shop. With approval on, a ready creature shows **Ready to evolve** and joins the **Evolutions** queue on the Classroom tab until you press **Evolve**. The evolution itself is a full-screen sequence: the creature turns to light under a pixel pillar, a flash, then the new form beside the old one, with its own sounds. Every evolution is kept in the creature's history, and evolving never changes XP or coins.
+- **Two final paths.** Ten creatures choose at stage V between their classic Legendary form and a **Mythical** form with its own colours, ornaments and drifting pixel particles. The field guide counts both.
+- **A dressing room for every creature.** 73 items in nine slots: hats, glasses, clothing, armor, wings, accessories, backgrounds, trails and effects. Students try anything on before buying, see what they own, what they are wearing, what is locked and what it costs, and buy with their own coins. There are rare items and seasonal ones (a Blossom Crown in spring, Summer Shades, an Autumn Leaf Crown, a Snowflake Scarf in winter) marked with how long they stay. Nothing is random: no loot boxes, nothing bought twice, and coins never go below zero. Undoing an award never takes back something a student bought.
+- **A creature profile.** One page per creature: the creature itself to pet, feed and play with (snacks and toys are free and just for fun), level and XP, the evolution line with progress to the next form, its personality (seven kinds, each with a favourite snack and toy), abilities, achievements and the forms it has revealed. Open it from a student's pop-up, the Presentation spotlight or the progression table.
+- **Abilities.** Every creature has four: two from its element, a signature move, and an ultimate that depends on its final path. Each has three ranks, and a creature earns one skill point per level. Abilities only play an animation; they never change points or give anyone an advantage.
+- **The class field guide.** All 160 forms (30 creatures × 5 stages, plus the 10 mythical forms). Forms the class has not met yet are silhouettes. Search by name and filter by element, rarity or discovery. When the class discovers 25%, 50%, 75% and 100% of the guide, everyone gets a reward (Star Trail, Star Guardian Armor, Crystal Cave background, Naturalist's Hat).
+- **Creature achievements**, each with its requirement and, where it has one, a reward: First Evolution, Evolution Master, First Legendary, Mythical Path, Customization Expert, Wardrobe Collector, Ability Adept, Ability Master, Best Friends, Creature Collector, Field Researcher, Master Collector and Grand Naturalist.
+- **Teacher controls** in Settings → Creatures & Shop: the evolution mode and queue, a progression table for the class, **Adjust XP** to fix a mistake (logged in the student's history, undoable, never touches coins), **Reset progress** for one student (you type their name to confirm, and a safety snapshot is saved first), which creatures new students can get, and which items are offered and at what price.
+- **Students can use their own creature while you stay locked.** From Presentation Mode, students can open their creature's profile and dressing room while teacher controls are locked. They can play, awaken abilities and spend their own coins, but they can never change XP or coins. Switch this off in Settings → Creatures & Shop.
+- **Sound settings.** A volume slider, optional button clicks, and new sounds for evolving, buying, dressing up, abilities, snacks and toys. Everything still follows the **Sound effects** switch.
+- **Starts faster.** Screens and pixel effects now load the first time they are needed.
+- **Your data comes with you.** 1.3 data upgrades automatically when you open 1.4 (a safety snapshot is saved first). Students keep their creature, XP, coins, stage, items and history, and existing classes stay on Automatic evolution.
 
 ## What's new in 1.3
 
@@ -39,7 +58,7 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 - **Milestone rewards.** Every 100 XP a student earns a **Choki Choki chocolate** (change the treat, the amount or add more milestones in Settings → Classroom & PIN). A popup tells you who earned one, and **Rewards → Milestone rewards to hand out** keeps the list until you tick **Given ✓**.
 - **Behaviour deductions.** Talking Without Permission (−2), Moving Around (−2), Task Not Finished (−3), Not Listening to Instructions (−2), from the grey **−** button on each card or the award list. The creature gets a cartoon **BONK!**, dizzy stars and a sad rain cloud for a while. Deductions take XP only, never coins, never go below 0 XP and never undo an evolution.
 - **Creature emotions.** Each creature feels **happy** after points, **excited** after several in a row, **proud** after a milestone, **sad** after a deduction, **sleepy** when ignored for a few days, and **calm** otherwise. Moods show on cards, profiles and in Presentation Mode (hearts, sparkles, rain cloud, Zzz, crown).
-- **Class goal prize wheel.** When the class reaches its XP goal, everyone spins the wheel: funny video, gaming class, movie class, Choki Choki for everyone, extra playtime or a music & dance party (editable). The next goal is set automatically.
+- **Class goal prize wheel** ([screenshot](docs/screenshots/prize-wheel.jpg)). When the class reaches its XP goal, everyone spins the wheel: funny video, gaming class, movie class, Choki Choki for everyone, extra playtime or a music & dance party (editable). The next goal is set automatically.
 - **Livelier creatures.** Element particles drift around every creature (embers, bubbles, leaves, sparks…). In the profile and Presentation spotlight, creatures lean towards your pointer, react when tapped, and **press and hold to pet** them for hearts.
 - Data from 1.0 upgrades automatically: students start with coins equal to the XP they already have, and past milestones count as already handed out.
 
@@ -74,9 +93,9 @@ npm install
 npm run app:mac
 ```
 
-This creates `release/Classroom Creatures-1.0.0-universal.dmg` (works on both Apple Silicon and Intel Macs). Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
+This creates `release/Classroom Creatures-<version>-universal.dmg` (works on both Apple Silicon and Intel Macs). Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
 
-**Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and a Release is published either by pushing a tag such as `v1.3.0` or from **Actions → Release → Run workflow** with the version number (the tag is created for you).
+**Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and a Release is published either by pushing a tag such as `v1.4.0` or from **Actions → Release → Run workflow** with the version number (the tag is created for you).
 
 **First launch of a downloaded copy:** the app is not notarised by Apple (that needs a paid Apple Developer account), so macOS warns you the first time. Right-click (or Control-click) the app in Applications → **Open** → **Open**. On recent macOS versions you may instead need to go to System Settings → Privacy & Security and click **Open Anyway**. If macOS says the app "is damaged", run this once in Terminal:
 
@@ -93,30 +112,37 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Development server with hot reload |
-| `npm test` | Unit tests for the XP, evolution, achievement, challenge, import and backup engine (Vitest) |
+| `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, challenge, import, backup and storage code (Vitest) |
+| `npm run test:e2e` | End-to-end check in a real browser: the 1.3 to 1.4 upgrade, playing with a creature, abilities, buying an item, a teacher-approved evolution, the field guide, locked student mode, persistence after a restart, and phone width. Needs Playwright (`npm i -D playwright && npx playwright install chromium`); `E2E_SHOTS=out` also saves screenshots |
 | `npm run typecheck` | TypeScript check |
 | `npm run build` | Type-check and build the production site into `dist/` |
 
 ## Classroom workflow
 
 1. **Classroom tab**: every student card shows the creature, level, XP bar, stage and three quick-award buttons (the behaviours you ⭐ pin in Settings).
-2. **Click a card** to open the student profile: a big animated creature, the full award grid, wardrobe, badges, challenge progress, history and management tools.
+2. **Click a card** to open the student pop-up: a big animated creature, the full award grid, what the creature is wearing, badges, challenge progress, history and management tools. **Creature profile** opens the creature's full page, with the **Dressing room** one tap away.
 3. **Select students** to award several at once, or **Award whole class**.
 4. Every award shows a floating **+XP**, a chime and a creature celebration. Level-ups, achievements and evolutions trigger their own celebrations automatically.
 5. **Made a mistake?** Every award shows an **Undo** toast for 10 seconds, and any award can be undone later from the activity panel or the student's History tab. Undo also takes back badges or items that award unlocked.
-6. **Present** opens a full-screen projector view: first names and creatures only (no XP totals, no rankings), a class-goal bar, an awards ticker, a spinning random student picker and a big spotlight view.
+6. **Evolutions** (with Teacher approval on) lists the creatures ready to evolve. Press **Evolve** for one, or **Evolve all**; a creature at its last stage with two paths asks which one to take.
+7. **Present** opens a full-screen projector view: first names and creatures only (no XP totals, no rankings), a class-goal bar, an awards ticker, a spinning random student picker and a big spotlight view.
 
 ## Project architecture
 
 ```
 src/
 ├── types.ts                 Domain types (AppData is everything that is persisted)
-├── data/                    Pure content: species roster, elements, defaults, achievements, items, challenges
+├── data/                    Pure content: species, elements, defaults, achievements, items, challenges,
+│                            final paths (branches.ts), abilities and personalities
 ├── engine/                  Pure, unit-tested game logic (no React, no storage)
-│   ├── progression.ts       XP → level → stage, next-evolution targets, table validation
-│   ├── awards.ts            applyAward / undoBatch / unlock evaluation / challenge progress
+│   ├── progression.ts       XP → level → stage, next-evolution targets, readiness, table validation
+│   ├── awards.ts            applyAward / undoBatch / unlock evaluation / challenge progress / purchases
+│   ├── evolution.ts         Approval queue, one-stage evolutions, final-path choice, evolution history
+│   ├── collection.ts        Forms revealed, class discoveries, field-guide statistics
+│   ├── abilities.ts         Skill points, ability ranks and the ability tree view
+│   ├── shop.ts              Item states (owned, wearing, buyable, locked, seasonal), prices, buying
 │   ├── roster.ts            Unique creature assignment, student/class factories, CSV/name parsing
-│   ├── backup.ts            Backup file format, validation and normalisation
+│   ├── backup.ts            Backup file format, validation, normalisation and step-wise data migrations
 │   ├── demo.ts              Clearly labelled demo class
 │   └── pin.ts               Salted SHA-256 PIN hashing
 ├── store/
@@ -127,11 +153,15 @@ src/
 │   ├── accessories.tsx      Hats, glasses, wings, magic, decorations
 │   ├── Creature.tsx         Animated wrapper: idle loop, reactions, particle bursts
 │   ├── Burst.tsx            One-shot element/sparkle/confetti particles
-│   └── Habitat.tsx          Element habitats and unlockable backgrounds
+│   ├── Habitat.tsx          Element habitats, unlockable backgrounds and painted pixel scenes
+│   ├── PixelFx.tsx          Plays pixelfx effects on one shared animation clock, loading each on first use
+│   ├── pixel.tsx            Pixel sprites (snacks, toys, ability icons) and trail particles
+│   └── mythic.tsx           Colour grade and ornaments for the mythical final forms
 ├── (electron/main.cjs)     Desktop shell: serves dist/ from a private app:// origin, menus, full screen
 ├── audio/sfx.ts             All sounds synthesised with Web Audio (original, offline)
 ├── components/              Cards, award grid, celebrations, toasts, top bar, PIN lock, UI kit
-├── views/                   Dashboard, StudentProfile, Creaturedex, Rewards, Settings, Present, Onboarding
+├── views/                   Dashboard, StudentProfile, CreatureProfile, Customize (dressing room), Creaturedex
+│                            (field guide), Rewards, Settings, TeacherCreatures, Present, Onboarding
 └── lib/                     Hash router and view-model helpers
 ```
 
@@ -145,6 +175,7 @@ Every creature has illustrated artwork for all five stages (150 images in `publi
 
 - `scripts/slice-lineup.py <lineup.png> <id>` cuts a lineup into `<id>-1.webp` … `<id>-5.webp` (needs Python with Pillow, NumPy and SciPy).
 - `scripts/creature-anchors.py` measures where each creature's head and eyes are and writes `src/data/creatureArt.json`, which is how hats, glasses and other accessories line up on the illustrations.
+- **Mythical forms** are drawn from the Legendary art with a colour grade and ornaments (`src/creatures/mythic.tsx`). To give one its own painting, add `public/creatures/<id>-5b.webp` and an anchor entry `<id>-5b` in `src/data/creatureArt.json`; the app uses it automatically.
 - The original vector drawings are still in the app. Teachers can switch to them in **Settings → Classroom & PIN → Illustrated creature art**, and any species without an illustration automatically uses them. Open `?sheet` in development to see the vector set, or `?sheet&art` for the illustrations.
 
 ## Adding new creatures
@@ -184,11 +215,11 @@ Teachers can edit the level table and evolution levels in **Settings → XP & Ev
 |---|---|---|---|---|---|---|---|---|---|---|
 | Total XP | 0 | 50 | 120 | 210 | 320 | 450 | 600 | 780 | 980 | 1200 |
 
-Evolution: Baby (L1), Young (L3), Evolved (L5), Advanced (L7), Legendary Form (L10). Behaviour XP values are edited in **Settings → Behaviours**. Achievement rules and item unlock rules are data in `src/data/defaults.ts`.
+Evolution: Baby (L1), Young (L3), Evolved (L5), Advanced (L7), Legendary Form (L10). Whether creatures evolve as soon as they reach the level or wait for you is set in **Settings → Creatures & Shop**. Behaviour XP values are edited in **Settings → Behaviours**. Achievement rules and item unlock rules are data in `src/data/defaults.ts`.
 
 ## Backing up and restoring data
 
-- **Automatic**: every change is saved immediately on this computer. A safety snapshot is taken once a day and before anything is deleted, removed or restored (the newest 12 are kept).
+- **Automatic**: every change is saved immediately on this computer. A safety snapshot is taken once a day and before anything is deleted, removed, reset, restored or upgraded to a new version (the newest 12 are kept).
 - **Backup file**: Settings → Backup & Data → *Download backup file*. Keep it on a USB stick or school drive (once a week is a good habit).
 - **Restore**: *Restore from file* (or pick a snapshot). Your current data is snapshotted first, so a restore can itself be undone.
 - **Moving to a new computer**: download a backup on the old one, open the app on the new one, restore the file.

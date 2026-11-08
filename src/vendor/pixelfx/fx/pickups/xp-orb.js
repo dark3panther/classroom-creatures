@@ -27,8 +27,10 @@ const at = (t) => {
 export function drawBack(p, t, o) {
   const C = fit(o.palette, 8), [x, y] = at(t);
   // its shadow and its light slide over the floor beneath it
-  blobShadow(p, x, 3.5, 0.55);
-  pool(p, x, 0.5, 14, 3, C[5], 0.3);
+  if (o.shadow !== false) { // Classroom Creatures: floating beside a creature there is no floor
+    blobShadow(p, x, 3.5, 0.55);
+    pool(p, x, 0.5, 14, 3, C[5], 0.3);
+  }
   // flecks shed from the tail drift down and wink out
   cycle(t, meta.duration, 16, o.seed, (g) => g.range(0.35, 0.7), (age, life, r) => {
     const [fx, fy] = at(t - age), k = 1 - age / life, tw = Math.sin(age * r.range(20, 30) + r.range(0, TAU));

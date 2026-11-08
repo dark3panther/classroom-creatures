@@ -100,8 +100,10 @@ function splinters(p, C, ph, cy, back) {
 
 export function drawBack(p, t, o) {
   const C = fit(o.palette, 8), ph = t / meta.duration, { y } = pose(ph);
-  blobShadow(p, 0, 6, 0.75);
-  pool(p, 0, 0.5, 20, 3.5, C[4], 0.3);
+  if (o.shadow !== false) { // Classroom Creatures: floating beside a creature there is no floor
+    blobShadow(p, 0, 6, 0.75);
+    pool(p, 0, 0.5, 20, 3.5, C[4], 0.3);
+  }
   p.glowRing(0, y, 7, 20, C[4], 0.22);
   splinters(p, C, ph, y, true);
 }

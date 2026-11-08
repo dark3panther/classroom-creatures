@@ -27,6 +27,7 @@ const PATHS: Record<string, ReactNode> = {
   star: <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8-4.3-4.1 5.9-.8z" />,
   target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></>,
   crown: <><path d="M4 18h16M5 18l-1.5-10 5 4L12 5l3.5 7 5-4L19 18" /></>,
+  wings: <><path d="M12 10C10 6 6.5 4.5 3.5 5c-.4 3.6 1.6 7.6 5.7 8.6L12 13" /><path d="M12 10c2-4 5.5-5.5 8.5-5 .4 3.6-1.6 7.6-5.7 8.6L12 13" /><path d="M7 15.5c1.5 1.6 3.3 2.3 5 2.3s3.5-.7 5-2.3" /></>,
   replay: <><path d="M4 12a8 8 0 1 0 2.4-5.7" /><path d="M4 4v4.5h4.5" /></>,
   back: <path d="M15 5l-7 7 7 7" />,
   next: <path d="M9 5l7 7-7 7" />,
