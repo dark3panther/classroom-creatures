@@ -12,6 +12,7 @@ import { useRoute } from './lib/router';
 import { flushSave } from './store/storage';
 import { useStore } from './store/store';
 import { Creaturedex } from './views/Creaturedex';
+import { Customize } from './views/Customize';
 import { Dashboard } from './views/Dashboard';
 import { Onboarding } from './views/Onboarding';
 import { Present } from './views/Present';
@@ -81,6 +82,7 @@ export default function App() {
         {route.view === 'creatures' && <Creaturedex />}
         {route.view === 'rewards' && <Rewards />}
         {route.view === 'settings' && <SettingsView tab={route.tab} />}
+        {route.view === 'customize' && <Customize studentId={route.id} />}
       </main>
       <AnimatePresence>{!onboarded && !locked && <Onboarding />}</AnimatePresence>
       <BranchChooserHost />

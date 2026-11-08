@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { DEFAULT_NEGATIVE_CATEGORIES, ITEMS_BY_ID } from '../data/defaults';
-import { ADJUST_CATEGORY_ID, applyAward, buyItem, refreshAll, undoBatch } from '../engine/awards';
+import { ADJUST_CATEGORY_ID, applyAward, refreshAll, undoBatch } from '../engine/awards';
+import { equipItem, purchase } from '../engine/shop';
 import { approveEvolution as approveEvolutionPure, canChooseBranch, chooseBranch as chooseBranchPure, needsBranchChoice, pendingStage } from '../engine/evolution';
 import { buildDemoData, removeDemo } from '../engine/demo';
 import { validateProgression } from '../engine/progression';
@@ -39,6 +40,7 @@ interface Actions {
   init: () => Promise<void>;
   award: (studentIds: string[], categoryId: string) => AwardOutcome[];
   undo: (batchId: string) => void;
+  /** buy with coins: checks price overrides, season, teacher switches and duplicates */
   buy: (studentId: string, itemId: string) => boolean;
   setRewardGiven: (studentId: string, rewardId: string, given: boolean) => void;
   /** spin result for a class whose goal was reached: records the prize and raises the goal */
@@ -178,11 +180,18 @@ export const useStore = create<Store>()((set, get) => {
     },
 
     buy: (studentId, itemId) => {
-      const item = ITEMS_BY_ID[itemId];
-      if (!item || item.unlock.type !== 'shop') return false;
-      const next = buyItem(get().data, studentId, itemId, item.unlock.price);
-      if (!next) return false;
-      commit(next);
+      const before = get().data;
+      const r = purchase(before, studentId, itemId);
+      if ('error' in r) {
+        const msg: Record<string, string> = { coins: 'Not enough coins yet', season: 'This item is out of season', disabled: 'This item is switched off in Settings', owned: 'Already owned' };
+        if (msg[r.error]) get().notify(msg[r.error], 'warn');
+        return false;
+      }
+      const st = before.students.find((x) => x.id === studentId)!;
+      const after = r.data.students.find((x) => x.id === studentId)!;
+      const fresh = after.achievements.filter((a) => !st.achievements.some((b) => b.id === a.id));
+      if (fresh.length) set({ celebrations: [...get().celebrations, ...fresh.map((a) => ({ id: id(), type: 'achievement' as const, studentId, achievementId: a.id }))] });
+      commit(r.data);
       return true;
     },
     setRewardGiven: (studentId, rewardId, given) => {
@@ -330,16 +339,12 @@ export const useStore = create<Store>()((set, get) => {
     },
     equip: (sid, slot, itemId) => {
       const d = get().data;
-      commit({
-        ...d,
-        students: d.students.map((s) => {
-          if (s.id !== sid) return s;
-          const equipped = { ...s.equipped };
-          if (itemId && s.unlockedItems.includes(itemId)) equipped[slot] = itemId;
-          else delete equipped[slot];
-          return { ...s, equipped };
-        }),
-      });
+      const st = d.students.find((x) => x.id === sid);
+      const next = equipItem(d, sid, slot, itemId);
+      const after = next.students.find((x) => x.id === sid);
+      const fresh = st && after ? after.achievements.filter((a) => !st.achievements.some((b) => b.id === a.id)) : [];
+      if (fresh.length) set({ celebrations: [...get().celebrations, ...fresh.map((a) => ({ id: id(), type: 'achievement' as const, studentId: sid, achievementId: a.id }))] });
+      commit(next);
     },
 
     upsertCategory: (c) => {

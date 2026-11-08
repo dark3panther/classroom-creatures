@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Modal, ProgressBar, SectionTitle } from '../components/ui';
-import { CreatureSvg } from '../creatures/CreatureSvg';
 import { ACHIEVEMENTS, ITEMS, TAG_LABELS, SLOT_ONE } from '../data/defaults';
 import { getSpecies } from '../data/species';
 import { challengeProgress } from '../engine/awards';
@@ -9,6 +8,8 @@ import { useClassStudents } from '../lib/stats';
 import { useCurrentClass, useStore } from '../store/store';
 import type { CategoryTag, Challenge, Student } from '../types';
 import { ChocoStick } from '../components/Celebrations';
+import { ItemThumb } from '../components/ItemThumb';
+import { unlockLabel } from '../engine/shop';
 import { Icon } from '../components/Icon';
 import { timeAgo } from '../engine/util';
 
@@ -95,11 +96,10 @@ export function Rewards() {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
           {ITEMS.filter((i) => i.slot !== 'background').map((it) => {
             const owners = students.filter((s) => s.unlockedItems.includes(it.id)).length;
-            const u = it.unlock;
-            const rule = u.type === 'level' ? `Level ${u.level}` : u.type === 'achievement' ? ACHIEVEMENTS.find((a) => a.id === u.id)?.name : u.type === 'challenges' ? `${u.count} challenges` : 'Free';
+            const rule = unlockLabel(it, (id) => ACHIEVEMENTS.find((a) => a.id === id)?.name ?? id);
             return (
               <div key={it.id} className="paper p-2 text-center">
-                <div className="aspect-square rounded-lg bg-wash"><CreatureSvg species={preview} stage={3} equipped={{ [it.slot]: it.id }} effects={false} className="h-full w-full" /></div>
+                <ItemThumb item={it} speciesId={preview.id} stage={3} />
                 <div className="mt-1.5 font-display font-bold leading-tight">{it.name}</div>
                 <div className="text-[12px] text-ink-soft">{SLOT_LABEL[it.slot]} · {rule}</div>
                 <div className="text-[12px] font-bold text-cloth-800">{owners} unlocked</div>

@@ -8,6 +8,7 @@ import { Burst, type BurstKind } from './Burst';
 import { CreatureSvg } from './CreatureSvg';
 import { ElementAmbient, EmotionFx } from './EmotionFx';
 import { PixelFx, type PixelFxId } from './PixelFx';
+import { Trail } from './pixel';
 import type { Pulse } from '../store/store';
 
 export type CreatureAction = 'jump' | 'wave' | 'ability' | 'happy' | 'celebrate' | 'bonk';
@@ -64,6 +65,15 @@ function reactionFx(e: Pulse, compact?: boolean): FxPlay[] {
 
 const MOOD_FX: Partial<Record<Mood, PixelFxId>> = { happy: 'status/charmed', excited: 'holy/blessing', proud: 'holy/halo', sleepy: 'status/sleep' };
 const COMPACT_POW = 0.36;
+
+/** pixel-art special effects a student can equip (magic slot) */
+const EQUIP_FX: Record<string, { id: PixelFxId; anchor?: [number, number]; size?: number; palette?: string[] }> = {
+  'fx-shield': { id: 'holy/divine-shield', palette: ['#0b3a66', '#1f6fa8', '#3fb6e8', '#8fe4ff', '#e6fbff', '#ffffff'] },
+  'fx-orbs': { id: 'pickups/xp-orb', anchor: [0.82, 0.42], size: 0.55 },
+  'fx-crystals': { id: 'pickups/crystal-shard', anchor: [0.16, 0.5], size: 0.6 },
+  'fx-gems': { id: 'pickups/gem-spin', anchor: [0.84, 0.36], size: 0.5 },
+  'fx-beam': { id: 'pickups/loot-beam', anchor: [0.5, 0.97], size: 0.9 },
+};
 
 /** the looping pixel aura each mythical aspect wears */
 const MYTH_AURA: Partial<Record<Motif, PixelFxId>> = {
@@ -179,6 +189,7 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
   return (
     <div className={`relative select-none ${className}`} data-action={current ?? undefined}
       onPointerMove={onMove} onPointerLeave={() => { setTilt({ x: 0, y: 0 }); onUp(); }} onPointerDown={onDown} onPointerUp={onUp}>
+      {effects && equipped?.trail && <Trail id={equipped.trail} compact={compact} />}
       {effects && ambientCount > 0 && <ElementAmbient element={sp.element} count={ambientCount} />}
       <div className={`h-full w-full ${idle}`}>
         <motion.div animate={controls} className="h-full w-full" style={{ transformOrigin: '50% 90%' }}>
@@ -195,6 +206,10 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
         </motion.div>
       </div>
       {effects && shownMood === 'sad' && <EmotionFx mood="sad" compact={compact} />}
+      {effects && equipped?.magic && EQUIP_FX[equipped.magic] && (() => {
+        const f = EQUIP_FX[equipped.magic!];
+        return <PixelFx key={`equip-${equipped.magic}`} id={f.id} anchor={f.anchor} size={f.size} options={f.palette ? { palette: f.palette } : undefined} fps={compact ? 16 : 24} lightOpacity={0.6} />;
+      })()}
       {effects && myth && !compact && MYTH_AURA[myth.motif] && <PixelFx key={`myth-${myth.motif}`} id={MYTH_AURA[myth.motif]!} options={{ palette: myth.aura }} fps={24} />}
       {effects && !current && !myth && MOOD_FX[mood] && <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={compact ? 20 : 30} />}
       {effects && treats > 0 && (

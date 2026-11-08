@@ -89,3 +89,19 @@ export function qualifies(item: Item, s: Student, data: AppData): boolean {
   const cls = data.classes.find((c) => c.id === s.classId);
   return qualifiedItems(s, data.settings, cls).includes(item.id);
 }
+
+const STAGE_LABEL = ['Baby', 'Young', 'Evolved', 'Advanced', 'Legendary'];
+
+/** How an earned item is unlocked, in the teacher's words. */
+export function unlockLabel(item: Item, achievementName: (id: string) => string = (id) => id): string {
+  const u = item.unlock;
+  switch (u.type) {
+    case 'level': return `Reach Level ${u.level}`;
+    case 'achievement': return `Badge: ${achievementName(u.id)}`;
+    case 'challenges': return `Complete ${u.count} challenges`;
+    case 'stage': return `Evolve to ${STAGE_LABEL[u.stage - 1]}`;
+    case 'collection': return `Class discovers ${Math.round(u.pct * 100)}% of the field guide`;
+    case 'shop': return `${u.price} coins`;
+    default: return 'Free';
+  }
+}

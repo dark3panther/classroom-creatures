@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { SPECIES } from '../data/species';
+import { isPixelScene, pixelScene } from './pixelScenes';
 import type { ElementType } from '../types';
 
 /**
@@ -75,13 +76,14 @@ export function Habitat({ element, background, children, className = '', rounded
       <rect x="0" y="86%" width="100%" height="14%" fill="#5b6680" opacity=".7" />
     </>,
   };
-  const scene = scenes[bg];
+  const pixel = isPixelScene(bg) ? pixelScene(bg) : null;
+  const scene = pixel ? { style: `url(${pixel}) center / 100% 100% no-repeat`, deco: null } : scenes[bg];
   const mask = `url("${wash}")`;
   return (
     <div className={`relative overflow-hidden bg-white ${rounded} ${className}`}>
       {scene ? (
         <>
-          <div className="absolute inset-0" style={{ background: scene.style, maskImage: mask, WebkitMaskImage: mask, maskSize: '100% 100%', WebkitMaskSize: '100% 100%' }}>
+          <div className="absolute inset-0" style={{ background: scene.style, imageRendering: pixel ? 'pixelated' : undefined, maskImage: mask, WebkitMaskImage: mask, maskSize: '100% 100%', WebkitMaskSize: '100% 100%' }}>
             <svg className="absolute inset-0 h-full w-full" aria-hidden preserveAspectRatio="none">{scene.deco}</svg>
           </div>
           <img src={wash} alt="" aria-hidden draggable={false} className="pointer-events-none absolute inset-0 h-full w-full mix-blend-multiply opacity-35" />
