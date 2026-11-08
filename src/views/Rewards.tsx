@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import { Modal, ProgressBar, SectionTitle } from '../components/ui';
 import { CreatureSvg } from '../creatures/CreatureSvg';
-import { ACHIEVEMENTS, ITEMS, TAG_LABELS } from '../data/defaults';
+import { ACHIEVEMENTS, ITEMS, TAG_LABELS, SLOT_ONE } from '../data/defaults';
 import { getSpecies } from '../data/species';
 import { challengeProgress } from '../engine/awards';
 import { uid } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
 import { useCurrentClass, useStore } from '../store/store';
-import type { CategoryTag, Challenge, ItemSlot, Student } from '../types';
+import type { CategoryTag, Challenge, Student } from '../types';
 import { ChocoStick } from '../components/Celebrations';
 import { Icon } from '../components/Icon';
 import { timeAgo } from '../engine/util';
 
-const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hat', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Background', decoration: 'Decoration', outfit: 'Outfit' };
+const SLOT_LABEL = SLOT_ONE;
 
 export function Rewards() {
   const cls = useCurrentClass();

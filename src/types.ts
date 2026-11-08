@@ -4,7 +4,7 @@ export type ElementType =
   | 'fire' | 'water' | 'nature' | 'electric' | 'ice'
   | 'earth' | 'shadow' | 'light' | 'cosmic' | 'air';
 
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythical';
 
 /** 1 = Baby … 5 = Legendary Form */
 export type Stage = 1 | 2 | 3 | 4 | 5;
@@ -57,14 +57,22 @@ export interface Species {
   sound: CreatureSound;
 }
 
-export type ItemSlot = 'hat' | 'glasses' | 'wings' | 'magic' | 'background' | 'decoration' | 'outfit';
+export type ItemSlot = 'hat' | 'glasses' | 'wings' | 'magic' | 'background' | 'decoration' | 'outfit' | 'armor' | 'trail';
+
+/** How a creature behaves: idle motion, reactions and what it says when you play with it. */
+export type PersonalityType = 'playful' | 'shy' | 'brave' | 'curious' | 'sleepy' | 'energetic' | 'mischievous';
 
 export type UnlockRule =
   | { type: 'level'; level: number }
   | { type: 'achievement'; id: string }
   | { type: 'challenges'; count: number }
   | { type: 'free' }
-  | { type: 'shop'; price: number };
+  | { type: 'shop'; price: number }
+  | { type: 'stage'; stage: Stage }
+  | { type: 'collection'; pct: number };
+
+/** A shop item sold only between two month-days each year (e.g. autumn). Owned items stay owned. */
+export interface SeasonWindow { from: [month: number, day: number]; to: [month: number, day: number]; label: string }
 
 export interface Item {
   id: string;
@@ -72,6 +80,10 @@ export interface Item {
   slot: ItemSlot;
   unlock: UnlockRule;
   description: string;
+  /** rare collectibles are highlighted in gold in the shop */
+  rare?: boolean;
+  /** limited-time shop items */
+  season?: SeasonWindow;
 }
 
 /** Tags let custom behaviour categories count toward achievements. */
@@ -119,7 +131,19 @@ export interface Student {
   /** real-world rewards earned at XP milestones (e.g. a chocolate) */
   milestoneRewards: MilestoneReward[];
   isDemo?: boolean;
+  /** optional name the student gives their creature (identity survives evolution) */
+  nickname?: string;
+  /** chosen evolution path for species that branch at the final stage ('a' classic, 'b' mythical) */
+  branch?: 'a' | 'b';
+  /** every evolution this creature went through, oldest first */
+  evolutionLog?: EvolutionEntry[];
+  /** ability id → level (0 = locked). Cosmetic only. */
+  skills?: Record<string, number>;
+  /** cosmetic interaction counters (pet / feed / play); nothing is ever lost by not interacting */
+  interactions?: { pet: number; feed: number; play: number };
 }
+
+export interface EvolutionEntry { speciesId: string; stage: Stage; branch?: 'a' | 'b'; at: number }
 
 export interface MilestoneReward { id: string; milestoneId: string; label: string; icon: string; atXp: number; at: number; given: boolean }
 
@@ -144,6 +168,8 @@ export interface ClassRoom {
   pendingSpin?: boolean;
   prizeHistory: PrizeWin[];
   isDemo?: boolean;
+  /** creature forms the class has discovered (`${speciesId}-${stage}` or `${speciesId}-5b`) */
+  discovered?: string[];
 }
 
 export interface AwardEvent {
@@ -164,6 +190,9 @@ export interface AwardEvent {
   bestStageBefore?: Stage;
   /** coins given with this award (for undo) */
   coins?: number;
+  /** a teacher's manual XP correction (not a behaviour award) */
+  adjust?: boolean;
+  note?: string;
 }
 
 export type ChallengePeriod = 'daily' | 'weekly';
@@ -198,6 +227,20 @@ export interface Settings {
   coinRate: number;
   milestones: Milestone[];
   prizes: Prize[];
+  /** 'auto': creatures evolve as soon as they have the XP; 'approval': the teacher confirms each evolution */
+  evolutionMode: 'auto' | 'approval';
+  /** 0..1 master volume */
+  soundVolume: number;
+  /** soft clicks on buttons (off by default) */
+  uiSounds: boolean;
+  /** species not offered for new assignments (existing students keep theirs) */
+  disabledSpecies: string[];
+  /** items hidden from the shop and the dressing room */
+  disabledItems: string[];
+  /** teacher price overrides for shop items */
+  itemPrices: Record<string, number>;
+  /** students may buy and equip from the Presentation Mode spotlight while teacher controls are locked */
+  shopWhileLocked: boolean;
 }
 
 export interface AppData {
@@ -224,4 +267,8 @@ export interface AwardOutcome {
   completedChallenges: string[];
   coins: number;
   newMilestoneRewards: MilestoneReward[];
+  /** approval mode: this award made the creature ready to evolve */
+  readyToEvolve: boolean;
+  /** creature forms this award let the class discover */
+  discovered: string[];
 }

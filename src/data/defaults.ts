@@ -1,4 +1,4 @@
-import type { Category, CategoryTag, Challenge, Item, Milestone, Prize, Settings } from '../types';
+import type { Category, CategoryTag, Challenge, Item, ItemSlot, Milestone, Prize, Settings } from '../types';
 
 export const DEFAULT_LEVEL_XP = [0, 50, 120, 210, 320, 450, 600, 780, 980, 1200];
 export const DEFAULT_EVOLUTION_LEVELS: Settings['evolutionLevels'] = [1, 3, 5, 7, 10];
@@ -57,7 +57,15 @@ export interface AchievementDef {
     | { kind: 'tagCount'; tag: CategoryTag | CategoryTag[]; min: number }
     | { kind: 'stage'; min: number }
     | { kind: 'level'; min: number }
-    | { kind: 'challenges'; min: number };
+    | { kind: 'challenges'; min: number }
+    | { kind: 'items'; min: number }
+    | { kind: 'equipped'; min: number }
+    | { kind: 'skills'; min: number }
+    | { kind: 'skillMax'; min: number }
+    | { kind: 'branch' }
+    | { kind: 'interactions'; min: number };
+  /** what the achievement gives (shown on the badge); the item itself unlocks through its own rule */
+  reward?: string;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
@@ -76,6 +84,21 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'living-legend', name: 'Living Legend', description: 'Reach Level 10 and the Legendary Form.', icon: '👑', color: '#f2a20c', rule: { kind: 'stage', min: 5 } },
   { id: 'challenge-champ', name: 'Challenge Champion', description: 'Complete 5 challenges.', icon: '🏆', color: '#eab308', rule: { kind: 'challenges', min: 5 } },
 ];
+
+/** Dressing-room categories in display order: singular and plural labels. */
+export const SLOTS: { slot: ItemSlot; one: string; many: string }[] = [
+  { slot: 'hat', one: 'Hat', many: 'Hats' },
+  { slot: 'glasses', one: 'Glasses', many: 'Glasses' },
+  { slot: 'outfit', one: 'Clothing', many: 'Clothing' },
+  { slot: 'armor', one: 'Armor', many: 'Armor' },
+  { slot: 'wings', one: 'Wings', many: 'Wings' },
+  { slot: 'decoration', one: 'Accessory', many: 'Accessories' },
+  { slot: 'background', one: 'Background', many: 'Backgrounds' },
+  { slot: 'trail', one: 'Trail', many: 'Trails' },
+  { slot: 'magic', one: 'Effect', many: 'Effects' },
+];
+export const SLOT_ONE = Object.fromEntries(SLOTS.map((x) => [x.slot, x.one])) as Record<ItemSlot, string>;
+export const SLOT_MANY = Object.fromEntries(SLOTS.map((x) => [x.slot, x.many])) as Record<ItemSlot, string>;
 
 export const ITEMS: Item[] = [
   // hats
@@ -152,4 +175,11 @@ export const DEFAULT_SETTINGS: Settings = {
   coinRate: 1,
   milestones: DEFAULT_MILESTONES,
   prizes: DEFAULT_PRIZES,
+  evolutionMode: 'auto',
+  soundVolume: 0.8,
+  uiSounds: false,
+  disabledSpecies: [],
+  disabledItems: [],
+  itemPrices: {},
+  shopWhileLocked: true,
 };

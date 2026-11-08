@@ -53,9 +53,18 @@ export function nextEvolution(xp: number, s: Pick<Settings, 'levelXp' | 'evoluti
   return { stage: (stage + 1) as Stage, level, atXp, xpNeeded: Math.max(0, atXp - xp) };
 }
 
-/** Stage to show: never below the best stage reached (undo lowers bestStage itself). */
-export function displayStage(s: { xp: number; bestStage: Stage }, st: Pick<Settings, 'levelXp' | 'evolutionLevels'>): Stage {
+/**
+ * Stage to show. Automatic mode: never below the best stage reached (undo lowers bestStage itself).
+ * Approval mode: the stage the teacher confirmed, even when the XP would allow more.
+ */
+export function displayStage(s: { xp: number; bestStage: Stage }, st: Pick<Settings, 'levelXp' | 'evolutionLevels'> & { evolutionMode?: Settings['evolutionMode'] }): Stage {
+  if (st.evolutionMode === 'approval') return s.bestStage;
   return Math.max(stageForXp(s.xp, st), s.bestStage) as Stage;
+}
+
+/** Approval mode: the creature has the XP for a higher stage than the one it shows. */
+export function readyToEvolve(s: { xp: number; bestStage: Stage }, st: Pick<Settings, 'levelXp' | 'evolutionLevels'> & { evolutionMode?: Settings['evolutionMode'] }): boolean {
+  return st.evolutionMode === 'approval' && stageForXp(s.xp, st) > s.bestStage;
 }
 
 /** Lowest XP that still keeps `stage`. Used to make negative points never undo an evolution. */

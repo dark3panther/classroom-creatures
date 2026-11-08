@@ -1,6 +1,8 @@
 import { DEFAULT_CATEGORIES, DEFAULT_MILESTONES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_PRIZES, DEFAULT_SETTINGS } from '../data/defaults';
+import { BRANCHES } from '../data/branches';
 import { SPECIES_BY_ID } from '../data/species';
-import type { AppData, Settings, Student } from '../types';
+import type { AppData, EvolutionEntry, Settings, Stage, Student } from '../types';
+import { formsOf, withDiscovered } from './collection';
 import { validateProgression } from './progression';
 import { DATA_VERSION } from './roster';
 
@@ -11,12 +13,22 @@ const STUDENT_DEFAULTS = (): Pick<Student, 'equipped' | 'unlockedItems' | 'achie
 });
 
 /**
- * Bring data saved by an older version up to date (v1.0 → v1.1: coins, milestone rewards,
- * prize wheel, behaviour deductions). Existing students start with coins equal to the XP
- * they already earned, and their past milestones are counted as already handed out.
+ * Bring data saved by an older version up to date. Each step only ADDS fields with safe defaults:
+ * XP, coins, creatures, owned and equipped items and history are never changed.
+ *  - v1 → v2 (1.1): coins, milestone rewards, prize wheel, behaviour deductions. Existing students start
+ *    with coins equal to the XP they already earned, and past milestones count as already handed out.
+ *  - v2 → v3 (1.4): evolution mode and history, branching paths, abilities, interactions, class
+ *    encyclopedia discoveries, sound and shop settings. Discoveries are seeded from every creature's
+ *    current form; the evolution history is seeded from the stages already reached.
  */
 export function migrate(data: AppData): AppData {
-  if ((data.version ?? 1) >= DATA_VERSION && data.settings?.milestones) return data;
+  let d = data;
+  if ((d.version ?? 1) < 2 || !d.settings?.milestones) d = migrateV2(d);
+  if ((d.version ?? 2) < 3) d = migrateV3(d);
+  return normaliseV3(d);
+}
+
+function migrateV2(data: AppData): AppData {
   const settings: Settings = {
     ...DEFAULT_SETTINGS, ...data.settings,
     coinRate: data.settings?.coinRate ?? 1,
@@ -29,7 +41,7 @@ export function migrate(data: AppData): AppData {
   for (const n of DEFAULT_NEGATIVE_CATEGORIES) if (!categories.some((c) => c.id === n.id)) categories = [...categories, { ...n }];
   return {
     ...data,
-    version: DATA_VERSION,
+    version: 2,
     settings,
     categories,
     classes: data.classes.map((c) => ({ ...c, goalStep: c.goalStep ?? 1000, prizeHistory: c.prizeHistory ?? [] })),
@@ -43,6 +55,49 @@ export function migrate(data: AppData): AppData {
     }),
   };
 }
+
+function migrateV3(data: AppData): AppData {
+  const students = data.students.map((s) => {
+    const best = clampStage(s.bestStage);
+    const log: EvolutionEntry[] = Array.isArray(s.evolutionLog) ? s.evolutionLog
+      : Array.from({ length: best - 1 }, (_, i) => ({ speciesId: s.speciesId, stage: (i + 2) as Stage, at: s.createdAt ?? Date.now() }));
+    return { ...s, bestStage: best, evolutionLog: log };
+  });
+  const classes = data.classes.map((c) => withDiscovered(c, students.filter((s) => s.classId === c.id).flatMap((s) => formsOf(s))).cls);
+  return { ...data, version: DATA_VERSION, students, classes };
+}
+
+const clampStage = (v: unknown): Stage => (typeof v === 'number' && v >= 1 && v <= 5 ? Math.round(v) : 1) as Stage;
+
+/** Fill any v3 field that is missing or invalid (idempotent, safe to run on every load). */
+function normaliseV3(data: AppData): AppData {
+  const st = data.settings ?? ({} as Settings);
+  const settings: Settings = {
+    ...DEFAULT_SETTINGS, ...st,
+    evolutionMode: st.evolutionMode === 'approval' ? 'approval' : 'auto',
+    soundVolume: typeof st.soundVolume === 'number' && st.soundVolume >= 0 && st.soundVolume <= 1 ? st.soundVolume : DEFAULT_SETTINGS.soundVolume,
+    uiSounds: !!st.uiSounds,
+    disabledSpecies: Array.isArray(st.disabledSpecies) ? st.disabledSpecies.filter((x) => typeof x === 'string') : [],
+    disabledItems: Array.isArray(st.disabledItems) ? st.disabledItems.filter((x) => typeof x === 'string') : [],
+    itemPrices: st.itemPrices && typeof st.itemPrices === 'object' ? Object.fromEntries(Object.entries(st.itemPrices).filter(([, v]) => Number.isFinite(v) && v >= 0)) : {},
+    shopWhileLocked: st.shopWhileLocked !== false,
+  };
+  const students = data.students.map((s) => {
+    const out: Student = { ...s, bestStage: clampStage(s.bestStage) };
+    if (out.branch !== 'a' && out.branch !== 'b') delete out.branch;
+    if (out.branch && (out.bestStage < 5 || !BRANCHES[out.speciesId])) delete out.branch;
+    if (!Array.isArray(out.evolutionLog)) out.evolutionLog = [];
+    if (!out.skills || typeof out.skills !== 'object') out.skills = {};
+    const i = out.interactions;
+    out.interactions = { pet: num(i?.pet), feed: num(i?.feed), play: num(i?.play) };
+    if (typeof out.nickname !== 'string' || !out.nickname.trim()) delete out.nickname;
+    return out;
+  });
+  const classes = data.classes.map((c) => (Array.isArray(c.discovered) ? c : { ...c, discovered: [] }));
+  return { ...data, version: DATA_VERSION, settings, students, classes };
+}
+
+const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0);
 
 export const BACKUP_KIND = 'classroom-creatures-backup';
 

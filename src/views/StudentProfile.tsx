@@ -10,7 +10,7 @@ import { ElementBadge, LevelBadge, Modal, ProgressBar, RarityStars } from '../co
 import { Creature, type CreatureAction } from '../creatures/Creature';
 import { CreatureSvg } from '../creatures/CreatureSvg';
 import { Habitat } from '../creatures/Habitat';
-import { ACHIEVEMENTS, ITEMS, TAG_LABELS } from '../data/defaults';
+import { ACHIEVEMENTS, ITEMS, TAG_LABELS, SLOT_MANY } from '../data/defaults';
 import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import { SPECIES, fieldNo, getSpecies } from '../data/species';
 import { challengeProgress } from '../engine/awards';
@@ -150,7 +150,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
   );
 }
 
-const SLOT_LABEL: Record<ItemSlot, string> = { hat: 'Hats', glasses: 'Glasses', wings: 'Wings', magic: 'Magic', background: 'Backgrounds', decoration: 'Decorations', outfit: 'Outfits' };
+const SLOT_LABEL = SLOT_MANY;
 
 function unlockText(it: Item): string {
   const u = it.unlock;

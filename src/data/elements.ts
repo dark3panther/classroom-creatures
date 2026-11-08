@@ -33,6 +33,7 @@ export const RARITIES: Record<Rarity, RarityInfo> = {
   rare:      { id: 'rare',      name: 'Rare',      color: '#2f80ed', stars: 3 },
   epic:      { id: 'epic',      name: 'Epic',      color: '#9b51e0', stars: 4 },
   legendary: { id: 'legendary', name: 'Legendary', color: '#f2a20c', stars: 5 },
+  mythical:  { id: 'mythical',  name: 'Mythical',  color: '#c42a6e', stars: 6 },
 };
 
 export const STAGE_NAMES: Record<Stage, string> = {

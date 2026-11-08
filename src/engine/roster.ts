@@ -1,9 +1,10 @@
 import { DEFAULT_CATEGORIES, DEFAULT_CHALLENGES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_SETTINGS } from '../data/defaults';
 import { SPECIES } from '../data/species';
 import type { AppData, ClassRoom, Student } from '../types';
+import { recordDiscoveries } from './collection';
 import { shuffle, uid } from './util';
 
-export const DATA_VERSION = 2;
+export const DATA_VERSION = 3;
 
 export function emptyData(): AppData {
   return {
@@ -24,17 +25,20 @@ export function emptyData(): AppData {
 export function pickSpecies(classStudents: Pick<Student, 'speciesId'>[], rand = Math.random, exclude: string[] = []): string {
   const counts = new Map<string, number>(SPECIES.map((s) => [s.id, 0]));
   for (const st of classStudents) counts.set(st.speciesId, (counts.get(st.speciesId) ?? 0) + 1);
-  const pool = SPECIES.filter((s) => !exclude.includes(s.id));
+  const filtered = SPECIES.filter((s) => !exclude.includes(s.id));
+  const pool = filtered.length ? filtered : SPECIES;
   const min = Math.min(...pool.map((s) => counts.get(s.id) ?? 0));
   const candidates = pool.filter((s) => (counts.get(s.id) ?? 0) === min);
   return candidates[Math.floor(rand() * candidates.length)].id;
 }
 
 /** `n` distinct species for a "let the student choose" selection, preferring unused ones. */
-export function speciesChoices(classStudents: Pick<Student, 'speciesId'>[], n = 3, rand = Math.random): string[] {
+export function speciesChoices(classStudents: Pick<Student, 'speciesId'>[], n = 3, rand = Math.random, disabled: string[] = []): string[] {
   const used = new Set(classStudents.map((s) => s.speciesId));
-  const unused = shuffle(SPECIES.filter((s) => !used.has(s.id)), rand).map((s) => s.id);
-  const rest = shuffle(SPECIES.filter((s) => used.has(s.id)), rand).map((s) => s.id);
+  const offered = SPECIES.filter((s) => !disabled.includes(s.id));
+  const pool = offered.length >= n ? offered : SPECIES;
+  const unused = shuffle(pool.filter((s) => !used.has(s.id)), rand).map((s) => s.id);
+  const rest = shuffle(pool.filter((s) => used.has(s.id)), rand).map((s) => s.id);
   return [...unused, ...rest].slice(0, n);
 }
 
@@ -44,6 +48,7 @@ export function newStudent(name: string, classId: string, speciesId: string, now
     equipped: { background: 'bg-habitat' }, unlockedItems: ['bg-habitat'], achievements: [],
     tagCounts: {}, tagXp: {}, bestStage: 1, challengeCompletions: [],
     coins: 0, lifetimeXp: 0, milestoneRewards: [],
+    evolutionLog: [], skills: {}, interactions: { pet: 0, feed: 0, play: 0 },
   };
 }
 
@@ -58,10 +63,11 @@ export function addStudents(data: AppData, classId: string, names: string[], ran
   for (const raw of names) {
     const name = raw.trim();
     if (!name) continue;
-    const speciesId = pickSpecies([...inClass, ...added], rand);
+    const speciesId = pickSpecies([...inClass, ...added], rand, data.settings.disabledSpecies ?? []);
     added.push(newStudent(name, classId, speciesId, now));
   }
-  return { ...data, students: [...data.students, ...added] };
+  // every new creature's baby form joins the class encyclopedia
+  return recordDiscoveries({ ...data, students: [...data.students, ...added] }, added.map((s) => s.id)).data;
 }
 
 /**
