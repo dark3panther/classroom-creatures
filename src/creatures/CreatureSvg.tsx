@@ -666,7 +666,7 @@ export interface CreatureSvgProps {
 function CreatureSvgImpl(props: CreatureSvgProps) {
   const artStyle = useStore((s) => s.data.settings.artStyle ?? 'illustrated');
   if (artStyle === 'illustrated' && !props.classic && hasIllustration(props.species.id, props.stage)) {
-    return <IllustratedCreature sp={props.species} stage={props.stage} equipped={props.equipped} noShadow={props.noShadow} effects={props.effects} className={props.className} title={props.title} branch={props.branch} />;
+    return <IllustratedCreature sp={props.species} stage={props.stage} equipped={props.equipped} noShadow={props.noShadow} effects={props.effects} className={props.className} title={props.title} branch={props.branch} expression={props.expression} />;
   }
   return <VectorCreature {...props} />;
 }

@@ -1,7 +1,8 @@
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import ART from '../data/creatureArt.json';
 import { ELEMENTS, RARITIES } from '../data/elements';
-import type { Equipped, Species, Stage } from '../types';
+import type { Equipped, Expression, Species, Stage } from '../types';
+import { registerBlink } from './blink';
 import { Accessories, BackAccessories } from './accessories';
 import type { Geo } from './CreatureSvg';
 import { BRANCHES } from '../data/branches';
@@ -13,7 +14,9 @@ import { star } from './shapes';
  * in public/creatures/). Accessories are placed from anchor points measured on each
  * image by scripts/creature-anchors.py, so hats and glasses still line up.
  */
-interface Anchor { top: number; bottom: number; left: number; right: number; cx: number; headW: number; eyes: [number, number][] }
+/** An eyelid measured on the image (512px coordinates): covers one eye, shaded from the skin above to the skin below. */
+interface Lid { cx: number; cy: number; rx: number; ry: number; top: string; bottom: string; lash: string }
+interface Anchor { top: number; bottom: number; left: number; right: number; cx: number; headW: number; eyes: [number, number][]; lids?: Lid[] }
 const ANCHORS = ART as unknown as Record<string, Anchor>;
 
 export function hasIllustration(id: string, stage: Stage): boolean {
@@ -51,8 +54,8 @@ function geoFor(a: Anchor): { g: Geo; k: number; ox: number; oy: number } {
   return { g, k, ox: ex, oy: ey };
 }
 
-export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effects = true, className, title, branch }: {
-  sp: Species; stage: Stage; equipped?: Equipped; noShadow?: boolean; effects?: boolean; className?: string; title?: string; branch?: 'a' | 'b';
+export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effects = true, className, title, branch, expression }: {
+  sp: Species; stage: Stage; equipped?: Equipped; noShadow?: boolean; effects?: boolean; className?: string; title?: string; branch?: 'a' | 'b'; expression?: Expression;
 }) {
   const uid = useId().replace(/:/g, '');
   // the mythical path: bespoke art when it exists, otherwise the Legendary art with a colour grade and ornaments
@@ -74,6 +77,12 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
   const hasBack = !!(equipped.wings || equipped.decoration === 'deco-cape');
   const box: OrnamentBox = { cx: IMG_X + map(a.cx), top: IMG_Y + map(a.top), bottom: IMG_Y + map(a.bottom), left: IMG_X + map(a.left), right: IMG_X + map(a.right), headR: gAbs.headRx };
   const gradeId = `cc-myth-${uid}`;
+  // eyelids: blink now and then (one shared timer, see blink.ts), stay shut while the creature is sleepy
+  const lidsRef = useRef<SVGGElement>(null);
+  const lids = a.lids;
+  const asleep = expression === 'sleepy';
+  const blinking = !!lids && effects && !asleep;
+  useEffect(() => (blinking && lidsRef.current ? registerBlink(lidsRef.current) : undefined), [blinking]);
 
   return (
     <svg viewBox="-8 -22 216 222" className={`${className ?? ''}${effects ? '' : ' cc-still'}`} role="img" aria-label={title ?? sp.name} overflow="visible">
@@ -95,6 +104,27 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
       {/* painted mythical art carries its own motif; the drawn ornaments are for the graded fallback */}
       {myth && !bespoke && <MythicBack path={myth} b={box} />}
       <image href={illustrationUrl(sp.id, stage, bespoke ? 'b' : '')} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} />
+      {lids && (blinking || asleep) && (
+        <g ref={lidsRef} className="cc-lids" data-closed={asleep ? '' : undefined} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} aria-hidden>
+          {/* a feathered rim, so the lid melts into the painting's shading instead of reading as a patch */}
+          <radialGradient id={`${gradeId}-lidfade`}><stop offset="0.72" stopColor="#fff" /><stop offset="1" stopColor="#fff" stopOpacity={0} /></radialGradient>
+          <mask id={`${gradeId}-lidmask`} maskContentUnits="objectBoundingBox"><rect width={1} height={1} fill={`url(#${gradeId}-lidfade)`} /></mask>
+          {lids.map((l, i) => {
+            const cx = IMG_X + map(l.cx), cy = IMG_Y + map(l.cy), rx = map(l.rx), ry = map(l.ry);
+            return (
+              <g key={i}>
+                <linearGradient id={`${gradeId}-lid${i}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0.25" stopColor={l.top} /><stop offset="1" stopColor={l.bottom} />
+                </linearGradient>
+                <ellipse cx={cx} cy={cy} rx={rx * 1.12} ry={ry * 1.12} fill={`url(#${gradeId}-lid${i})`} mask={`url(#${gradeId}-lidmask)`} />
+                {/* the closed eye: a soft downward curve with a lash flick at the outer corner */}
+                <path d={`M ${cx - rx * 0.78} ${cy + ry * 0.02} Q ${cx} ${cy + ry * 0.58} ${cx + rx * 0.78} ${cy + ry * 0.02}`}
+                  stroke={l.lash} strokeWidth={Math.max(1.1, ry * 0.2)} fill="none" strokeLinecap="round" />
+              </g>
+            );
+          })}
+        </g>
+      )}
       {myth && !bespoke && <MythicFront path={myth} b={box} still={!effects} />}
       <g transform={frame}><Accessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>
       {equipped.magic && <Accessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}

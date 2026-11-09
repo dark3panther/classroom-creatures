@@ -142,6 +142,13 @@ html { scrollbar-color: #a9baa0 transparent; }
 
 /* ───────────── Creature animations (CSS = cheap on classroom PCs) ───────────── */
 .cc-blink { animation: cc-blink 5s infinite; transform-box: fill-box; transform-origin: center; }
+/* painted creatures: eyelids drawn over the eyes, closed for a moment by blink.ts (no animation between blinks) */
+.cc-lids > g { opacity: 0; transform: scaleY(.25); transform-box: fill-box; transform-origin: 50% 0; transition: opacity 50ms linear, transform 70ms ease-in; }
+.cc-lids[data-blink] > g { opacity: 1; transform: scaleY(1); }
+.cc-lids[data-closed] > g { opacity: 1; transform: scaleY(1); transition: opacity .5s ease, transform .6s ease; }
+/* a slow breath on large views, layered under the species' idle loop */
+.cc-breath { animation: cc-breath 4.2s ease-in-out infinite; transform-origin: 50% 92%; }
+@keyframes cc-breath { 0%, 100% { transform: scale(1, 1); } 45% { transform: scale(1.012, 1.022); } }
 @keyframes cc-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
 
 .cc-twinkle { animation: cc-twinkle 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
@@ -197,7 +204,7 @@ html { scrollbar-color: #a9baa0 transparent; }
 }
 .reduce-motion .cc-blink, .reduce-motion .cc-twinkle, .reduce-motion .cc-twinkle-slow, .reduce-motion .cc-flicker, .reduce-motion .cc-flap,
 .reduce-motion .cc-orbit, .reduce-motion .cc-spin-slow, .reduce-motion .cc-rise, .reduce-motion .cc-fall, .reduce-motion .cc-drift,
-.reduce-motion [class*='idle-'] { animation: none !important; }
+.reduce-motion [class*='idle-'], .reduce-motion .cc-breath { animation: none !important; }
 
 /* ───────────── Desktop app (macOS inset title bar) ───────────── */
 .desktop-mac body > #root header.sticky > div { padding-left: 88px; }

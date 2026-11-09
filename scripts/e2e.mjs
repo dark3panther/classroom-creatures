@@ -128,6 +128,20 @@ await p.getByLabel('Filter by discovery').selectOption('undiscovered'); await wa
 await shot(p, 'qa-guide-undiscovered.png');
 await p.getByLabel('Filter by discovery').selectOption('all');
 
+// ---------- 6b. painted creatures blink (staggered), and not under Reduce Motion ----------
+await p.goto(U); await wait(1500);
+const blinkStats = await p.evaluate(() => new Promise((res) => {
+  const lids = [...document.querySelectorAll('.cc-lids')]; const hit = new Set(); let most = 0; const t0 = performance.now();
+  const iv = setInterval(() => { let n = 0; lids.forEach((el, i) => { if (el.hasAttribute('data-blink')) { n++; hit.add(i); } }); most = Math.max(most, n);
+    if (performance.now() - t0 > 8000) { clearInterval(iv); res({ groups: lids.length, blinked: hit.size, most }); } }, 20);
+}));
+ok(blinkStats.groups > 0 && blinkStats.blinked >= Math.ceil(blinkStats.groups * 0.75), `creatures blink (${blinkStats.blinked} of ${blinkStats.groups} in 8 s)`);
+ok(blinkStats.most < blinkStats.groups, `blinks are staggered (at most ${blinkStats.most} at once)`);
+await p.evaluate(() => window.__cc.getState().updateSettings({ reducedMotion: true })); await wait(300);
+const rmBlinks = await p.evaluate(() => new Promise((res) => { let n = 0; const t0 = performance.now(); const iv = setInterval(() => { n += document.querySelectorAll('.cc-lids[data-blink]').length; if (performance.now() - t0 > 5000) { clearInterval(iv); res(n); } }, 20); }));
+ok(rmBlinks === 0, 'no blinking with Reduce Motion on');
+await p.evaluate(() => window.__cc.getState().updateSettings({ reducedMotion: false }));
+
 // ---------- 7. locked mode: students cannot touch XP or coins ----------
 await p.evaluate(() => window.__cc.getState().setLocked(true)); await wait(300);
 await p.goto(`${U}#/creature/${sid}`); await wait(1200);

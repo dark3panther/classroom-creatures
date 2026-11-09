@@ -286,7 +286,7 @@ The progression table is a paper sheet with a wash header row, rule dividers, ta
 Pixel art is the RPG layer around the illustrated creatures: effects from the vendored pixelfx library, trail particles, snacks, toys, ability icons and painted pixel scenes. All of it runs on one shared animation clock and loads on first use. On large views (profile, dressing room, spotlight) the pixels get big, so an effect must never cover the creature's face: full-body effects keep only their rim (a radial mask) or move beside the creature, mood effects use a smaller stand-in whose head sits at the creature's head, and floating pickups drop their floor shadow. Mythical forms wear drifting particles, not a full-body aura.
 
 ### Motion
-Creatures idle with CSS loops (bob, float, hop, sway, breathe) chosen per species; UI uses Framer springs (plates stiffness 400, modals 320) and 120 to 150ms transitions on buttons and inputs. Every loop stops under Reduce Motion, from the OS or the in-app setting.
+Painted creatures blink: a feathered eyelid in the measured skin colour with a soft lash curve, closed for about 120ms every 2.5 to 7 seconds per creature, sometimes twice; sleepy creatures keep their eyes shut. Large views breathe slowly under the species loop. Creatures idle with CSS loops (bob, float, hop, sway, breathe) chosen per species; UI uses Framer springs (plates stiffness 400, modals 320) and 120 to 150ms transitions on buttons and inputs. Every loop stops under Reduce Motion, from the OS or the in-app setting.
 
 ## Do's and Don'ts
 

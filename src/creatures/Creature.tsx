@@ -209,6 +209,8 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
       {effects && equipped?.trail && <Trail id={equipped.trail} compact={compact} />}
       {effects && ambientCount > 0 && <ElementAmbient element={sp.element} count={ambientCount} />}
       <div className={`h-full w-full ${idle}`}>
+        {/* large views also breathe, under whatever idle loop the species has */}
+        <div className={`h-full w-full ${!compact && effects && idle !== 'idle-breathe' ? 'cc-breath' : ''}`}>
         <motion.div animate={controls} className="h-full w-full" style={{ transformOrigin: '50% 90%' }}>
           <div className="h-full w-full transition-transform duration-200 ease-out"
             style={interactive ? { transform: `perspective(600px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 6}deg) translateX(${tilt.x * 3}%)` } : undefined}>
@@ -221,6 +223,7 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
             )}
           </div>
         </motion.div>
+        </div>
       </div>
       {effects && shownMood === 'sad' && <EmotionFx mood="sad" compact={compact} />}
       {effects && equipped?.magic && EQUIP_FX[equipped.magic] && (() => {

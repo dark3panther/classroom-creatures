@@ -40,7 +40,8 @@ Added in 1.4: `EvolveBadge` ("Ready to evolve" gilt chip), `EvolutionQueue` and 
 - Mythical final forms: colour grade + ornaments (`creatures/mythic.tsx`) + drifting particles; a bespoke `public/creatures/<id>-5b.webp` is used when present
 
 ## Motion
-- Idle loops: CSS only, 2–4 s, per-species style
+- Idle loops: CSS only, 2–4 s, per-species style; large views add a 4.2 s breath
+- Blinks: painted creatures, one shared timer (`creatures/blink.ts`), every 2.5–7 s per creature, sometimes double; eyes stay shut when sleepy
 - Reactions: Framer Motion, ≤ 0.9 s, squash-and-stretch
 - Celebrations: ≤ 16 particles per burst; evolution sequence (charge, flash, reveal) ~4 s with a Skip button
 - Everything respects *Reduce motion* (setting) and `prefers-reduced-motion`

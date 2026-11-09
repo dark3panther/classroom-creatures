@@ -1,4 +1,1108 @@
 {
-  "_why": "Corrections applied by creature-anchors.py after measuring. splashlet-5b: its storm clouds and a curled tendril were read as the head and an eye.",
-  "splashlet-5b": { "cx": 292, "headW": 320, "eyes": [[271, 209], [335, 211]] }
+ "_why": "Corrections applied by creature-anchors.py after measuring. eyes: centres, eyeR: half-sizes of each eye (both in 512px image coordinates, left eye first), read off gridded renders where detection misread the art (dark fur, gems or wings taken for eyes; eyes it could only estimate). splashlet-5b: storm clouds widened the head.",
+ "splashlet-5b": {
+  "cx": 292,
+  "headW": 320,
+  "eyes": [
+   [
+    271,
+    209
+   ],
+   [
+    335,
+    211
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    17
+   ],
+   [
+    10,
+    13
+   ]
+  ]
+ },
+ "cinderwing-4": {
+  "eyes": [
+   [
+    246,
+    187
+   ],
+   [
+    297,
+    191
+   ]
+  ],
+  "eyeR": [
+   [
+    14,
+    17
+   ],
+   [
+    11,
+    15
+   ]
+  ],
+  "guessed": false
+ },
+ "cinderwing-5": {
+  "eyes": [
+   [
+    259,
+    177
+   ],
+   [
+    305,
+    181
+   ]
+  ],
+  "eyeR": [
+   [
+    13,
+    16
+   ],
+   [
+    10,
+    14
+   ]
+  ],
+  "guessed": false
+ },
+ "duskit-1": {
+  "eyes": [
+   [
+    228,
+    385
+   ],
+   [
+    305,
+    377
+   ]
+  ],
+  "eyeR": [
+   [
+    27,
+    32
+   ],
+   [
+    21,
+    29
+   ]
+  ],
+  "guessed": false
+ },
+ "duskit-2": {
+  "eyes": [
+   [
+    258,
+    307
+   ],
+   [
+    338,
+    306
+   ]
+  ],
+  "eyeR": [
+   [
+    26,
+    31
+   ],
+   [
+    19,
+    28
+   ]
+  ],
+  "guessed": false
+ },
+ "duskit-3": {
+  "eyes": [
+   [
+    270,
+    267
+   ],
+   [
+    346,
+    265
+   ]
+  ],
+  "eyeR": [
+   [
+    20,
+    22
+   ],
+   [
+    15,
+    20
+   ]
+  ],
+  "guessed": false
+ },
+ "duskit-4": {
+  "eyes": [
+   [
+    265,
+    243
+   ],
+   [
+    334,
+    241
+   ]
+  ],
+  "eyeR": [
+   [
+    18,
+    20
+   ],
+   [
+    13,
+    18
+   ]
+  ],
+  "guessed": false
+ },
+ "duskit-5": {
+  "eyes": [
+   [
+    282,
+    188
+   ],
+   [
+    346,
+    205
+   ]
+  ],
+  "eyeR": [
+   [
+    21,
+    22
+   ],
+   [
+    14,
+    17
+   ]
+  ],
+  "guessed": false
+ },
+ "gloomwing-1": {
+  "eyes": [
+   [
+    238,
+    354
+   ],
+   [
+    314,
+    348
+   ]
+  ],
+  "eyeR": [
+   [
+    26,
+    32
+   ],
+   [
+    19,
+    30
+   ]
+  ],
+  "guessed": false
+ },
+ "gloomwing-2": {
+  "eyes": [
+   [
+    234,
+    262
+   ],
+   [
+    310,
+    238
+   ]
+  ],
+  "eyeR": [
+   [
+    24,
+    30
+   ],
+   [
+    16,
+    26
+   ]
+  ],
+  "guessed": false
+ },
+ "gloomwing-3": {
+  "eyes": [
+   [
+    255,
+    207
+   ],
+   [
+    320,
+    186
+   ]
+  ],
+  "eyeR": [
+   [
+    18,
+    20
+   ],
+   [
+    12,
+    18
+   ]
+  ],
+  "guessed": false
+ },
+ "gloomwing-4": {
+  "eyes": [
+   [
+    248,
+    188
+   ],
+   [
+    316,
+    181
+   ]
+  ],
+  "eyeR": [
+   [
+    20,
+    25
+   ],
+   [
+    12,
+    20
+   ]
+  ],
+  "guessed": false
+ },
+ "gloomwing-5": {
+  "eyes": [
+   [
+    281,
+    148
+   ],
+   [
+    341,
+    143
+   ]
+  ],
+  "eyeR": [
+   [
+    18,
+    20
+   ],
+   [
+    9,
+    17
+   ]
+  ],
+  "guessed": false
+ },
+ "halowl-3": {
+  "eyes": [
+   [
+    205,
+    265
+   ],
+   [
+    248,
+    246
+   ]
+  ],
+  "eyeR": [
+   [
+    9,
+    13
+   ],
+   [
+    13,
+    15
+   ]
+  ],
+  "guessed": false
+ },
+ "murmink-2": {
+  "eyes": [
+   [
+    238,
+    265
+   ],
+   [
+    302,
+    265
+   ]
+  ],
+  "eyeR": [
+   [
+    20,
+    23
+   ],
+   [
+    18,
+    22
+   ]
+  ],
+  "guessed": false
+ },
+ "murmink-3": {
+  "eyes": [
+   [
+    240,
+    226
+   ],
+   [
+    302,
+    223
+   ]
+  ],
+  "eyeR": [
+   [
+    19,
+    21
+   ],
+   [
+    14,
+    20
+   ]
+  ],
+  "guessed": false
+ },
+ "murmink-4": {
+  "eyes": [
+   [
+    241,
+    208
+   ],
+   [
+    300,
+    210
+   ]
+  ],
+  "eyeR": [
+   [
+    17,
+    20
+   ],
+   [
+    13,
+    18
+   ]
+  ],
+  "guessed": false
+ },
+ "murmink-5": {
+  "eyes": [
+   [
+    240,
+    207
+   ],
+   [
+    295,
+    205
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    18
+   ],
+   [
+    11,
+    16
+   ]
+  ],
+  "guessed": false
+ },
+ "stardrop-4": {
+  "eyes": [
+   [
+    260,
+    252
+   ],
+   [
+    346,
+    240
+   ]
+  ],
+  "eyeR": [
+   [
+    21,
+    27
+   ],
+   [
+    11,
+    22
+   ]
+  ],
+  "guessed": false
+ },
+ "stardrop-5": {
+  "eyes": [
+   [
+    250,
+    200
+   ],
+   [
+    333,
+    200
+   ]
+  ],
+  "eyeR": [
+   [
+    24,
+    32
+   ],
+   [
+    14,
+    29
+   ]
+  ],
+  "guessed": false
+ },
+ "nebulynx-1": {
+  "eyes": [
+   [
+    248,
+    350
+   ],
+   [
+    316,
+    336
+   ]
+  ],
+  "eyeR": [
+   [
+    23,
+    33
+   ],
+   [
+    15,
+    31
+   ]
+  ],
+  "guessed": false
+ },
+ "nebulynx-2": {
+  "eyes": [
+   [
+    238,
+    250
+   ],
+   [
+    302,
+    233
+   ]
+  ],
+  "eyeR": [
+   [
+    21,
+    28
+   ],
+   [
+    12,
+    23
+   ]
+  ],
+  "guessed": false
+ },
+ "nebulynx-3": {
+  "eyes": [
+   [
+    232,
+    203
+   ],
+   [
+    290,
+    195
+   ]
+  ],
+  "eyeR": [
+   [
+    14,
+    19
+   ],
+   [
+    10,
+    18
+   ]
+  ],
+  "guessed": false
+ },
+ "nebulynx-4": {
+  "eyes": [
+   [
+    238,
+    193
+   ],
+   [
+    297,
+    191
+   ]
+  ],
+  "eyeR": [
+   [
+    17,
+    22
+   ],
+   [
+    12,
+    19
+   ]
+  ],
+  "guessed": false
+ },
+ "nebulynx-5": {
+  "eyes": [
+   [
+    245,
+    160
+   ],
+   [
+    298,
+    158
+   ]
+  ],
+  "eyeR": [
+   [
+    14,
+    18
+   ],
+   [
+    11,
+    18
+   ]
+  ],
+  "guessed": false
+ },
+ "tidepaw-4": {
+  "eyes": [
+   [
+    266,
+    186
+   ],
+   [
+    313,
+    186
+   ]
+  ],
+  "eyeR": [
+   [
+    12,
+    16
+   ],
+   [
+    9,
+    14
+   ]
+  ],
+  "guessed": false
+ },
+ "tidepaw-5": {
+  "eyes": [
+   [
+    250,
+    152
+   ],
+   [
+    292,
+    150
+   ]
+  ],
+  "eyeR": [
+   [
+    11,
+    15
+   ],
+   [
+    9,
+    14
+   ]
+  ],
+  "guessed": false
+ },
+ "sparkfinch-5": {
+  "eyes": [
+   [
+    280,
+    200
+   ],
+   [
+    321,
+    196
+   ]
+  ],
+  "eyeR": [
+   [
+    10,
+    11
+   ],
+   [
+    7,
+    12
+   ]
+  ],
+  "guessed": false
+ },
+ "coralyn-2": {
+  "eyes": [
+   [
+    258,
+    316
+   ],
+   [
+    308,
+    310
+   ]
+  ],
+  "eyeR": [
+   [
+    12,
+    17
+   ],
+   [
+    9,
+    15
+   ]
+  ],
+  "guessed": false
+ },
+ "coralyn-3": {
+  "eyes": [
+   [
+    267,
+    265
+   ],
+   [
+    314,
+    260
+   ]
+  ],
+  "eyeR": [
+   [
+    11,
+    16
+   ],
+   [
+    8,
+    15
+   ]
+  ],
+  "guessed": false
+ },
+ "coralyn-4": {
+  "eyes": [
+   [
+    250,
+    187
+   ],
+   [
+    296,
+    183
+   ]
+  ],
+  "eyeR": [
+   [
+    11,
+    15
+   ],
+   [
+    8,
+    14
+   ]
+  ],
+  "guessed": false
+ },
+ "snowmoth-2": {
+  "eyes": [
+   [
+    242,
+    321
+   ],
+   [
+    306,
+    315
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    21
+   ],
+   [
+    12,
+    19
+   ]
+  ],
+  "guessed": false
+ },
+ "snowmoth-3": {
+  "eyes": [
+   [
+    235,
+    270
+   ],
+   [
+    294,
+    261
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    16
+   ],
+   [
+    13,
+    17
+   ]
+  ],
+  "guessed": false
+ },
+ "snowmoth-5": {
+  "eyes": [
+   [
+    229,
+    192
+   ],
+   [
+    270,
+    182
+   ]
+  ],
+  "eyeR": [
+   [
+    11,
+    15
+   ],
+   [
+    9,
+    14
+   ]
+  ],
+  "guessed": false
+ },
+ "thornquill-3": {
+  "eyes": [
+   [
+    263,
+    232
+   ],
+   [
+    314,
+    230
+   ]
+  ],
+  "eyeR": [
+   [
+    14,
+    18
+   ],
+   [
+    9,
+    16
+   ]
+  ],
+  "guessed": false
+ },
+ "thornquill-5": {
+  "eyes": [
+   [
+    252,
+    221
+   ],
+   [
+    297,
+    228
+   ]
+  ],
+  "eyeR": [
+   [
+    12,
+    17
+   ],
+   [
+    9,
+    16
+   ]
+  ],
+  "guessed": false
+ },
+ "bloomfawn-5": {
+  "eyes": [
+   [
+    281,
+    216
+   ],
+   [
+    313,
+    212
+   ]
+  ],
+  "eyeR": [
+   [
+    14,
+    17
+   ],
+   [
+    8,
+    13
+   ]
+  ],
+  "guessed": false
+ },
+ "gemsnout-2": {
+  "eyes": [
+   [
+    276,
+    288
+   ],
+   [
+    350,
+    283
+   ]
+  ],
+  "eyeR": [
+   [
+    17,
+    22
+   ],
+   [
+    10,
+    20
+   ]
+  ],
+  "guessed": false
+ },
+ "gemsnout-3": {
+  "eyes": [
+   [
+    278,
+    245
+   ],
+   [
+    338,
+    240
+   ]
+  ],
+  "eyeR": [
+   [
+    17,
+    22
+   ],
+   [
+    11,
+    19
+   ]
+  ],
+  "guessed": false
+ },
+ "gemsnout-4": {
+  "eyes": [
+   [
+    253,
+    238
+   ],
+   [
+    310,
+    233
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    21
+   ],
+   [
+    11,
+    19
+   ]
+  ],
+  "guessed": false
+ },
+ "gemsnout-5": {
+  "eyes": [
+   [
+    288,
+    210
+   ],
+   [
+    343,
+    200
+   ]
+  ],
+  "eyeR": [
+   [
+    14,
+    20
+   ],
+   [
+    9,
+    17
+   ]
+  ],
+  "guessed": false
+ },
+ "burrowby-4": {
+  "eyes": [
+   [
+    250,
+    240
+   ],
+   [
+    309,
+    238
+   ]
+  ],
+  "eyeR": [
+   [
+    12,
+    16
+   ],
+   [
+    9,
+    15
+   ]
+  ],
+  "guessed": false
+ },
+ "burrowby-5": {
+  "eyes": [
+   [
+    256,
+    213
+   ],
+   [
+    318,
+    212
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    23
+   ],
+   [
+    9,
+    17
+   ]
+  ],
+  "guessed": false
+ },
+ "snowmoth-4": {
+  "eyes": [
+   [
+    244,
+    234
+   ],
+   [
+    296,
+    232
+   ]
+  ],
+  "eyeR": [
+   [
+    16,
+    15
+   ],
+   [
+    12,
+    13
+   ]
+  ],
+  "guessed": false
+ },
+ "glowbun-3": {
+  "eyes": [
+   [
+    172,
+    297
+   ],
+   [
+    229,
+    297
+   ]
+  ],
+  "eyeR": [
+   [
+    13,
+    19
+   ],
+   [
+    20,
+    20
+   ]
+  ],
+  "guessed": false
+ },
+ "halowl-5": {
+  "eyes": [
+   [
+    214,
+    216
+   ],
+   [
+    256,
+    214
+   ]
+  ],
+  "eyeR": [
+   [
+    8,
+    16
+   ],
+   [
+    16,
+    21
+   ]
+  ],
+  "guessed": false
+ },
+ "coralyn-5": {
+  "eyes": [
+   [
+    251,
+    167
+   ],
+   [
+    296,
+    163
+   ]
+  ],
+  "eyeR": [
+   [
+    13,
+    14
+   ],
+   [
+    9,
+    12
+   ]
+  ],
+  "guessed": false
+ },
+ "gemsnout-1": {
+  "eyes": [
+   [
+    265,
+    371
+   ],
+   [
+    342,
+    357
+   ]
+  ],
+  "eyeR": [
+   [
+    25,
+    27
+   ],
+   [
+    15,
+    24
+   ]
+  ],
+  "guessed": false
+ }
 }

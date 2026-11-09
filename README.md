@@ -31,6 +31,7 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 - **Teacher controls** in Settings → Creatures & Shop: the evolution mode and queue, a progression table for the class, **Adjust XP** to fix a mistake (logged in the student's history, undoable, never touches coins), **Reset progress** for one student (you type their name to confirm, and a safety snapshot is saved first), which creatures new students can get, and which items are offered and at what price.
 - **Students can use their own creature while you stay locked.** From Presentation Mode, students can open their creature's profile and dressing room while teacher controls are locked. They can play, awaken abilities and spend their own coins, but they can never change XP or coins. Switch this off in Settings → Creatures & Shop.
 - **Sound settings.** A volume slider, optional button clicks, and new sounds for evolving, buying, dressing up, abilities, snacks and toys. Everything still follows the **Sound effects** switch.
+- **The paintings come alive.** Every painted creature blinks, each on its own rhythm with the odd double blink, so a class never blinks in unison; sleepy creatures doze with their eyes shut, and big views add a slow breath under each species' idle movement. Blinking and breathing stop with *Reduce motion*.
 - **Starts faster.** Screens and pixel effects now load the first time they are needed.
 - **Your data comes with you.** 1.3 data upgrades automatically when you open 1.4 (a safety snapshot is saved first). Students keep their creature, XP, coins, stage, items and history, and existing classes stay on Automatic evolution.
 
@@ -202,7 +203,8 @@ The vector version of a creature is drawn from parameters, so a new species work
 
 ## Adding animations
 
-- **Idle loops** are CSS keyframes in `src/index.css` (`.idle-bob`, `.idle-hop`…), chosen per species with `idle`. They are cheap on classroom computers and switch off with *Reduce motion* or the OS setting.
+- **Idle loops** are CSS keyframes in `src/index.css` (`.idle-bob`, `.idle-hop`…), chosen per species with `idle`. They are cheap on classroom computers and switch off with *Reduce motion* or the OS setting. Large views add `.cc-breath` underneath.
+- **Blinking** on the paintings: `scripts/creature-anchors.py` measures an eyelid per eye (size, the skin colour around it, a lash colour) into `src/data/creatureArt.json`, `Illustrated.tsx` draws the lids with a feathered rim, and `src/creatures/blink.ts` closes them for a moment on one shared timer (nothing animates between blinks). Where the measurement misreads an image, set the eye centres and half-sizes in `scripts/creature-anchor-overrides.json` and rerun the script. In development, `?sheet&art&lids` shows every form with its eyes shut.
 - **Reactions** (jump, wave, ability, happy, celebrate) live in `src/creatures/Creature.tsx`: add a name to `CreatureAction` and a Framer Motion keyframe in `run()`.
 - **Particles**: `Burst` in `src/creatures/Burst.tsx` takes an element kind, `sparkle` or `confetti`; add a particle shape in `Particle`.
 - **Big moments**: the evolution sequence, level-up, achievement and class-goal celebrations are in `src/components/Celebrations.tsx`.
