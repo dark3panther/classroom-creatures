@@ -106,6 +106,8 @@ xattr -cr "/Applications/Classroom Creatures.app"
 
 **Your data in the Mac app** is stored in `~/Library/Application Support/Classroom Creatures`, separately from any browser copy. To move a class from the browser version into the app, use Settings → Backup & Data → *Download backup file* in the browser, then *Restore from file* in the app.
 
+**No Mac to build on?** `npm run app:mac-zip` also works on Linux and Windows. It makes two zips, `Classroom Creatures-<version>-arm64-mac.zip` for Apple Silicon (M1 and later) and `Classroom Creatures-<version>-mac.zip` for Intel Macs, instead of the universal .dmg, which only a Mac can make. The Apple Silicon app keeps Electron's built-in ad-hoc signature, so it runs once opened with right-click → **Open** (or the `xattr` command above).
+
 To try the desktop shell without packaging: `npm run app`. The same config also builds Windows (`npx electron-builder --win`) and Linux (`npx electron-builder --linux`) versions.
 
 ### Other commands
