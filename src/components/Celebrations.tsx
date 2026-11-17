@@ -73,7 +73,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
   const roman = (n: Stage) => ['I', 'II', 'III', 'IV', 'V'][n - 1];
 
   return (
-    <motion.div className="cloth-deep on-cloth fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
+    <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <div className="relative flex w-full max-w-5xl flex-col items-center">
         <div className="flex items-center justify-center gap-6 sm:gap-10">
@@ -101,14 +101,14 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
               </div>
             )}
             <motion.div className="paper relative w-[min(50vh,420px)] p-2 shadow-[var(--shadow-lift)]"
-              animate={phase === 'charge' ? { boxShadow: [`0 0 0 0 ${el.glow}00`, `0 0 0 10px ${el.glow}aa, 0 0 60px 20px ${el.glow}88`, `0 0 0 4px ${el.glow}66, 0 0 30px 8px ${el.glow}55`] } : { boxShadow: '0 2px 4px rgb(22 36 28 / 0.08), 0 18px 34px -16px rgb(22 36 28 / 0.42)' }}
+              animate={phase === 'charge' ? { boxShadow: [`0 0 0 0 ${el.glow}00`, `0 0 0 10px ${el.glow}aa, 0 0 60px 20px ${el.glow}88`, `0 0 0 4px ${el.glow}66, 0 0 30px 8px ${el.glow}55`] } : { boxShadow: '0 2px 4px rgb(19 37 63 / 0.08), 0 18px 34px -16px rgb(19 37 63 / 0.42)' }}
               transition={phase === 'charge' ? { duration: 1.2, repeat: Infinity, repeatType: 'reverse' } : { duration: 0.4 }}>
               <motion.div key={showNew ? 'new' : 'old'} className="relative"
                 initial={showNew ? { clipPath: 'circle(0% at 50% 55%)' } : false}
                 animate={{ clipPath: 'circle(80% at 50% 55%)' }} transition={{ duration: showNew ? 0.9 : 0, ease: [0.2, 0.7, 0.2, 1] }}>
                 <Habitat element={sp.element} seed={sp.id} className="aspect-square w-full" rounded="rounded-[10px]">
                   {/* the plate darkens while the creature turns to light */}
-                  <motion.div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 55%, ${el.color}cc, #0d2e23 72%)` }}
+                  <motion.div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 55%, ${el.color}cc, #0e2a52 72%)` }}
                     initial={false} animate={{ opacity: phase === 'charge' ? 0.92 : 0 }} transition={{ duration: phase === 'charge' ? 0.8 : 0.3 }} />
                   {/* gathering energy */}
                   {phase === 'charge' && Array.from({ length: 14 }).map((_, i) => {
@@ -129,7 +129,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
                 </Habitat>
               </motion.div>
               {phase === 'reveal' && (
-                <motion.div className="pointer-events-none absolute -right-4 -top-4 grid h-24 w-24 rotate-[-12deg] place-items-center rounded-full border-[3px] border-gilt bg-cloth-950/90 text-center font-display font-extrabold leading-none text-gilt shadow-[var(--shadow-lift)]"
+                <motion.div className="pointer-events-none absolute -right-4 -top-4 grid h-24 w-24 rotate-[-12deg] place-items-center rounded-full border-[3px] border-gilt bg-azure-950/90 text-center font-display font-extrabold leading-none text-gilt shadow-[var(--shadow-lift)]"
                   initial={{ scale: 2.2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.9, type: 'spring', stiffness: 300, damping: 16 }} aria-hidden>
                   <span><span className="block text-[13px]">{fieldNo(sp.id)}</span><span className="block text-[26px]">{roman(c.to)}</span></span>
                 </motion.div>
@@ -137,7 +137,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
               {phase === 'reveal' && <><Burst key={`c${run}`} kind="confetti" count={28} spread={260} size={16} duration={1.8} /><Burst key={`e${run}`} kind={sp.element} count={16} spread={200} size={26} duration={1.4} /></>}
               {phase === 'reveal' && !reduced && <PixelFx key={`burst-${run}`} id="holy/feather-burst" options={{ palette }} anchor={[0.5, 0.62]} bodyFrac={0.22} fps={30} lightOpacity={0.45} />}
             </motion.div>
-            <div className="relative z-10 mt-4 flex items-center gap-2 rounded-full bg-cloth-950/80 px-4 py-1.5 font-display text-xl font-bold text-white">
+            <div className="relative z-10 mt-4 flex items-center gap-2 rounded-full bg-azure-950/80 px-4 py-1.5 font-display text-xl font-bold text-white">
               <ElementIcon element={sp.element} size={20} color={el.color} />
               <span className="tabular text-white/75">{fieldNo(sp.id)}</span> {sp.name} · Stage {roman(stage)} · {STAGE_NAMES[stage]}
             </div>
@@ -213,7 +213,7 @@ function AchievementBanner({ id, student, onDone, sound }: { id: string; student
     <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} onClick={onDone}>
       <div className="relative flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 text-ink shadow-[var(--shadow-lift)] ring-[3px]" style={{ ['--tw-ring-color' as string]: a.color }}>
         <div className="relative grid h-20 w-20 place-items-center rounded-full text-4xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)` }}>
-          <motion.span initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 12 }} style={{ color: `color-mix(in srgb, ${a.color} 75%, #16241c)` }}><Glyph icon={a.icon} size={38} /></motion.span>
+          <motion.span initial={{ scale: 0, rotate: -40 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 12 }} style={{ color: `color-mix(in srgb, ${a.color} 75%, #13253f)` }}><Glyph icon={a.icon} size={38} /></motion.span>
           <Burst kind="sparkle" count={10} spread={70} />
         </div>
         <div>
@@ -233,7 +233,7 @@ function ClassGoalOverlay({ c, name, onDone, sound }: { c: Extract<Celebration, 
   const settings = useStore((s) => s.data.settings);
   useEffect(() => { if (sound) playClassCelebration(); }, [sound]);
   return (
-    <motion.div className="cloth-deep on-cloth fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+    <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Burst kind="confetti" count={40} spread={420} size={18} duration={2.4} />
       <motion.div className="relative text-center" initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 160, damping: 12 }}>
         <h2 className="gilt-text font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-7xl">Amazing teamwork!</h2>
@@ -274,7 +274,7 @@ function MilestonePopup({ c, student, onDone, sound }: { c: Extract<Celebration,
           <Burst kind="sparkle" count={12} spread={90} />
         </div>
         <div>
-          <div className="font-display text-[15px] font-semibold text-[#f6cb62]">Milestone reward{names.length > 1 ? 's' : ` · ${c.atXp} XP`}</div>
+          <div className="font-display text-[15px] font-semibold text-[#ffd166]">Milestone reward{names.length > 1 ? 's' : ` · ${c.atXp} XP`}</div>
           <div className={`font-display font-bold text-white ${names.length > 3 ? 'text-2xl' : 'text-3xl'}`}>{who} earned {names.length > 1 ? `a ${c.label} each` : `a ${c.label}`}! {c.icon}</div>
           <div className="text-sm font-bold text-white/85">Hand it out, then tick it off in Rewards.</div>
         </div>

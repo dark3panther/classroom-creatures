@@ -218,6 +218,8 @@ export interface Settings {
   negativeEnabled: boolean;
   soundEnabled: boolean;
   reducedMotion: boolean;
+  /** the animated painted sky behind every screen (off: a still painting, for very old computers) */
+  skyMotion?: boolean;
   pinHash: string | null;
   currentClassId: string | null;
   onboarded: boolean;

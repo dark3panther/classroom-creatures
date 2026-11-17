@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { slidePill } from '../lib/motion';
 import { Modal, Toggle } from '../components/ui';
 import { DEFAULT_EVOLUTION_LEVELS, DEFAULT_LEVEL_XP, TAG_LABELS } from '../data/defaults';
 import { STAGE_NAMES } from '../data/elements';
@@ -19,12 +20,16 @@ const TABS = [
 ] as const;
 
 export function SettingsView({ tab = 'classes' }: { tab?: string }) {
+  const tabRow = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => slidePill(tabRow.current), [tab]);
+  useEffect(() => { const on = () => slidePill(tabRow.current, true); addEventListener('resize', on); return () => removeEventListener('resize', on); }, []);
   return (
     <div className="mx-auto max-w-5xl px-4 pb-20 pt-5 sm:px-6">
       <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[44px]">Settings</h1>
-      <div className="mt-4 flex gap-1 overflow-x-auto rounded-full bg-white p-1 ring-1 ring-rule" role="tablist">
+      <div ref={tabRow} className="relative mt-4 flex gap-1 overflow-x-auto rounded-full bg-white p-1 shadow-[var(--shadow-card)] ring-1 ring-rule" role="tablist">
+        <span data-pill className="pointer-events-none absolute left-0 top-0 rounded-full bg-gradient-to-b from-azure-600 to-azure-700 shadow-[0_6px_14px_-6px_rgb(27_79_151/.8)]" style={{ opacity: 0 }} aria-hidden />
         {TABS.map(([k, l]) => (
-          <button key={k} role="tab" aria-selected={tab === k} onClick={() => navigate(`/settings/${k}`)} className={`whitespace-nowrap rounded-full px-4 py-2 font-display font-semibold transition ${tab === k ? 'bg-cloth-800 text-white' : 'text-ink-soft hover:bg-wash hover:text-ink'}`}>{l}</button>
+          <button key={k} role="tab" aria-selected={tab === k} onClick={() => navigate(`/settings/${k}`)} className={`relative z-[1] whitespace-nowrap rounded-full px-4 py-2 font-display font-semibold transition-colors ${tab === k ? 'text-white' : 'text-ink-soft hover:bg-wash hover:text-ink'}`}>{l}</button>
         ))}
       </div>
       <div className="paper mt-4 p-5 sm:p-6">
@@ -129,13 +134,13 @@ function BehavioursTab() {
       <div className="flex flex-col gap-2">
         {categories.filter((c) => c.xp > 0 || negative).map((c) => (
           <div key={c.id} className="flex items-center gap-3 rounded-xl bg-white p-2 pr-3 ring-1 ring-rule">
-            <span className="grid h-11 w-11 place-items-center rounded-lg" style={{ background: c.xp < 0 ? 'var(--color-brick-pale)' : `color-mix(in srgb, ${c.color} 22%, white)`, boxShadow: `inset 0 0 0 1.5px ${c.xp < 0 ? 'rgb(184 67 45 / .3)' : `color-mix(in srgb, ${c.color} 55%, white)`}`, color: c.xp < 0 ? 'var(--color-brick)' : `color-mix(in srgb, ${c.color} 70%, #16241c)` }}><Glyph icon={c.icon} size={24} /></span>
+            <span className="grid h-11 w-11 place-items-center rounded-lg" style={{ background: c.xp < 0 ? 'var(--color-brick-pale)' : `color-mix(in srgb, ${c.color} 22%, white)`, boxShadow: `inset 0 0 0 1.5px ${c.xp < 0 ? 'rgb(184 67 45 / .3)' : `color-mix(in srgb, ${c.color} 55%, white)`}`, color: c.xp < 0 ? 'var(--color-brick)' : `color-mix(in srgb, ${c.color} 70%, #13253f)` }}><Glyph icon={c.icon} size={24} /></span>
             <span className="min-w-0 flex-1">
               <span className="block truncate font-bold">{c.name}</span>
               <span className="text-[13px] text-ink-soft"><b className={c.xp < 0 ? 'text-brick' : 'text-leaf'}>{c.xp > 0 ? '+' : ''}{c.xp} XP</b> · counts as {TAG_LABELS[c.tag]}</span>
             </span>
             {c.xp > 0 && (
-              <button className={`grid h-10 w-10 place-items-center rounded-full transition ${c.pinned ? 'bg-cloth-800 text-white' : 'text-ink-soft ring-1 ring-rule hover:bg-wash disabled:opacity-40'}`} title={c.pinned ? 'Unpin from cards' : 'Pin to student cards'} aria-label={c.pinned ? `Unpin ${c.name}` : `Pin ${c.name}`} aria-pressed={!!c.pinned}
+              <button className={`grid h-10 w-10 place-items-center rounded-full transition ${c.pinned ? 'bg-azure-800 text-white' : 'text-ink-soft ring-1 ring-rule hover:bg-wash disabled:opacity-40'}`} title={c.pinned ? 'Unpin from cards' : 'Pin to student cards'} aria-label={c.pinned ? `Unpin ${c.name}` : `Pin ${c.name}`} aria-pressed={!!c.pinned}
                 disabled={!c.pinned && pinnedCount >= 3} onClick={() => upsert({ ...c, pinned: !c.pinned })}><Icon name="pin" size={18} /></button>
             )}
             <button className="btn btn-light !px-3 !py-1.5 !text-sm" onClick={() => setEdit(c)}>Edit</button>
@@ -168,7 +173,7 @@ function CategoryForm({ c, negative, exists, onSave, onDelete, onCancel }: { c: 
         </label>
       </div>
       <div className="mt-3 text-sm font-bold">Icon</div>
-      <div className="mt-1 flex flex-wrap gap-1">{ICONS.map((i) => <button type="button" key={i} onClick={() => setD({ ...d, icon: i })} aria-label={`Icon ${i}`} aria-pressed={d.icon === i} className={`grid h-10 w-10 place-items-center rounded-lg text-ink ${d.icon === i ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-endpaper'}`}><Glyph icon={i} size={22} /></button>)}</div>
+      <div className="mt-1 flex flex-wrap gap-1">{ICONS.map((i) => <button type="button" key={i} onClick={() => setD({ ...d, icon: i })} aria-label={`Icon ${i}`} aria-pressed={d.icon === i} className={`grid h-10 w-10 place-items-center rounded-lg text-ink ${d.icon === i ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-mist'}`}><Glyph icon={i} size={22} /></button>)}</div>
       <div className="mt-3 text-sm font-bold">Colour</div>
       <div className="mt-1 flex flex-wrap gap-1.5">{COLORS.map((col) => <button type="button" key={col} aria-label={col} onClick={() => setD({ ...d, color: col })} className={`h-8 w-8 rounded-full ring-offset-2 ${d.color === col ? 'ring-[3px] ring-ink' : ''}`} style={{ background: col }} />)}</div>
       <div className="mt-6 flex justify-between gap-2">
@@ -249,11 +254,13 @@ function ClassroomTab() {
         <label className={`flex items-center gap-4 py-2 ${settings.soundEnabled ? '' : 'opacity-50'}`}>
           <span className="min-w-[140px]"><span className="block font-bold">Volume</span><span className="block text-sm text-ink-soft tabular">{Math.round((settings.soundVolume ?? 0.8) * 100)}%</span></span>
           <input type="range" min={0} max={100} step={5} disabled={!settings.soundEnabled} value={Math.round((settings.soundVolume ?? 0.8) * 100)}
-            onChange={(e) => updateSettings({ soundVolume: Number(e.target.value) / 100 })} className="h-2 flex-1 cursor-pointer accent-[#1d5643]" aria-label="Sound volume" />
+            onChange={(e) => updateSettings({ soundVolume: Number(e.target.value) / 100 })} className="h-2 flex-1 cursor-pointer accent-[#1b4f97]" aria-label="Sound volume" />
           <button className="btn btn-light !py-1.5 !text-sm" disabled={!settings.soundEnabled} onClick={() => { setVolume(settings.soundVolume ?? 0.8); playAward(5); }}>Test</button>
         </label>
         <Toggle label="Button clicks" hint="A soft click on every button. Off by default so the classroom stays calm." checked={!!settings.uiSounds} onChange={(v) => updateSettings({ uiSounds: v })} />
         <Toggle label="Reduce motion" hint="Calmer animations for sensitive learners or slower computers. The evolution sequence becomes a quick reveal." checked={settings.reducedMotion} onChange={(v) => updateSettings({ reducedMotion: v })} />
+        <Toggle label="Animated background" hint="The painted sky behind every screen moves: drifting clouds, floating islands, the sun, little creatures flying past. Turn off to keep it as a still painting on a slow computer."
+          checked={settings.skyMotion ?? true} onChange={(v) => updateSettings({ skyMotion: v })} />
         <Toggle label="Behaviour deductions (−XP)" hint="Behaviour deductions such as talking without permission. They take away XP only (never coins), can never undo an evolution or go below 0 XP, and students never lose their creature."
           checked={settings.negativeEnabled} onChange={(v) => updateSettings({ negativeEnabled: v })} />
       </div>

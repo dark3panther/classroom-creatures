@@ -63,7 +63,7 @@ export function Rewards() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-sm font-bold">
-                  <ProgressBar pct={done / n} color="#23864a" className="flex-1" />
+                  <ProgressBar pct={done / n} color="#2563b8" className="flex-1" />
                   <span className="tabular-nums text-ink-soft">{done}/{students.length} done</span>
                 </div>
               </div>
@@ -79,11 +79,11 @@ export function Rewards() {
             const got = students.filter((s) => s.achievements.some((x) => x.id === a.id)).length;
             return (
               <div key={a.id} className="panel flex items-center gap-3 p-3">
-                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl text-3xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${a.color} 45%, white)`, color: `color-mix(in srgb, ${a.color} 75%, #16241c)` }}><Glyph icon={a.icon} size={28} /></span>
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-xl text-3xl" style={{ background: `color-mix(in srgb, ${a.color} 20%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${a.color} 45%, white)`, color: `color-mix(in srgb, ${a.color} 75%, #13253f)` }}><Glyph icon={a.icon} size={28} /></span>
                 <div className="min-w-0">
                   <div className="font-display text-lg font-bold leading-tight">{a.name}</div>
                   <div className="text-[13px] text-ink-soft">{a.description}</div>
-                  <div className="mt-0.5 text-[13px] font-bold text-cloth-800">{got} student{got === 1 ? '' : 's'} earned this</div>
+                  <div className="mt-0.5 text-[13px] font-bold text-azure-800">{got} student{got === 1 ? '' : 's'} earned this</div>
                 </div>
               </div>
             );
@@ -102,7 +102,7 @@ export function Rewards() {
                 <ItemThumb item={it} speciesId={preview.id} stage={3} />
                 <div className="mt-1.5 font-display font-bold leading-tight">{it.name}</div>
                 <div className="text-[12px] text-ink-soft">{SLOT_LABEL[it.slot]} · {rule}</div>
-                <div className="text-[12px] font-bold text-cloth-800">{owners} unlocked</div>
+                <div className="text-[12px] font-bold text-azure-800">{owners} unlocked</div>
               </div>
             );
           })}
@@ -185,7 +185,7 @@ function MilestoneRewards({ students }: { students: Student[] }) {
                 <div className="truncate font-display text-lg font-semibold">{s.name}</div>
                 <div className="text-xs font-bold text-ink-soft">{r.icon} {r.label} · reached {r.atXp} XP · {timeAgo(r.at)}</div>
               </div>
-              <button className="btn btn-cloth !py-1.5 !text-sm" onClick={() => setGiven(s.id, r.id, true)}><Icon name="check" size={16} strokeWidth={2.6} />Given</button>
+              <button className="btn btn-azure !py-1.5 !text-sm" onClick={() => setGiven(s.id, r.id, true)}><Icon name="check" size={16} strokeWidth={2.6} />Given</button>
             </div>
           ))}
         </div>

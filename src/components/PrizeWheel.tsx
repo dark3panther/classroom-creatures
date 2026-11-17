@@ -54,18 +54,18 @@ export function PrizeWheel({ classId, onClose }: { classId: string; onClose: () 
   };
 
   return (
-    <motion.div className="on-cloth fixed inset-0 z-[55] flex flex-col items-center justify-center overflow-hidden px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-label="Class prize wheel">
-      <div className="cloth-deep absolute inset-0" />
+    <motion.div className="on-azure fixed inset-0 z-[55] flex flex-col items-center justify-center overflow-hidden px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-label="Class prize wheel">
+      <div className="azure-deep absolute inset-0" />
       <div className="relative text-center">
         <h2 className="gilt-text font-display text-5xl font-extrabold tracking-[-0.02em] sm:text-6xl">Spin the prize wheel!</h2>
         <p className="mt-1 text-xl font-bold text-white">Class goal reached{cls ? ` · ${cls.goal.toLocaleString()} XP` : ''}</p>
       </div>
       <div className="relative mt-6 h-[min(62vh,520px)] w-[min(62vh,520px)]">
         {/* pointer */}
-        <svg viewBox="0 0 40 50" className="absolute left-1/2 top-[-18px] z-10 h-14 w-12 -translate-x-1/2 drop-shadow-lg"><path d="M20 48 L4 10 A18 18 0 1 1 36 10 Z" fill="#f4b631" stroke="#3b2800" strokeWidth="3" /><circle cx="20" cy="16" r="6" fill="#fff" /></svg>
+        <svg viewBox="0 0 40 50" className="absolute left-1/2 top-[-18px] z-10 h-14 w-12 -translate-x-1/2 drop-shadow-lg"><path d="M20 48 L4 10 A18 18 0 1 1 36 10 Z" fill="#ffc23d" stroke="#3b2800" strokeWidth="3" /><circle cx="20" cy="16" r="6" fill="#fff" /></svg>
         <motion.div animate={controls} className="h-full w-full" style={{ rotate: rotation.current }}>
           <svg viewBox="0 0 300 300" className="h-full w-full drop-shadow-[0_10px_40px_rgba(0,0,0,.5)]">
-            <circle cx="150" cy="150" r="148" fill="#ffffff" stroke="#0d2e23" strokeWidth="4" />
+            <circle cx="150" cy="150" r="148" fill="#ffffff" stroke="#0e2a52" strokeWidth="4" />
             {slices.map(({ p, path, mid }) => (
               <g key={p.id}>
                 <path d={path} fill={p.color} stroke="#ffffff" strokeWidth="3" />
@@ -79,10 +79,10 @@ export function PrizeWheel({ classId, onClose }: { classId: string; onClose: () 
             ))}
             {Array.from({ length: n * 2 }).map((_, i) => {
               const a = (i * (seg / 2) - 90) * (Math.PI / 180);
-              return <circle key={i} cx={150 + 142 * Math.cos(a)} cy={150 + 142 * Math.sin(a)} r="3.5" fill="#f4b631" stroke="#3b2800" strokeWidth="1" />;
+              return <circle key={i} cx={150 + 142 * Math.cos(a)} cy={150 + 142 * Math.sin(a)} r="3.5" fill="#ffc23d" stroke="#3b2800" strokeWidth="1" />;
             })}
-            <circle cx="150" cy="150" r="26" fill="#1d5643" stroke="#ffffff" strokeWidth="4" />
-            <path d="M150 136l4.2 8.6 9.4 1.3-6.8 6.6 1.6 9.4-8.4-4.5-8.4 4.5 1.6-9.4-6.8-6.6 9.4-1.3z" fill="#f4b631" />
+            <circle cx="150" cy="150" r="26" fill="#1b4f97" stroke="#ffffff" strokeWidth="4" />
+            <path d="M150 136l4.2 8.6 9.4 1.3-6.8 6.6 1.6 9.4-8.4-4.5-8.4 4.5 1.6-9.4-6.8-6.6 9.4-1.3z" fill="#ffc23d" />
           </svg>
         </motion.div>
         {phase === 'won' && <Burst kind="confetti" count={40} spread={340} size={18} duration={2.2} />}

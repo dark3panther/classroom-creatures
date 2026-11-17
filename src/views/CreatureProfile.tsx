@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { CountUp } from '../components/CountUp';
 import { useEffect, useState } from 'react';
 import { playAbility, playCreature, playFeed, playPet, playToy } from '../audio/sfx';
 import { AbilityTree } from '../components/Abilities';
@@ -119,7 +120,7 @@ function Profile({ student }: { student: Student }) {
             {naming ? (
               <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); update(student.id, { nickname: nick.trim() || undefined }); setNaming(false); }}>
                 <input className="input !w-64 !py-1.5 font-display text-2xl font-bold" value={nick} maxLength={24} autoFocus onChange={(e) => setNick(e.target.value)} placeholder={sp.name} aria-label="Creature nickname" />
-                <button className="btn btn-cloth !py-1.5" type="submit">Save</button>
+                <button className="btn btn-azure !py-1.5" type="submit">Save</button>
                 <button className="btn btn-ghost !py-1.5" type="button" onClick={() => setNaming(false)}>Cancel</button>
               </form>
             ) : (
@@ -140,7 +141,7 @@ function Profile({ student }: { student: Student }) {
           </div>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#fdf2d6] px-4 py-2 ring-1 ring-[#e7c77a]" aria-label={`${student.coins} coins`}>
-          <CoinIcon size={22} /><span className="font-display text-2xl font-extrabold text-[#6b4806] tabular">{student.coins ?? 0}</span>
+          <CoinIcon size={22} /><CountUp value={student.coins ?? 0} className="font-display text-2xl font-extrabold text-[#6b4806] tabular" />
         </div>
       </div>
 
@@ -176,10 +177,10 @@ function Profile({ student }: { student: Student }) {
             {/* interactions */}
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <button className="btn btn-light" onClick={doPet}><Icon name="heart" size={17} />Pet</button>
-              <button className={`btn ${tray === 'feed' ? 'btn-cloth' : 'btn-light'}`} onClick={() => setTray(tray === 'feed' ? null : 'feed')} aria-expanded={tray === 'feed'}><PixelSprite sprite={SPRITES.berry} size={18} />Feed</button>
-              <button className={`btn ${tray === 'play' ? 'btn-cloth' : 'btn-light'}`} onClick={() => setTray(tray === 'play' ? null : 'play')} aria-expanded={tray === 'play'}><PixelSprite sprite={SPRITES.ball} size={18} />Play</button>
+              <button className={`btn ${tray === 'feed' ? 'btn-azure' : 'btn-light'}`} onClick={() => setTray(tray === 'feed' ? null : 'feed')} aria-expanded={tray === 'feed'}><PixelSprite sprite={SPRITES.berry} size={18} />Feed</button>
+              <button className={`btn ${tray === 'play' ? 'btn-azure' : 'btn-light'}`} onClick={() => setTray(tray === 'play' ? null : 'play')} aria-expanded={tray === 'play'}><PixelSprite sprite={SPRITES.ball} size={18} />Play</button>
               <button className="btn btn-light" onClick={() => { if (sound) playCreature(sp.sound, true); setAct({ type: 'wave', key: Date.now() }); }}><Icon name="music" size={17} />Sing</button>
-              {canStudent && <button className="btn btn-cloth ml-auto" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Dressing room</button>}
+              {canStudent && <button className="btn btn-azure ml-auto" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Dressing room</button>}
             </div>
             <AnimatePresence>
               {tray && (
@@ -187,7 +188,7 @@ function Profile({ student }: { student: Student }) {
                   {(tray === 'feed' ? SNACKS : TOYS).map((x) => {
                     const fav = tray === 'feed' ? x.id === p.favSnack : x.id === p.favToy;
                     return (
-                      <button key={x.id} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-bold ring-1 ring-rule hover:bg-endpaper"
+                      <button key={x.id} className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 font-bold ring-1 ring-rule hover:bg-mist"
                         onClick={() => (tray === 'feed' ? doFeed(x.id as Snack) : doPlay(x.id as Toy))}>
                         <PixelSprite sprite={SPRITES[x.id]} size={28} />{x.label}{fav && <span className="chip bg-gilt-pale text-gilt-ink">Favourite</span>}
                       </button>
@@ -213,8 +214,8 @@ function Profile({ student }: { student: Student }) {
           {/* stats + evolution */}
           <div className="panel p-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
-              <span className="font-display font-extrabold leading-[0.85] tracking-[-0.03em]"><span className="text-2xl">Level </span><span className="text-[72px] tabular">{v.level}</span></span>
-              <span className="text-right font-display leading-[0.85]"><span className="text-[48px] font-extrabold tracking-[-0.02em] tabular">{student.xp.toLocaleString()}</span><span className="text-xl font-bold text-ink-soft"> XP</span></span>
+              <span className="font-display font-extrabold leading-[0.85] tracking-[-0.03em]"><span className="text-2xl">Level </span><CountUp value={v.level} fromZero className="text-[72px] tabular" /></span>
+              <span className="text-right font-display leading-[0.85]"><CountUp value={student.xp} fromZero className="text-[48px] font-extrabold tracking-[-0.02em] tabular" /><span className="text-xl font-bold text-ink-soft"> XP</span></span>
             </div>
             <ProgressBar pct={v.prog.pct} height={12} color={el.color} className="mt-3" />
             <div className="mt-1 text-[13px] font-bold text-ink-soft">{v.prog.isMax ? 'Highest level reached!' : `${v.prog.toNext} XP to Level ${v.level + 1}`}</div>
@@ -237,10 +238,10 @@ function Profile({ student }: { student: Student }) {
             {v.evo.next ? (
               <div className="mt-3">
                 <div className="flex items-center justify-between gap-2 text-[14px] font-bold">
-                  <span>{v.evo.ready ? <>Ready to evolve into <span className="text-cloth-800">{STAGE_NAMES[v.evo.next]}</span>!</> : <>{v.evo.xpNeeded} XP to <span className="text-cloth-800">{STAGE_NAMES[v.evo.next]}</span> (Level {v.evo.level})</>}</span>
+                  <span>{v.evo.ready ? <>Ready to evolve into <span className="text-azure-800">{STAGE_NAMES[v.evo.next]}</span>!</> : <>{v.evo.xpNeeded} XP to <span className="text-azure-800">{STAGE_NAMES[v.evo.next]}</span> (Level {v.evo.level})</>}</span>
                   <span className="tabular text-ink-soft">{Math.round(v.evo.pct * 100)}%</span>
                 </div>
-                <ProgressBar pct={v.evo.pct} height={14} color={v.evo.ready ? '#f4b631' : '#1d5643'} className="mt-1.5 ring-1 ring-rule" glow={v.evo.ready} />
+                <ProgressBar pct={v.evo.pct} height={14} color={v.evo.ready ? '#ffc23d' : '#1b4f97'} className="mt-1.5 ring-1 ring-rule" glow={v.evo.ready} />
               </div>
             ) : (
               <p className="mt-3 text-[14px] font-bold">{name} reached its final form{myth ? `: the mythical ${myth.title}` : `: ${sp.legendTitle}`}.</p>
@@ -273,7 +274,7 @@ function Profile({ student }: { student: Student }) {
                 const at = earned.get(a.id);
                 return (
                   <div key={a.id} className={`flex items-center gap-2.5 rounded-xl p-2 ring-1 ${at ? 'bg-white ring-rule' : 'bg-wash ring-rule/70'}`}>
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full" style={{ background: at ? `color-mix(in srgb, ${a.color} 18%, white)` : 'rgb(22 36 28 / .06)', color: at ? `color-mix(in srgb, ${a.color} 75%, #16241c)` : '#8a958c' }}>
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full" style={{ background: at ? `color-mix(in srgb, ${a.color} 18%, white)` : 'rgb(19 37 63 / .06)', color: at ? `color-mix(in srgb, ${a.color} 75%, #13253f)` : '#8a958c' }}>
                       {at ? <Glyph icon={a.icon} size={20} /> : <Icon name="lock" size={16} />}
                     </span>
                     <span className="min-w-0 flex-1 leading-tight">
@@ -291,7 +292,7 @@ function Profile({ student }: { student: Student }) {
           <div className="panel p-4">
             <h3 className="font-display text-[20px] font-extrabold">Field notes</h3>
             <ul className="mt-2 flex flex-col gap-1.5 text-[14px]">
-              <li className="flex gap-2"><Icon name="book" size={16} className="mt-0.5 shrink-0 text-cloth-800" /><span>Hatched as a baby {getSpecies((student.evolutionLog?.[0]?.speciesId) ?? sp.id).name} · {new Date(student.createdAt).toLocaleDateString()}</span></li>
+              <li className="flex gap-2"><Icon name="book" size={16} className="mt-0.5 shrink-0 text-azure-800" /><span>Hatched as a baby {getSpecies((student.evolutionLog?.[0]?.speciesId) ?? sp.id).name} · {new Date(student.createdAt).toLocaleDateString()}</span></li>
               {(student.evolutionLog ?? []).map((e, i) => {
                 const esp = getSpecies(e.speciesId);
                 const path = e.stage === 5 && e.branch && BRANCHES[e.speciesId] ? BRANCHES[e.speciesId][e.branch] : undefined;
@@ -300,7 +301,7 @@ function Profile({ student }: { student: Student }) {
             </ul>
             <div className="mt-3 rounded-xl bg-wash p-3 text-[14px] ring-1 ring-rule">
               {name} has revealed <b className="tabular">{forms.length}</b> form{forms.length === 1 ? '' : 's'} of the field guide. The class has discovered <b className="tabular">{col.discovered}</b> of <b className="tabular">{col.total}</b> ({Math.round(col.pct * 100)}%).
-              <button className="ml-1 font-bold text-cloth-800 underline-offset-2 hover:underline" onClick={() => navigate('/creatures')}>Open the field guide</button>
+              <button className="ml-1 font-bold text-azure-800 underline-offset-2 hover:underline" onClick={() => navigate('/creatures')}>Open the field guide</button>
             </div>
           </div>
         </section>

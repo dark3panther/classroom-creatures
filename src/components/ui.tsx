@@ -1,5 +1,5 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { animate, bouncy, reducedMotion, settle, utils } from '../lib/motion';
 import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import type { ElementType, Rarity, Stage } from '../types';
 import { Icon } from './Icon';
@@ -14,32 +14,57 @@ export function Modal({ open, onClose, children, wide, label, tone = 'paper' }: 
     return () => window.removeEventListener('keydown', k);
   }, [open, onClose]);
   const width = wide === 'xl' ? 'max-w-6xl' : wide ? 'max-w-3xl' : 'max-w-lg';
+  // anime.js: the sheet springs up into place and sinks away when closed (kept mounted until it has gone)
+  const [shown, setShown] = useState(open);
+  const back = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (open) setShown(true); }, [open]);
+  // while it animates away, keep showing what it last showed
+  const last = useRef(children);
+  if (open) last.current = children;
+  useLayoutEffect(() => {
+    const b = back.current, p = panel.current;
+    if (!shown || !b || !p) return;
+    if (open) {
+      if (reducedMotion()) { utils.set(b, { opacity: 1 }); utils.set(p, { opacity: 1, y: 0, scale: 1 }); return; }
+      animate(b, { opacity: [0, 1], duration: 220, ease: 'out(2)' });
+      animate(p, { opacity: [0, 1], y: [56, 0], scale: [0.94, 1], ease: bouncy });
+      return;
+    }
+    if (reducedMotion()) { setShown(false); return; }
+    animate(b, { opacity: 0, duration: 200, ease: 'in(2)' });
+    animate(p, { opacity: 0, y: 34, scale: 0.97, duration: 200, ease: 'in(2)', onComplete: () => setShown(false) });
+  }, [open, shown]);
+  if (!shown) return null;
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div className="fixed inset-0 z-40 flex items-end justify-center p-0 sm:items-center sm:p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-cloth-950/55 backdrop-blur-[3px]" onClick={onClose} />
-          <motion.div role="dialog" aria-modal aria-label={label}
-            className={`relative w-full ${width} max-h-[94vh] overflow-y-auto scroll-thin ${tone === 'paper' ? 'paper on-paper' : 'cloth-deep on-cloth rounded-[var(--radius-card)]'} rounded-b-none !shadow-[var(--shadow-lift)] sm:rounded-b-[var(--radius-card)]`}
-            initial={{ y: 40, scale: 0.97, opacity: 0 }} animate={{ y: 0, scale: 1, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 28 }}>
-            <button onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-wash text-ink ring-1 ring-rule transition hover:bg-endpaper"><Icon name="close" size={18} strokeWidth={2.4} /></button>
-            {children}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div className="fixed inset-0 z-40 flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <div ref={back} className="absolute inset-0 bg-azure-950/45 backdrop-blur-[4px]" style={{ opacity: 0 }} onClick={onClose} />
+      <div ref={panel} role="dialog" aria-modal aria-label={label} style={{ opacity: 0 }}
+        className={`relative w-full ${width} max-h-[94vh] overflow-y-auto scroll-thin ${tone === 'paper' ? 'paper on-paper' : 'azure-deep on-azure rounded-[var(--radius-card)]'} rounded-b-none !shadow-[var(--shadow-lift)] sm:rounded-b-[var(--radius-card)]`}>
+        <button onClick={onClose} aria-label="Close" className="absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-wash text-ink ring-1 ring-rule transition hover:bg-mist" data-press><Icon name="close" size={18} strokeWidth={2.4} /></button>
+        {open ? children : last.current}
+      </div>
+    </div>
   );
 }
 
-export function ProgressBar({ pct, color = '#1d5643', height = 12, className = '', track = 'rgb(22 36 28 / .1)', glow }: {
+export function ProgressBar({ pct, color = '#2563b8', height = 12, className = '', track = 'rgb(19 37 63 / .1)', glow }: {
   pct: number; color?: string; height?: number; className?: string; track?: string; glow?: boolean;
 }) {
+  // the fill springs to its new length when points come in (anime.js)
+  const fill = useRef<HTMLDivElement>(null);
+  const w = `${Math.max(0, Math.min(1, pct)) * 100}%`;
+  const first = useRef(true);
+  useEffect(() => {
+    const el = fill.current;
+    if (!el) return;
+    if (first.current || reducedMotion()) { el.style.width = w; first.current = false; return; }
+    animate(el, { width: w, ease: settle });
+  }, [w]);
   return (
     <div className={`relative overflow-hidden rounded-full ${className}`} style={{ height, background: track }}>
-      <motion.div className="absolute inset-y-0 left-0 rounded-full"
-        style={{ background: color, boxShadow: glow ? `0 0 0 2px #fff, 0 0 14px ${color}` : 'inset 0 -1px 0 rgb(0 0 0 / .12)' }}
-        initial={false} animate={{ width: `${Math.max(0, Math.min(1, pct)) * 100}%` }} transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
+      <div ref={fill} className="absolute inset-y-0 left-0 rounded-full"
+        style={{ width: w, background: `linear-gradient(180deg, color-mix(in srgb, ${color} 80%, white), ${color})`, boxShadow: glow ? `0 0 0 2px #fff, 0 0 14px ${color}` : 'inset 0 -1px 0 rgb(0 0 0 / .12)' }} />
     </div>
   );
 }
@@ -82,8 +107,8 @@ export function RarityStars({ rarity, className = '' }: { rarity: Rarity; classN
 }
 
 export function StagePips({ stage, dark, color }: { stage: Stage; dark?: boolean; color?: string }) {
-  const on = color ?? (dark ? '#16241c' : '#ffffff');
-  const off = dark || color ? 'rgb(22 36 28 / .16)' : 'rgb(255 255 255 / .35)';
+  const on = color ?? (dark ? '#13253f' : '#ffffff');
+  const off = dark || color ? 'rgb(19 37 63 / .16)' : 'rgb(255 255 255 / .35)';
   return (
     <span className="inline-flex items-center gap-[3px]" title={`${STAGE_NAMES[stage]} (stage ${stage} of 5)`}>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -97,13 +122,13 @@ export function StagePips({ stage, dark, color }: { stage: Stage; dark?: boolean
 export function LevelBadge({ level, size = 'md' }: { level: number; size?: 'sm' | 'md' | 'lg' }) {
   if (size === 'lg') {
     return (
-      <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white font-display font-bold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.25)] ring-[2.5px] ring-cloth-800 tabular" title={`Level ${level}`}>
+      <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white font-display font-bold leading-none text-azure-800 shadow-[0_1px_3px_rgb(19_37_63/.25)] ring-[2.5px] ring-azure-800 tabular" title={`Level ${level}`}>
         <span className="flex flex-col items-center"><span className="text-[12px] font-semibold">Lv</span><span className="text-2xl">{level}</span></span>
       </div>
     );
   }
   return (
-    <div className={`flex shrink-0 items-baseline gap-1 rounded-full bg-white font-display font-bold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.22)] ring-2 ring-cloth-800 tabular ${size === 'sm' ? 'px-2 py-1' : 'px-2.5 py-1.5'}`} title={`Level ${level}`}>
+    <div className={`flex shrink-0 items-baseline gap-1 rounded-full bg-white font-display font-bold leading-none text-azure-800 shadow-[0_1px_3px_rgb(19_37_63/.22)] ring-2 ring-azure-800 tabular ${size === 'sm' ? 'px-2 py-1' : 'px-2.5 py-1.5'}`} title={`Level ${level}`}>
       <span className="text-[12px] font-semibold">Lv</span><span className={size === 'sm' ? 'text-[16px]' : 'text-[19px]'}>{level}</span>
     </div>
   );

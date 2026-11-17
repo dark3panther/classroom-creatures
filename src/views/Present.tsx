@@ -18,6 +18,7 @@ import { useClassStudents } from '../lib/stats';
 import { useMood } from '../lib/useMood';
 import { navigate } from '../lib/router';
 import { useCurrentClass, useStore } from '../store/store';
+import { riseIn } from '../lib/motion';
 import type { Student } from '../types';
 
 /**
@@ -37,6 +38,9 @@ export function Present() {
   const [wholeClass, setWholeClass] = useState(false);
   const [wheel, setWheel] = useState(false);
   const sorted = useMemo(() => [...students].sort((a, b) => a.name.localeCompare(b.name)), [students]);
+  // the creatures pop onto the projector one after another when Present opens (anime.js)
+  const tiles = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (tiles.current) riseIn(tiles.current.children, { gap: 45, distance: 30, from: 'center' }); }, [cls?.id, sorted.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const exit = () => {
     if (document.fullscreenElement) void document.exitFullscreen();
@@ -81,7 +85,12 @@ export function Present() {
         const w = Math.min(byWidth, byHeight, 300);
         if (w > best.w) best = { cols, w };
       }
-      setFit({ cols: best.cols, w: Math.max(112, Math.floor(best.w)) });
+      // too many to fit without scrolling (a phone): fill the width at the smallest size and scroll
+      if (best.w < 112) {
+        const cols = Math.max(1, Math.floor((W + gap) / (112 + gap)));
+        best = { cols, w: Math.min(300, (W - gap * (cols - 1)) / cols) };
+      }
+      setFit({ cols: best.cols, w: Math.max(100, Math.floor(best.w)) });
     };
     calc();
     const ro = new ResizeObserver(calc);
@@ -93,13 +102,13 @@ export function Present() {
 
   return (
     <div className="relative flex h-full min-h-full flex-col overflow-hidden text-ink">
-      <header className="present-header cloth on-cloth relative flex flex-wrap items-center gap-x-8 gap-y-3 px-6 pb-4 pt-5 shadow-[0_8px_20px_-14px_rgb(13_46_35/.9)]">
+      <header className="present-header azure on-azure relative flex flex-wrap items-center gap-x-8 gap-y-3 px-6 pb-4 pt-5 shadow-[0_8px_20px_-14px_rgb(14_42_82/.9)]">
         <h1 className="gilt-text min-w-0 truncate font-display text-[44px] font-extrabold leading-none tracking-[-0.02em] sm:text-[56px]">{cls?.name ?? 'Classroom Creatures'}</h1>
         {cls && (
           <div className="ml-auto flex w-full max-w-lg items-center gap-4">
             <div className="flex-1">
               <div className="font-display text-xl font-bold text-white">Class goal</div>
-              <ProgressBar pct={goalPct} height={22} color="#5cc47f" track="rgb(255 255 255 / .16)" glow={goalPct >= 1} className="mt-1.5" />
+              <ProgressBar pct={goalPct} height={22} color="#ffc23d" track="rgb(255 255 255 / .18)" glow={goalPct >= 1} className="mt-1.5" />
             </div>
             <div className="font-display text-[64px] font-extrabold leading-none text-white tabular" aria-label={`${Math.round(goalPct * 100)} percent of the class goal`}>{Math.round(goalPct * 100)}<span className="text-[0.5em] text-white/75">%</span></div>
           </div>
@@ -111,7 +120,7 @@ export function Present() {
           <div className="grid h-full place-items-center font-display text-3xl font-bold text-ink-soft">Add students to see their creatures here.</div>
         ) : (
           <div className="flex min-h-full items-center justify-center">
-            <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${fit.cols}, ${fit.w}px)` }}>
+            <div ref={tiles} className="grid gap-4" style={{ gridTemplateColumns: `repeat(${fit.cols}, ${fit.w}px)` }}>
               {sorted.map((s) => <PresentTile key={s.id} s={s} w={fit.w} onClick={() => setSpot(s.id)} />)}
             </div>
           </div>
@@ -121,12 +130,12 @@ export function Present() {
       {ticker.length > 0 && (
         <div className="shrink-0 overflow-hidden whitespace-nowrap border-y border-rule bg-white/90 py-2.5 font-display text-[22px] font-semibold text-ink" aria-hidden>
           <motion.div className="inline-block" animate={{ x: ['0%', '-50%'] }} transition={{ repeat: Infinity, duration: Math.max(18, ticker.length * 5), ease: 'linear' }}>
-            {[...ticker, ...ticker].map((t, i) => <span key={i} className="mx-8 inline-flex items-center gap-2"><span className="text-cloth-700"><Glyph icon={t.icon} size={24} /></span>{t.text}</span>)}
+            {[...ticker, ...ticker].map((t, i) => <span key={i} className="mx-8 inline-flex items-center gap-2"><span className="text-azure-700"><Glyph icon={t.icon} size={24} /></span>{t.text}</span>)}
           </motion.div>
         </div>
       )}
 
-      <nav className="cloth on-cloth flex min-h-[92px] shrink-0 flex-wrap items-center justify-center gap-3 px-4 py-3">
+      <nav className="azure on-azure flex min-h-[92px] shrink-0 flex-wrap items-center justify-center gap-3 px-4 py-3">
         <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}><Icon name="dice" size={24} />Pick a student</button>
         {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}><Icon name="sparkle" size={24} />Whole class</button>}
         {cls?.pendingSpin && !locked && <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setWheel(true)}><Icon name="wheel" size={24} />Prize wheel</button>}
@@ -139,7 +148,7 @@ export function Present() {
       <AnimatePresence>{picking && <RandomPicker students={sorted} onDone={(id) => { setPicking(false); if (id) setSpot(id); }} />}</AnimatePresence>
       <AnimatePresence>
         {wholeClass && (
-          <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-endpaper/95 p-6 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-mist/95 p-6 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="w-full max-w-4xl">
               <h2 className="mb-5 text-center font-display text-5xl font-extrabold tracking-[-0.02em]">Award the whole class</h2>
               <AwardGrid onPick={(c) => { const o = award(students.map((s) => s.id), c.id); if (o.length && settings.soundEnabled) awardSound(c.xp, o.length); setWholeClass(false); }} />
@@ -165,10 +174,10 @@ function PresentTile({ s, w, onClick }: { s: Student; w: number; onClick: () => 
   const level = levelForXp(s.xp, settings.levelXp);
   const big = Math.max(22, Math.round(w * 0.17));
   return (
-    <button onClick={onClick} className="paper group relative flex flex-col items-center p-2 pb-2.5 transition hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]" aria-label={`${firstName(s.name)}, level ${level}`}>
+    <button onClick={onClick} data-tilt="8" data-press className="paper group relative flex flex-col items-center p-2 pb-2.5 transition-shadow hover:shadow-[var(--shadow-lift)]" aria-label={`${firstName(s.name)}, level ${level}`}>
       <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full" rounded="rounded-[8px]">
         <Creature speciesId={s.speciesId} stage={stage} branch={s.branch} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={3} compact className="mx-auto h-full w-[86%]" />
-        <span className="absolute left-1.5 top-1.5 flex items-baseline gap-0.5 rounded-full bg-white/95 px-2 py-0.5 font-display font-extrabold leading-none text-cloth-800 shadow-[0_1px_3px_rgb(22_36_28/.25)] ring-2 ring-cloth-800 tabular" aria-hidden>
+        <span className="absolute left-1.5 top-1.5 flex items-baseline gap-0.5 rounded-full bg-white/95 px-2 py-0.5 font-display font-extrabold leading-none text-azure-800 shadow-[0_1px_3px_rgb(19_37_63/.25)] ring-2 ring-azure-800 tabular" aria-hidden>
           <span style={{ fontSize: Math.max(12, big * 0.42) }}>Lv</span><span style={{ fontSize: big }}>{level}</span>
         </span>
       </Habitat>
@@ -194,7 +203,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
   const stage = displayStage(s, settings);
   const doAct = (type: CreatureAction) => { if (settings.soundEnabled) playCreature(sp.sound, true); setAct({ type, key: Date.now() }); };
   return (
-    <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-endpaper/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+    <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-mist/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
       <motion.div className="relative grid w-full max-w-5xl items-center gap-6 md:grid-cols-[1.1fr_1fr]" initial={{ scale: 0.85, y: 30 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 20 }} onClick={(e) => e.stopPropagation()}>
         <Habitat element={sp.element} seed={sp.id} background={s.equipped.background} className="aspect-square w-full border border-rule p-0 shadow-[var(--shadow-lift)]" rounded="rounded-[18px]">
           <Creature speciesId={sp.id} stage={stage} branch={s.branch} equipped={s.equipped} celebrateKey={pulse?.n} reactKind={pulse?.kind} event={pulse} treats={(s.milestoneRewards ?? []).filter((r) => !r.given).length} mood={mood} ambient={8} action={act} interactive sound={settings.soundEnabled} className="mx-auto h-full w-[84%]" />
@@ -264,8 +273,8 @@ function RandomPicker({ students, onDone }: { students: Student[]; onDone: (id: 
   const prev = students[(idx - 1 + students.length) % students.length];
   const next = students[(idx + 1) % students.length];
   return (
-    <motion.div className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-endpaper/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <div className="font-display text-4xl font-extrabold tracking-[-0.01em] text-cloth-800">{done ? 'It’s your turn!' : 'Who will it be?'}</div>
+    <motion.div className="fixed inset-0 z-40 flex flex-col items-center justify-center bg-mist/95 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <div className="font-display text-4xl font-extrabold tracking-[-0.01em] text-azure-800">{done ? 'It’s your turn!' : 'Who will it be?'}</div>
       <div className="mt-6 flex items-center gap-6">
         {!done && <Mini s={prev} />}
         <motion.div key={done ? 'done' : 'spin'} className="relative h-[46vh] w-[46vh] max-w-[80vw]" animate={done ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 0.5 }}>

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { SkyWorld } from './components/SkyWorld';
 import { Icon } from './dev/Icon';
 import { Lineup } from './dev/Lineup';
 import { Sheet } from './dev/Sheet';
@@ -14,5 +15,10 @@ const isSheet = import.meta.env.DEV && qs.has('sheet');
 const isIcon = import.meta.env.DEV && qs.has('icon');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>{import.meta.env.DEV && qs.get('lineup') ? <Lineup id={qs.get('lineup')!} /> : isIcon ? <Icon /> : isSheet ? <Sheet /> : <App />}</React.StrictMode>,
+  <React.StrictMode>{import.meta.env.DEV && qs.get('lineup') ? <Lineup id={qs.get('lineup')!} /> : isIcon ? <Icon /> : isSheet ? <Sheet /> : (
+    <>
+      <SkyWorld />
+      <div className="app-layer"><App /></div>
+    </>
+  )}</React.StrictMode>,
 );

@@ -69,7 +69,7 @@ export function Creaturedex() {
             <span className="font-display text-[17px] font-bold">{cls ? `${cls.name} has discovered` : 'Discovered'}</span>
             <span className="font-display text-[28px] font-extrabold leading-none tabular">{Math.round(stats.pct * 100)}%</span>
           </div>
-          <ProgressBar pct={stats.pct} height={14} color="#1d5643" className="mt-1.5 ring-1 ring-rule" />
+          <ProgressBar pct={stats.pct} height={14} color="#1b4f97" className="mt-1.5 ring-1 ring-rule" />
           <div className="mt-1 text-[13px] text-ink-soft"><b className="text-ink tabular">{stats.discovered}</b> of {stats.total} forms · <b className="text-ink tabular">{stats.species}</b> of {SPECIES.length} creatures · <b className="text-ink tabular">{stats.mythical}</b> mythical</div>
         </div>
       </div>
@@ -81,7 +81,7 @@ export function Creaturedex() {
           const done = stats.pct >= m.pct;
           return (
             <div key={m.pct} className={`flex items-center gap-3 rounded-xl p-3 ring-1 ${done ? 'bg-white ring-gilt-deep/50 shadow-[var(--shadow-card)]' : 'bg-white/70 ring-rule'}`}>
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full" style={{ background: done ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(22 36 28 / .06)', color: done ? `color-mix(in srgb, ${a.color} 75%, #16241c)` : '#8a958c' }}>
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full" style={{ background: done ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(19 37 63 / .06)', color: done ? `color-mix(in srgb, ${a.color} 75%, #13253f)` : '#8a958c' }}>
                 {done ? <Glyph icon={a.icon} size={22} /> : <Icon name="lock" size={18} />}
               </span>
               <span className="min-w-0 leading-tight">
@@ -109,7 +109,7 @@ export function Creaturedex() {
         </select>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <button onClick={() => setElement('all')} aria-pressed={element === 'all'} className={`chip !px-3.5 !py-1.5 !text-sm ring-1 transition ${element === 'all' ? 'bg-cloth-800 text-white ring-cloth-800' : 'bg-white text-ink ring-rule hover:bg-wash'}`}>All</button>
+        <button onClick={() => setElement('all')} aria-pressed={element === 'all'} className={`chip !px-3.5 !py-1.5 !text-sm ring-1 transition ${element === 'all' ? 'bg-azure-800 text-white ring-azure-800' : 'bg-white text-ink ring-rule hover:bg-wash'}`}>All</button>
         {ELEMENT_ORDER.map((e) => (
           <button key={e} onClick={() => setElement(e)} aria-pressed={element === e} className={`chip !px-3.5 !py-1.5 !text-sm ring-1 transition ${element === e ? 'text-white' : 'bg-white text-ink ring-rule hover:bg-wash'}`}
             style={element === e ? { background: ELEMENTS[e].color, ['--tw-ring-color' as string]: ELEMENTS[e].color } : undefined}>
@@ -124,14 +124,14 @@ export function Creaturedex() {
           <button className="btn btn-ghost mt-3" onClick={() => { setQuery(''); setElement('all'); setRarity('all'); setStatus('all'); }}>Clear filters</button>
         </div>
       ) : (
-        <div className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
+        <div data-stagger className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
           {list.map((sp) => {
             const k = known(sp);
             const own = owners.get(sp.id) ?? [];
             const top = ([5, 4, 3, 2, 1] as Stage[]).find((st) => found.has(`${sp.id}-${st}`)) ?? 1;
             const n = formsOf(sp), t = totalOf(sp);
             return (
-              <button key={sp.id} onClick={() => setOpen(sp)} className="paper overflow-hidden text-left transition hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 330px' }}
+              <button key={sp.id} onClick={() => setOpen(sp)} data-tilt="6" data-press className="paper overflow-hidden text-left transition-shadow hover:shadow-[var(--shadow-lift)]" style={{ contentVisibility: 'auto', containIntrinsicSize: '200px 330px' }}
                 aria-label={k ? `${sp.name}, ${n} of ${t} forms discovered` : `${fieldNo(sp.id)}, not discovered yet`}>
                 <Habitat element={sp.element} seed={sp.id} className="mx-2 mt-2 h-40" rounded="rounded-[8px]">
                   <div className="h-full w-full" style={k ? undefined : { filter: 'brightness(0)', opacity: 0.2 }}>
@@ -191,7 +191,7 @@ function SpeciesDetail({ sp, found, owners }: { sp: Species; found: Set<string>;
             const on = st === stage && (st < 5 || b === branch);
             return (
               <button key={`${st}${b ?? ''}`} onClick={() => { setStage(st); if (b) setBranch(b); setK(Date.now()); }} aria-pressed={on}
-                className={`rounded-xl p-1 text-center transition ${on ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash ring-1 ring-rule hover:bg-endpaper'}`}>
+                className={`rounded-xl p-1 text-center transition ${on ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash ring-1 ring-rule hover:bg-mist'}`}>
                 <div className="aspect-square" style={ok ? undefined : { filter: 'brightness(0)', opacity: 0.2 }}>
                   <CreatureSvg species={sp} stage={st} branch={b} effects={false} noShadow className="h-full w-full" />
                 </div>

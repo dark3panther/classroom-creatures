@@ -32,7 +32,7 @@ export function Onboarding() {
   };
 
   return (
-    <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-cloth-950/70 p-4 backdrop-blur-[3px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+    <motion.div className="fixed inset-0 z-40 flex items-center justify-center bg-azure-950/70 p-4 backdrop-blur-[3px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
       <motion.div className="paper relative max-h-[94vh] w-full max-w-2xl overflow-y-auto scroll-thin on-paper" initial={{ y: 30, scale: 0.96 }} animate={{ y: 0, scale: 1 }}>
         {step === 'hello' ? (
           <div className="p-6 text-center sm:p-10">
@@ -43,7 +43,7 @@ export function Onboarding() {
                 </motion.span>
               ))}
             </div>
-            <h1 className="mt-2 font-display text-4xl font-extrabold tracking-[-0.02em]">Welcome to <span className="text-cloth-800">Classroom Creatures</span>!</h1>
+            <h1 className="mt-2 font-display text-4xl font-extrabold tracking-[-0.02em]">Welcome to <span className="text-azure-800">Classroom Creatures</span>!</h1>
             <p className="mx-auto mt-3 max-w-lg text-lg text-ink-soft">
               Every student gets their own fantasy creature. Award XP for positive behaviour, and watch the creatures grow, evolve and celebrate.
             </p>

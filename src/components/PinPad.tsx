@@ -41,14 +41,14 @@ export function LockScreen() {
   }, []);
 
   return (
-    <div className="cloth-deep fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div className="azure-deep fixed inset-0 z-[70] flex items-center justify-center p-4">
       <motion.div key={shake} animate={shake ? { x: [0, -14, 14, -8, 8, 0] } : {}} transition={{ duration: 0.4 }} className="paper relative w-full max-w-sm p-6 text-center">
         <div className="mx-auto -mt-20 h-28 w-28"><CreatureSvg species={getSpecies('duskit')} stage={2} expression="sleepy" /></div>
         <h2 className="font-display text-2xl font-bold">Teacher controls are locked</h2>
         <p className="mt-1 text-sm text-ink-soft">Enter your PIN to manage the class.</p>
         <div className="my-4 flex justify-center gap-2" aria-live="polite">
           {Array.from({ length: Math.max(4, pin.length) }).map((_, i) => (
-            <span key={i} className={`h-4 w-4 rounded-full ${i < pin.length ? 'bg-cloth-800' : 'bg-ink/15'}`} />
+            <span key={i} className={`h-4 w-4 rounded-full ${i < pin.length ? 'bg-azure-800' : 'bg-ink/15'}`} />
           ))}
         </div>
         {!error && pin.length >= 4 && <p className="mb-2 text-sm font-bold text-ink-soft">Press OK when you have typed the whole PIN.</p>}

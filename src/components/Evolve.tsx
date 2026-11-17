@@ -56,7 +56,7 @@ export function BranchChooserHost() {
   return (
     <AnimatePresence>
       {pick && st && def && (
-        <motion.div className="cloth-deep on-cloth fixed inset-0 z-[52] flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-label="Choose the final path"
+        <motion.div className="azure-deep on-azure fixed inset-0 z-[52] flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-label="Choose the final path"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <div className="w-full max-w-4xl py-6 text-center">
             <h2 className="gilt-text font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-5xl">Choose {firstName(st.name)}’s final path</h2>
@@ -78,7 +78,7 @@ export function BranchChooserHost() {
                     </div>
                     <div className="mt-1 font-display text-2xl font-extrabold tracking-[-0.01em]">{sp.name}, {path.title}</div>
                     <p className="mt-1 flex-1 text-[15px] text-ink-soft">{path.description}</p>
-                    <button className={`btn mt-3 w-full py-3 text-lg ${b === 'b' ? 'btn-primary' : 'btn-cloth'}`}
+                    <button className={`btn mt-3 w-full py-3 text-lg ${b === 'b' ? 'btn-primary' : 'btn-azure'}`}
                       onClick={() => { close(); if (pick.mode === 'approve') approve(st.id, b); else choose(st.id, b); }}>
                       <Icon name="sparkle" size={18} />Choose {path.title}
                     </button>

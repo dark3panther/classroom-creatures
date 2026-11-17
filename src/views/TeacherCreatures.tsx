@@ -39,7 +39,7 @@ export function CreaturesTab() {
             const on = settings.evolutionMode === mode;
             return (
               <button key={mode} role="radio" aria-checked={on} onClick={() => updateSettings({ evolutionMode: mode })}
-                className={`rounded-xl p-3 text-left ring-1 transition ${on ? 'bg-cloth-800 text-white ring-cloth-800' : 'bg-white ring-rule hover:bg-wash'}`}>
+                className={`rounded-xl p-3 text-left ring-1 transition ${on ? 'bg-azure-800 text-white ring-azure-800' : 'bg-white ring-rule hover:bg-wash'}`}>
                 <span className="flex items-center gap-2 font-display text-lg font-bold">{on ? <Icon name="checkCircle" size={18} /> : <span className="h-[18px] w-[18px] rounded-full ring-2 ring-rule" />}{title}</span>
                 <span className={`mt-1 block text-[14px] ${on ? 'text-white/85' : 'text-ink-soft'}`}>{text}</span>
               </button>
@@ -144,7 +144,7 @@ function AdjustXp({ student, onClose }: { student: Student | null; onClose: () =
           <p className="mt-3 text-[15px]">XP: <b className="tabular">{student.xp}</b> → <b className="tabular">{after}</b></p>
           <div className="mt-5 flex justify-end gap-2">
             <button type="button" className="btn btn-light" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-cloth" disabled={!delta}>Apply</button>
+            <button type="submit" className="btn btn-azure" disabled={!delta}>Apply</button>
           </div>
         </form>
       )}
@@ -222,7 +222,7 @@ function ShopSection() {
       <h2 className="font-display text-2xl font-bold">Dressing room items</h2>
       <p className="text-sm text-ink-soft">Choose which items appear and what shop items cost. Students keep anything they already own, even if you switch it off.</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {SLOTS.map((x) => <button key={x.slot} onClick={() => setSlot(x.slot)} aria-pressed={slot === x.slot} className={`chip !px-3.5 !py-1.5 !text-sm ring-1 ${slot === x.slot ? 'bg-cloth-800 text-white ring-cloth-800' : 'bg-white text-ink ring-rule hover:bg-wash'}`}>{x.many}</button>)}
+        {SLOTS.map((x) => <button key={x.slot} onClick={() => setSlot(x.slot)} aria-pressed={slot === x.slot} className={`chip !px-3.5 !py-1.5 !text-sm ring-1 ${slot === x.slot ? 'bg-azure-800 text-white ring-azure-800' : 'bg-white text-ink ring-rule hover:bg-wash'}`}>{x.many}</button>)}
       </div>
       <ul className="mt-3 divide-y divide-rule rounded-xl bg-white ring-1 ring-rule">
         {items.map((it) => {
@@ -240,7 +240,7 @@ function ShopSection() {
                 <span className="flex items-center gap-1.5">
                   <CoinIcon size={16} />
                   <input type="number" min={0} className="input !w-20 !py-1 tabular" value={price} onChange={(e) => setPrice(it.id, Number(e.target.value) || 0)} aria-label={`${it.name} price`} />
-                  {custom && <button className="text-[12px] font-bold text-cloth-800 underline-offset-2 hover:underline" onClick={() => resetPrice(it.id)}>Default</button>}
+                  {custom && <button className="text-[12px] font-bold text-azure-800 underline-offset-2 hover:underline" onClick={() => resetPrice(it.id)}>Default</button>}
                 </span>
               )}
               <button role="switch" aria-checked={on} aria-label={`${it.name} ${on ? 'shown' : 'hidden'}`} onClick={() => toggle(it.id)}

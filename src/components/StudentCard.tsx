@@ -1,5 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState } from 'react';
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { bouncy, createTimeline, pop, reducedMotion } from '../lib/motion';
+import { CountUp } from './CountUp';
 import { MOODS } from '../engine/mood';
 import { useMood } from '../lib/useMood';
 import { awardSound } from '../audio/sfx';
@@ -14,18 +16,30 @@ import { EvolveBadge } from './Evolve';
 import { CoinIcon, Glyph, Icon } from './Icon';
 import { ElementIcon, LevelBadge, ProgressBar, StagePips } from './ui';
 
-export function FloatingXP({ pulse }: { pulse?: { n: number; xp: number; icon: string; coins?: number; kind?: 'good' | 'bad' } }) {
+type Pulse = { n: number; xp: number; icon: string; coins?: number; kind?: 'good' | 'bad' };
+/** "+5 XP" (and coins) rising out of a card after an award: springs up, floats, fades (anime.js). */
+export function FloatingXP({ pulse }: { pulse?: Pulse }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState<Pulse | undefined>(undefined);
+  useEffect(() => { if (pulse) setShown(pulse); }, [pulse?.n]); // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !shown) return;
+    if (reducedMotion()) { const t = setTimeout(() => setShown(undefined), 1300); return () => clearTimeout(t); }
+    const tl = createTimeline({ onComplete: () => setShown(undefined) })
+      .add(el, { opacity: [0, 1], scale: [0.6, 1.25], y: [10, -18], duration: 320, ease: 'out(3)' })
+      .add(el, { scale: 1, ease: bouncy }, '<<+=200')
+      .add(el, { y: -52, duration: 1000, ease: 'out(2)' }, 320)
+      .add(el, { opacity: 0, duration: 380, ease: 'in(2)' }, 1050);
+    return () => { tl.pause(); };
+  }, [shown?.n]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!shown) return null;
   return (
-    <AnimatePresence>
-      {pulse && (
-        <motion.div key={pulse.n} className={`pointer-events-none absolute left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap font-display text-[32px] font-extrabold tabular ${pulse.kind === 'bad' ? 'top-24' : 'top-6'}`}
-          initial={{ y: 10, opacity: 0, scale: 0.6 }} animate={{ y: -46, opacity: [0, 1, 1, 0], scale: [0.6, 1.25, 1, 1] }} transition={{ duration: 1.5, times: [0, 0.2, 0.7, 1] }}
-          style={{ color: pulse.kind === 'bad' ? '#9a3522' : '#1b7a40', textShadow: '0 0 2px #fff, 0 2px 0 #fff, 0 0 12px rgb(255 255 255 / .95)' }}>
-          {pulse.kind === 'bad' && pulse.xp === 0 ? 'Oops!' : `${pulse.xp > 0 ? '+' : ''}${pulse.xp} XP`}
-          {!!pulse.coins && pulse.coins > 0 && <span className="flex items-center gap-1 text-2xl text-coin"><CoinIcon size={22} />+{pulse.coins}</span>}
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div ref={ref} className={`pointer-events-none absolute left-1/2 z-20 -ml-[50%] flex w-full items-center justify-center gap-1.5 whitespace-nowrap font-display text-[32px] font-extrabold tabular ${shown.kind === 'bad' ? 'top-24' : 'top-6'}`}
+      style={{ color: shown.kind === 'bad' ? '#9a3522' : '#1b7a40', textShadow: '0 0 2px #fff, 0 2px 0 #fff, 0 0 12px rgb(255 255 255 / .95)', opacity: 0 }}>
+      {shown.kind === 'bad' && shown.xp === 0 ? 'Oops!' : `${shown.xp > 0 ? '+' : ''}${shown.xp} XP`}
+      {!!shown.coins && shown.coins > 0 && <span className="flex items-center gap-1 text-2xl text-coin"><CoinIcon size={22} />+{shown.coins}</span>}
+    </div>
   );
 }
 
@@ -59,10 +73,12 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
 
   const el = ELEMENTS[species.element];
   const treats = (student.milestoneRewards ?? []).filter((r) => !r.given).length;
+  // a little bounce when this card gets an award (a wobble for a reminder)
+  const card = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (pulse) pop(card.current, pulse.kind === 'bad' ? 0.97 : 1.05); }, [pulse?.n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <motion.div layout="position" className={`group relative flex flex-col paper transition-shadow hover:shadow-[var(--shadow-lift)] ${selected ? '!border-gilt-deep shadow-[var(--shadow-glow)]' : ''}`}
-      whileHover={{ y: -3 }} transition={{ type: 'spring', stiffness: 400, damping: 30 }}>
+    <div ref={card} data-tilt="5" data-card className={`group relative flex flex-col paper transition-shadow hover:shadow-[var(--shadow-lift)] ${selected ? '!border-gilt-deep shadow-[var(--shadow-glow)]' : ''}`}>
       <button type="button" className="relative block rounded-[var(--radius-card)] text-left" onClick={() => (selecting ? onToggle(student.id) : onOpen(student.id))}
         aria-label={selecting ? `${selected ? 'Deselect' : 'Select'} ${student.name}` : `Open ${student.name}`} aria-pressed={selecting ? selected : undefined}>
         <Habitat element={species.element} seed={species.id} background={student.equipped.background} className="mx-2 mt-2 h-36 sm:h-40" rounded="rounded-[8px]">
@@ -100,18 +116,18 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
           </div>
           <div className="mt-1 flex items-center text-[12px] text-ink-soft">
             <span title={STAGE_NAMES[stage]}><StagePips stage={stage} color={el.color} /></span>
-            <span className="ml-2 truncate"><span className="tabular">{student.xp}</span> XP</span>
-            <span className="ml-auto flex shrink-0 items-center gap-1 font-bold text-coin tabular" title="Coins"><CoinIcon size={14} />{student.coins ?? 0}</span>
+            <span className="ml-2 truncate"><CountUp value={student.xp} className="tabular" /> XP</span>
+            <span className="ml-auto flex shrink-0 items-center gap-1 font-bold text-coin tabular" title="Coins"><CoinIcon size={14} /><CountUp value={student.coins ?? 0} /></span>
           </div>
         </div>
       </button>
       {!selecting && quick.length > 0 && (
         <div className="mt-auto flex gap-1.5 px-3 pb-3 pt-2.5">
           {quick.map((c) => (
-            <button key={c.id} type="button" onClick={() => quickAward(c)} title={`${c.name} (+${c.xp} XP)`} aria-label={`Award ${c.name} to ${student.name}`}
-              className="flex h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[12px] font-bold leading-none text-ink transition hover:brightness-[.97] active:translate-y-[1px]"
+            <button key={c.id} type="button" data-press onClick={() => quickAward(c)} title={`${c.name} (+${c.xp} XP)`} aria-label={`Award ${c.name} to ${student.name}`}
+              className="flex h-12 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl text-[12px] font-bold leading-none text-ink transition-[filter] hover:brightness-[.97]"
               style={{ background: `color-mix(in srgb, ${c.color} 15%, white)`, boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${c.color} 45%, white)` }}>
-              <span style={{ color: `color-mix(in srgb, ${c.color} 70%, #16241c)` }}><Glyph icon={c.icon} size={19} /></span><span className="tabular">+{c.xp}</span>
+              <span style={{ color: `color-mix(in srgb, ${c.color} 70%, #13253f)` }}><Glyph icon={c.icon} size={19} /></span><span className="tabular">+{c.xp}</span>
             </button>
           ))}
           {deductions.length > 0 && (
@@ -135,7 +151,7 @@ function StudentCardImpl({ student, quick, selecting, selected, onOpen, onToggle
         )}
       </AnimatePresence>
       {selecting && <div className="pb-3" />}
-    </motion.div>
+    </div>
   );
 }
 

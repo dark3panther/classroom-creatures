@@ -1,5 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { CountUp } from '../components/CountUp';
+import { reducedMotion } from '../lib/motion';
+import { createLayout, type AutoLayout } from '../vendor/animejs/index.js';
 import { awardSound } from '../audio/sfx';
 import { AwardGrid } from '../components/AwardGrid';
 import { EvolutionQueue, useEvolutionQueue } from '../components/Evolve';
@@ -33,6 +36,15 @@ export function Dashboard() {
   const [element, setElement] = useState<ElementType | 'all'>('all');
   const [stageFilter, setStageFilter] = useState<Stage | 0>(0);
   const [sort, setSort] = useState<Sort>('name');
+  // cards glide to their new places when the order changes (anime.js layout)
+  const grid = useRef<HTMLDivElement>(null);
+  const layout = useRef<AutoLayout | null>(null);
+  useEffect(() => {
+    if (!grid.current) return;
+    layout.current = createLayout(grid.current, { duration: 620, ease: 'out(4)' });
+    return () => { layout.current?.revert(); layout.current = null; };
+  }, [grid.current]); // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => { if (layout.current && !reducedMotion()) layout.current.animate(); }, [sort]);
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [profile, setProfile] = useState<string | null>(null);
@@ -95,23 +107,24 @@ export function Dashboard() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-4 pb-32 pt-6 sm:px-6">
-      {/* header */}
+      {/* header and tools sit straight on the painted sky; the class goal floats on a glass card */}
+      <div className="pt-2 sm:pt-6">
       <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:truncate sm:text-[44px]">{cls.name.replace(/ ([·\-–]) /g, '\u00a0$1 ')}</h1>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-ink-soft">
+          <h1 className="on-sky font-display text-[34px] font-extrabold leading-[1.05] tracking-[-0.02em] sm:truncate sm:text-[48px]">{cls.name.replace(/ ([·\-–]) /g, '\u00a0$1 ')}</h1>
+          <div className="on-sky mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] font-semibold text-ink">
             {cls.grade && <span className="font-bold text-ink">{cls.grade}</span>}
             <span><b className="text-ink tabular">{students.length}</b> students</span>
-            <span><b className="text-ink tabular">{totalXp.toLocaleString()}</b> class XP</span>
+            <span><b className="text-ink tabular"><CountUp value={totalXp} /></b> class XP</span>
             {cls.isDemo && <span className="chip bg-berry/10 text-berry ring-1 ring-berry/30">Demo data · not real students</span>}
           </div>
         </div>
-        <div className="w-full sm:w-[360px]">
+        <div className="glass w-full rounded-2xl px-4 py-3 shadow-[var(--shadow-card)] ring-1 ring-white/80 sm:w-[380px]">
           <div className="flex items-baseline justify-between gap-3">
             <span className="font-display text-[17px] font-bold">Class goal</span>
             <span className="text-[14px] text-ink-soft tabular"><b className="text-ink">{Math.min(totalXp, cls.goal).toLocaleString()}</b> of {cls.goal.toLocaleString()} XP</span>
           </div>
-          <ProgressBar pct={goalPct} height={14} color="#23864a" className="mt-1.5 ring-1 ring-rule" glow={goalPct >= 1} />
+          <ProgressBar pct={goalPct} height={14} color="#2563b8" className="mt-1.5 ring-1 ring-rule" glow={goalPct >= 1} />
           {cls.pendingSpin && (
             <button className="btn btn-primary mt-2.5 w-full !py-2" onClick={() => setWheel(true)}><Icon name="wheel" size={18} />Spin the prize wheel</button>
           )}
@@ -128,14 +141,14 @@ export function Dashboard() {
       </div>
 
       {/* toolbar */}
-      <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-rule pt-4">
+      <div className="mt-6 flex flex-wrap items-center gap-2">
         <button className="btn btn-primary" onClick={() => setWholeClass(true)} disabled={!students.length}><Icon name="sparkle" size={18} />Award whole class</button>
-        <button className={`btn ${selecting ? 'btn-cloth' : 'btn-ghost'}`} onClick={() => { setSelecting(!selecting); setSelected(new Set()); }} disabled={!students.length} aria-pressed={selecting}>
+        <button className={`btn ${selecting ? 'btn-azure' : 'btn-light'}`} onClick={() => { setSelecting(!selecting); setSelected(new Set()); }} disabled={!students.length} aria-pressed={selecting}>
           <Icon name={selecting ? 'check' : 'select'} size={18} />{selecting ? 'Done selecting' : 'Select students'}
         </button>
-        <button className="btn btn-ghost" onClick={() => setAdding(true)}><Icon name="plus" size={18} />Add students</button>
+        <button className="btn btn-light" onClick={() => setAdding(true)}><Icon name="plus" size={18} />Add students</button>
         {queue.ready.length + queue.choose.length > 0 && (
-          <button className="btn btn-cloth" onClick={() => setEvolving(true)}>
+          <button className="btn btn-azure" onClick={() => setEvolving(true)}>
             <Icon name="sparkle" size={18} />Evolutions<span className="grid h-6 min-w-6 place-items-center rounded-full bg-gilt px-1.5 text-[13px] text-gilt-ink tabular">{queue.ready.length + queue.choose.length}</span>
           </button>
         )}
@@ -153,12 +166,13 @@ export function Dashboard() {
             <option value={0}>All stages</option>
             {([1, 2, 3, 4, 5] as Stage[]).map((s) => <option key={s} value={s}>{STAGE_NAMES[s]}</option>)}
           </select>
-          <select className="input !w-auto !rounded-full !py-2" value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Sort students">
+          <select className="input !w-auto !rounded-full !py-2" value={sort} onChange={(e) => { layout.current?.record(); setSort(e.target.value as Sort); }} aria-label="Sort students">
             <option value="name">Name A–Z</option>
             <option value="creature">Creature</option>
             <option value="recent">Recently awarded</option>
           </select>
         </div>
+      </div>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
@@ -168,11 +182,11 @@ export function Dashboard() {
           ) : visible.length === 0 ? (
             <div className="panel p-10 text-center"><p className="font-display text-xl font-bold">No students match those filters.</p><button className="btn btn-ghost mt-3" onClick={() => { setQuery(''); setElement('all'); setStageFilter(0); }}>Clear filters</button></div>
           ) : (
-            <motion.div layout className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))] sm:gap-4">
+            <div ref={grid} data-stagger className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(184px,1fr))] sm:gap-4">
               {visible.map((s) => (
                 <StudentCard key={s.id} student={s} quick={quick} selecting={selecting} selected={selected.has(s.id)} onOpen={setProfile} onToggle={toggle} fresh={!!fresh?.ids.has(s.id)} />
               ))}
-            </motion.div>
+            </div>
           )}
         </div>
         <ActivityPanel classId={cls.id} onOpen={setProfile} />
@@ -181,7 +195,7 @@ export function Dashboard() {
       {/* selection bar */}
       <AnimatePresence>
         {selecting && (
-          <motion.div className="cloth on-cloth fixed inset-x-0 bottom-0 z-30 px-4 pb-4 pt-3 shadow-[0_-10px_30px_-12px_rgb(13_46_35/.6)] sm:px-6"
+          <motion.div className="azure on-azure fixed inset-x-0 bottom-0 z-30 px-4 pb-4 pt-3 shadow-[0_-10px_30px_-12px_rgb(14_42_82/.6)] sm:px-6"
             initial={{ y: 200 }} animate={{ y: 0 }} exit={{ y: 200 }} transition={{ type: 'spring', stiffness: 300, damping: 30 }}>
             <div className="mx-auto max-w-[1600px]">
               <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -286,7 +300,7 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
             <li key={`${s.id}-${at}`}>
               <button className="flex w-full items-center gap-2 rounded-lg px-1 py-1 text-left hover:bg-wash" onClick={() => onOpen(s.id)}>
                 <span className="h-10 w-10"><CreatureSvg species={getSpecies(s.speciesId)} stage={displayStage(s, settings)} branch={s.branch} effects={false} noShadow className="h-full w-full" /></span>
-                <span className="flex-1 text-sm"><b>{firstName(s.name)}</b> reached <b className="text-cloth-800">Level {level}</b><br /><span className="text-[13px] text-ink-soft">{timeAgo(at)}</span></span>
+                <span className="flex-1 text-sm"><b>{firstName(s.name)}</b> reached <b className="text-azure-800">Level {level}</b><br /><span className="text-[13px] text-ink-soft">{timeAgo(at)}</span></span>
               </button>
             </li>
           ))}
@@ -298,7 +312,7 @@ function ActivityPanel({ classId, onOpen }: { classId: string; onOpen: (id: stri
         <ul className="flex flex-col gap-1">
           {recentAch.map(({ s, a }) => (
             <li key={`${s.id}-${a.id}`} className="flex items-center gap-2 px-1 py-1 text-sm">
-              <span className="grid h-8 w-8 place-items-center rounded-full text-lg" style={{ background: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 18%, white)`, color: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 75%, #16241c)` }}><Glyph icon={ACHIEVEMENTS_BY_ID[a.id]?.icon ?? ''} size={17} /></span>
+              <span className="grid h-8 w-8 place-items-center rounded-full text-lg" style={{ background: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 18%, white)`, color: `color-mix(in srgb, ${ACHIEVEMENTS_BY_ID[a.id]?.color ?? '#888'} 75%, #13253f)` }}><Glyph icon={ACHIEVEMENTS_BY_ID[a.id]?.icon ?? ''} size={17} /></span>
               <span className="flex-1"><b>{firstName(s.name)}</b> · {ACHIEVEMENTS_BY_ID[a.id]?.name}<br /><span className="text-[13px] text-ink-soft">{timeAgo(a.at)}</span></span>
             </li>
           ))}

@@ -165,7 +165,7 @@ export interface AwardResult {
  */
 export function applyAward(data: AppData, studentIds: string[], categoryId: string, now = Date.now(), adjust?: { xp: number; note?: string }): AwardResult {
   const cat: Category | undefined = adjust
-    ? { id: ADJUST_CATEGORY_ID, name: adjust.note?.trim() ? `Teacher adjustment: ${adjust.note.trim()}` : 'Teacher adjustment', xp: Math.round(adjust.xp), icon: '✏️', color: '#46584c', tag: 'other' }
+    ? { id: ADJUST_CATEGORY_ID, name: adjust.note?.trim() ? `Teacher adjustment: ${adjust.note.trim()}` : 'Teacher adjustment', xp: Math.round(adjust.xp), icon: '✏️', color: '#4a5d78', tag: 'other' }
     : data.categories.find((c) => c.id === categoryId);
   const batchId = uid('b');
   if (!cat || cat.xp === 0 || (cat.xp < 0 && !adjust && !data.settings.negativeEnabled) || studentIds.length === 0) {

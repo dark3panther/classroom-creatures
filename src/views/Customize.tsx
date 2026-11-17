@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useMemo, useState } from 'react';
+import { CountUp } from '../components/CountUp';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { playEquip, playPurchase, playUnlock } from '../audio/sfx';
 import { CoinIcon, Icon } from '../components/Icon';
 import { ItemThumb } from '../components/ItemThumb';
@@ -13,6 +14,7 @@ import { displayStage } from '../engine/progression';
 import { itemPrice, itemState, seasonEnds, unlockLabel, visibleItems, type ItemState } from '../engine/shop';
 import { firstName } from '../engine/util';
 import { navigate } from '../lib/router';
+import { pop } from '../lib/motion';
 import { useStore } from '../store/store';
 import type { Equipped, Item, ItemSlot, Student } from '../types';
 
@@ -45,6 +47,9 @@ function Room({ student }: { student: Student }) {
   const stage = displayStage(student, settings);
   const [slot, setSlot] = useState<ItemSlot>('hat');
   const [preview, setPreview] = useState<string | null>(null);
+  // the creature hops a little each time it tries something on (anime.js)
+  const stageRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (preview) pop(stageRef.current, 1.06); }, [preview]);
   const [celebrate, setCelebrate] = useState(0);
   const items = useMemo(() => visibleItems(settings, student), [settings, student]);
   const inSlot = items.filter((it) => it.slot === slot);
@@ -86,7 +91,7 @@ function Room({ student }: { student: Student }) {
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#fdf2d6] px-4 py-2 ring-1 ring-[#e7c77a]" aria-label={`${student.coins} coins`}>
-          <CoinIcon size={22} /><span className="font-display text-2xl font-extrabold text-[#6b4806] tabular">{student.coins ?? 0}</span>
+          <CoinIcon size={22} /><CountUp value={student.coins ?? 0} className="font-display text-2xl font-extrabold text-[#6b4806] tabular" />
         </div>
       </div>
 
@@ -99,7 +104,7 @@ function Room({ student }: { student: Student }) {
             const on = s === slot;
             return (
               <button key={s} onClick={() => { setSlot(s); setPreview(null); }} aria-current={on ? 'true' : undefined}
-                className={`flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition ${on ? 'bg-cloth-800 text-white shadow-[var(--shadow-card)]' : 'bg-white text-ink ring-1 ring-rule hover:bg-wash'}`}>
+                className={`flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-left transition ${on ? 'bg-azure-800 text-white shadow-[var(--shadow-card)]' : 'bg-white text-ink ring-1 ring-rule hover:bg-wash'}`}>
                 <Icon name={SLOT_ICON[s] as never} size={18} />
                 <span className="flex-1 font-display font-bold">{many}</span>
                 <span className={`text-[12px] font-bold tabular ${on ? 'text-white/80' : 'text-ink-soft'}`}>{owned}/{all.length}</span>
@@ -113,8 +118,10 @@ function Room({ student }: { student: Student }) {
         <section className="lg:sticky lg:top-24 lg:self-start">
           <div className="paper p-3">
             <Habitat element={sp.element} seed={sp.id} background={shown.background} className="aspect-square w-full" rounded="rounded-[10px]">
+              <div ref={stageRef} className="absolute inset-0">
               <Creature speciesId={sp.id} stage={stage} branch={student.branch} equipped={shown} interactive sound={sound} ambient={6}
                 action={celebrate ? { type: 'celebrate', key: celebrate } : null} className="mx-auto h-full w-[78%]" />
+              </div>
             </Habitat>
             <AnimatePresence>
               {selected && (
@@ -166,8 +173,8 @@ function Action({ item, state, student, canShop, onEquip, onRemove, onBuy }: { i
   const price = itemPrice(item, settings);
   switch (state) {
     case 'equipped': return item.slot === 'background' && item.id === 'bg-habitat' ? null : <button className="btn btn-light" onClick={onRemove}><Icon name="close" size={16} />Take off</button>;
-    case 'owned': return <button className="btn btn-cloth" onClick={() => onEquip(item)}><Icon name="check" size={16} strokeWidth={2.6} />Wear it</button>;
-    case 'buyable': return canShop ? <button className="btn btn-cloth" onClick={() => onBuy(item)}><CoinIcon size={16} />Buy and wear · {price}</button> : null;
+    case 'owned': return <button className="btn btn-azure" onClick={() => onEquip(item)}><Icon name="check" size={16} strokeWidth={2.6} />Wear it</button>;
+    case 'buyable': return canShop ? <button className="btn btn-buy" onClick={() => onBuy(item)}><CoinIcon size={16} />Buy and wear · {price}</button> : null;
     case 'short': return <span className="text-[14px] font-bold text-ink-soft">{price! - (student.coins ?? 0)} more coins needed</span>;
     case 'unavailable': return <span className="text-[14px] font-bold text-ink-soft">Comes back in {item.season?.label.toLowerCase()}</span>;
     default: return <span className="flex items-center gap-1 text-[14px] font-bold text-ink-soft"><Icon name="lock" size={14} />{unlockLabel(item, (id) => ACHIEVEMENTS_BY_ID[id]?.name ?? id)}</span>;
@@ -190,7 +197,7 @@ function ItemCard({ item, state, student, active, onClick }: { item: Item; state
   })();
   const ends = item.season && state !== 'unavailable' && state !== 'owned' && state !== 'equipped' ? seasonEnds(item.season) : null;
   return (
-    <button onClick={onClick} aria-pressed={active}
+    <button onClick={onClick} aria-pressed={active} data-tilt="7" data-press
       className={`group relative flex flex-col rounded-xl bg-white p-2 text-left transition ${active ? 'ring-[3px] ring-gilt shadow-[var(--shadow-glow)]' : item.rare ? 'ring-2 ring-gilt-deep/50 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-lift)]' : 'ring-1 ring-rule shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-lift)]'}`}>
       <div className={dim ? 'opacity-55 grayscale-[.6]' : ''}><ItemThumb item={item} speciesId={student.speciesId} stage={displayStage(student, settings)} branch={student.branch} /></div>
       {item.rare && <span className="chip absolute left-3 top-3 bg-gilt text-gilt-ink">Rare</span>}
@@ -205,7 +212,7 @@ function ItemCard({ item, state, student, active, onClick }: { item: Item; state
 /** Small link card used on profiles. */
 export function DressingRoomLink({ student }: { student: Student }) {
   return (
-    <button className="btn btn-cloth" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Dressing room</button>
+    <button className="btn btn-azure" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Dressing room</button>
   );
 }
 

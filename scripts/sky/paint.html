@@ -1,0 +1,266 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Sky world painter</title>
+<body style="margin:0;background:#fff">
+<script type="module">
+// Paints the layers of the animated sky world (public/sky/*.webp) with p5.brush's watercolour fills.
+// Run by scripts/sky/paint.mjs in headless Chromium; every layer is seeded, so a repaint is identical.
+import * as brush from './vendor/brush.esm.js';
+
+let rnd = Math.random;
+function seeded(seed) {
+  let a = seed >>> 0;
+  rnd = () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  brush.seed(seed); brush.noiseSeed(seed);
+}
+const R = (a, b) => a + rnd() * (b - a);
+
+function begin(W, H, seed) {
+  const c = brush.createCanvas(W, H, { pixelDensity: 1 });
+  seeded(seed);
+  brush.clear();
+  brush.push(); brush.translate(-W / 2, -H / 2);
+  brush.noStroke();
+  return c;
+}
+/**
+ * p5.brush paints its watercolour onto white paper; on a transparent canvas the dried edge of every wash
+ * shows as a white rim. derim() removes white pixels that connect to the outside (the rim) and softens the
+ * new edge. Clouds skip it: they are white anyway.
+ */
+function finish(c, { derim = true } = {}) {
+  brush.pop(); brush.render();
+  const out = document.createElement('canvas'); out.width = c.width; out.height = c.height;
+  const ctx = out.getContext('2d'); ctx.drawImage(c, 0, 0); c.remove();
+  if (derim) {
+    const img = ctx.getImageData(0, 0, out.width, out.height); removeRim(img); ctx.putImageData(img, 0, 0);
+  }
+  return out.toDataURL('image/webp', 0.9);
+}
+function removeRim({ data, width: W, height: H }) {
+  // the rim is a narrow band: only follow white pixels up to MAX steps in from the outside,
+  // so pale paint deeper inside a wash is never eaten
+  const MAX = 26;
+  const N = W * H, seen = new Uint8Array(N), q = new Int32Array(N), dist = new Uint8Array(N);
+  const whiteish = (i) => { const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2]; const lo = Math.min(r, g, b); return lo >= 240 && Math.max(r, g, b) - lo <= 12; };
+  const passable = (i) => data[i * 4 + 3] < 8 || whiteish(i);
+  let head = 0, tail = 0;
+  for (let i = 0; i < N; i++) if (data[i * 4 + 3] < 8) { seen[i] = 1; q[tail++] = i; }
+  while (head < tail) {
+    const i = q[head++], x = i % W;
+    for (const j of [i - W, i + W, x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1]) {
+      if (j < 0 || j >= N || seen[j] || !passable(j)) continue;
+      const d = data[j * 4 + 3] < 8 ? 0 : dist[i] + 1;
+      if (d > MAX) continue;
+      dist[j] = d; seen[j] = 1; q[tail++] = j;
+    }
+  }
+  for (let i = 0; i < N; i++) if (seen[i]) data[i * 4 + 3] = 0;
+  // soften the new outline: pixels touching the outside keep part of their opacity
+  for (let i = 0; i < N; i++) {
+    if (!data[i * 4 + 3]) continue;
+    const x = i % W;
+    const edge = (i >= W && !data[(i - W) * 4 + 3]) || (i < N - W && !data[(i + W) * 4 + 3]) || (x > 0 && !data[(i - 1) * 4 + 3]) || (x < W - 1 && !data[(i + 1) * 4 + 3]);
+    if (edge) data[i * 4 + 3] = Math.round(data[i * 4 + 3] * 0.55);
+  }
+}
+
+/** a closed blob: an ellipse with a wobbling edge */
+function blob(cx, cy, rx, ry, wobble = 0.08, steps = 36) {
+  brush.beginShape();
+  const ph = R(0, 6.28);
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * Math.PI * 2;
+    const k = 1 + Math.sin(a * 3 + ph) * wobble + Math.sin(a * 7 + ph * 2) * wobble * 0.5;
+    brush.vertex(cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k);
+  }
+  brush.endShape(true);
+}
+function poly(pts) { brush.beginShape(); for (const [x, y] of pts) brush.vertex(x, y); brush.endShape(true); }
+function wc(color, opacity, bleed = 0.18, texture = 0.35) { brush.noWash(); brush.fill(color, opacity); brush.fillBleed(bleed, 'out'); brush.fillTexture(texture, 0.45); }
+
+// ───────────────────────── clouds ─────────────────────────
+function cloud(seed, W, H) {
+  const c = begin(W, H, seed);
+  const base = H * 0.72, lobes = [];
+  const n = Math.round(R(4, 6));
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n;
+    const r = H * R(0.2, 0.33) * (1 - Math.abs(t - 0.5) * 0.9);
+    lobes.push([W * (0.12 + t * 0.76) + R(-14, 14), base - r * R(0.55, 0.95), r]);
+  }
+  // cool shadow underneath, then the white body, then a warm sunlit top
+  wc('#bcd6f2', 120, 0.25);
+  blob(W * 0.5, base - H * 0.04, W * 0.42, H * 0.13, 0.06);
+  wc('#ffffff', 235, 0.2, 0.25);
+  for (const [x, y, r] of lobes) blob(x, y, r * 1.05, r, 0.07);
+  blob(W * 0.5, base - H * 0.1, W * 0.4, H * 0.14, 0.05);
+  wc('#dbe9f8', 95, 0.3);
+  blob(W * 0.5, base - H * 0.02, W * 0.36, H * 0.07, 0.08);
+  wc('#fffaf0', 150, 0.35, 0.2);
+  for (const [x, y, r] of lobes.slice(1, -1)) blob(x - r * 0.15, y - r * 0.25, r * 0.55, r * 0.45, 0.1);
+  return finish(c, { derim: false });
+}
+
+// ───────────────────────── far mountains ─────────────────────────
+function ridge(W, baseY, amp, peaks, seed) {
+  seeded(seed);
+  const pts = [[-20, baseY + 400]];
+  const step = 24;
+  const tops = [];
+  for (let x = -20; x <= W + 20; x += step) {
+    let y = baseY;
+    for (const [px, ph, pw] of peaks) y -= ph * Math.max(0, 1 - Math.abs(x - px) / pw) ** 1.4;
+    y += Math.sin(x * 0.013 + seed) * amp + R(-amp * 0.4, amp * 0.4);
+    pts.push([x, y]); tops.push([x, y]);
+  }
+  pts.push([W + 20, baseY + 400]);
+  return { pts, tops };
+}
+function mountains(W, H) {
+  const c = begin(W, H, 41);
+  const far = ridge(W, H * 0.5, 6, [[120, 120, 260], [560, 170, 300], [980, 110, 240], [1420, 190, 320], [1900, 130, 260], [2380, 180, 300], [2860, 140, 280], [3150, 100, 200]], 3);
+  wc('#dfe7f8', 170, 0.25); poly(far.pts);
+  const peaksBack = [[260, 230, 300], [700, 300, 360], [1150, 190, 280], [1640, 320, 380], [2150, 240, 330], [2620, 290, 360], [3060, 210, 300]];
+  const back = ridge(W, H * 0.62, 10, peaksBack, 5);
+  wc('#c9d6f3', 200, 0.2); poly(back.pts);
+  // snow on the high peaks
+  wc('#e6eeff', 200, 0.3, 0.2);
+  for (const [px, ph, pw] of peaksBack) {
+    const top = H * 0.62 - ph;
+    poly([[px - pw * 0.16, top + ph * 0.24], [px - pw * 0.04, top + ph * 0.06], [px, top + 4], [px + pw * 0.05, top + ph * 0.07], [px + pw * 0.17, top + ph * 0.26], [px + pw * 0.05, top + ph * 0.2], [px - pw * 0.04, top + ph * 0.3]]);
+  }
+  const front = ridge(W, H * 0.8, 8, [[420, 170, 380], [1000, 130, 340], [1480, 200, 420], [2050, 150, 380], [2600, 180, 400], [3100, 140, 320]], 9);
+  wc('#a9bde9', 190, 0.22); poly(front.pts);
+  wc('#bfd0f1', 120, 0.35); poly(front.pts.map(([x, y]) => [x, y + 30]));
+  return finish(c);
+}
+
+// ───────────────────────── hills ─────────────────────────
+function hillsBand(W, H, seed, layers) {
+  const c = begin(W, H, seed);
+  for (const { y, amp, freq, color, op, ph } of layers) {
+    const pts = [[-20, H + 20]];
+    for (let x = -20; x <= W + 20; x += 20) pts.push([x, H * y - Math.sin(x * freq + ph) * amp - Math.sin(x * freq * 2.3 + ph * 1.7) * amp * 0.35]);
+    pts.push([W + 20, H + 20]);
+    wc(color, op, 0.15, 0.4); poly(pts);
+  }
+  return c;
+}
+function hills(W, H) {
+  const c = hillsBand(W, H, 77, [
+    { y: 0.36, amp: 46, freq: 0.0031, color: '#b6e0d2', op: 210, ph: 1.2 },
+    { y: 0.52, amp: 40, freq: 0.0042, color: '#c9e6a0', op: 220, ph: 2.7 },
+  ]);
+  // little trees on the far hills
+  for (let i = 0; i < 26; i++) {
+    const x = R(30, W - 30), y = H * R(0.44, 0.6);
+    const w = R(12, 20), h = R(16, 26);
+    wc(rnd() < 0.5 ? '#8fcf9c' : '#7cc3a4', 210, 0.12); blob(x, y, w, h, 0.1, 18);
+    wc('#bde8c4', 160, 0.2); blob(x - w * 0.25, y - h * 0.35, w * 0.45, h * 0.35, 0.1, 14);
+  }
+  return finish(c);
+}
+function meadow(W, H) {
+  const c = hillsBand(W, H, 91, [
+    { y: 0.3, amp: 34, freq: 0.0036, color: '#d6ec96', op: 230, ph: 0.4 },
+    { y: 0.55, amp: 26, freq: 0.0052, color: '#f2e08a', op: 210, ph: 2.1 },
+  ]);
+  // flowers dotted over the meadow
+  const petals = ['#ff8fb1', '#ffffff', '#ffd166', '#b69cff', '#ff9e6b'];
+  brush.noFill();
+  for (let i = 0; i < 260; i++) {
+    const x = R(0, W), y = H * R(0.36, 0.98), r = R(3, 7);
+    brush.wash(petals[i % petals.length], 230); brush.circle(x, y, r * 2);
+    brush.wash('#ffef9a', 255); brush.circle(x, y, r * 0.7);
+  }
+  brush.noWash();
+  return finish(c);
+}
+
+// ───────────────────────── floating islands ─────────────────────────
+function islandBody(W, H, top, rock, grass) {
+  const cx = W / 2, ty = H * 0.38, rx = W * 0.4;
+  // hanging rock: a jagged cone under the grass
+  const pts = [[cx - rx, ty]];
+  const n = 9;
+  for (let i = 1; i < n; i++) {
+    const t = i / n, x = cx - rx + t * rx * 2;
+    const depth = (1 - Math.abs(t - 0.5) * 2) ** 0.8 * H * 0.5;
+    pts.push([x + R(-8, 8), ty + depth * R(0.75, 1.05)]);
+  }
+  pts.push([cx + rx, ty]);
+  wc(rock[0], 235, 0.15); poly(pts);
+  wc(rock[1], 150, 0.3); poly(pts.map(([x, y]) => [cx + (x - cx) * 0.6 - rx * 0.12, ty + (y - ty) * 0.85]));
+  wc(rock[2], 130, 0.25); poly(pts.map(([x, y]) => [cx + (x - cx) * 0.4 + rx * 0.22, ty + (y - ty) * 0.6]));
+  // grassy top with a lip that hangs over the rock
+  wc(grass[0], 240, 0.12); blob(cx, ty, rx * 1.04, H * 0.075, 0.05);
+  wc(grass[1], 200, 0.25); blob(cx - rx * 0.1, ty - H * 0.012, rx * 0.86, H * 0.05, 0.06);
+  // dangling roots and vines
+  brush.set('cpencil', rock[3], 1.4);
+  for (let i = 0; i < 6; i++) { const x = cx + R(-rx * 0.6, rx * 0.6); brush.line(x, ty + H * 0.05, x + R(-10, 10), ty + H * R(0.14, 0.26)); }
+  brush.noStroke();
+  return { cx, ty, rx };
+}
+function islandMeadow(W, H) { // a tree, flowers and a little waterfall
+  const c = begin(W, H, 101);
+  const { cx, ty, rx } = islandBody(W, H, 0, ['#d8b892', '#c29d76', '#ead2b3', '#8a6a4c'], ['#a6d97f', '#c4e99a']);
+  // waterfall off the right edge, with mist
+  wc('#d6f1ff', 230, 0.15, 0.2); poly([[cx + rx * 0.62, ty], [cx + rx * 0.78, ty], [cx + rx * 0.8, H * 0.96], [cx + rx * 0.6, H * 0.96]]);
+  wc('#a9dcf7', 140, 0.3); poly([[cx + rx * 0.66, ty + 10], [cx + rx * 0.72, ty + 10], [cx + rx * 0.73, H * 0.94], [cx + rx * 0.67, H * 0.94]]);
+  wc('#dff1fd', 190, 0.4); blob(cx + rx * 0.7, H * 0.95, rx * 0.22, H * 0.035, 0.12);
+  // tree
+  wc('#9b6b45', 240, 0.1); poly([[cx - rx * 0.32, ty], [cx - rx * 0.27, ty - H * 0.2], [cx - rx * 0.22, ty]]);
+  wc('#7fca7a', 235, 0.18); blob(cx - rx * 0.27, ty - H * 0.27, rx * 0.3, H * 0.11, 0.1);
+  wc('#a8e08d', 180, 0.3); blob(cx - rx * 0.32, ty - H * 0.3, rx * 0.17, H * 0.06, 0.12);
+  // flowers
+  for (let i = 0; i < 18; i++) { brush.wash(['#ff8fb1', '#fff', '#ffd166'][i % 3], 240); brush.circle(cx + R(-rx * 0.8, rx * 0.5), ty + R(-H * 0.03, H * 0.02), R(5, 9)); }
+  brush.noWash();
+  return finish(c);
+}
+function islandCrystal(W, H) { // ice-blue and violet crystals
+  const c = begin(W, H, 202);
+  const { cx, ty, rx } = islandBody(W, H, 0, ['#b9b2d9', '#9f97c8', '#d5d0ee', '#6c62a0'], ['#bfe6ef', '#e2f5fa']);
+  const shard = (x, h, w, col, tilt) => { wc(col, 230, 0.12, 0.2); poly([[x - w, ty], [x - w * 0.6 + tilt, ty - h * 0.82], [x + tilt, ty - h], [x + w * 0.6 + tilt, ty - h * 0.8], [x + w, ty]]); };
+  shard(cx - rx * 0.2, H * 0.3, rx * 0.12, '#8ad3f5', -6);
+  shard(cx + rx * 0.02, H * 0.38, rx * 0.15, '#b9a2ff', 4);
+  shard(cx + rx * 0.24, H * 0.24, rx * 0.11, '#7fc8f0', 8);
+  shard(cx - rx * 0.45, H * 0.16, rx * 0.08, '#c7b6ff', -4);
+  wc('#ffffff', 160, 0.3, 0.15);
+  poly([[cx - rx * 0.01, ty - H * 0.06], [cx + rx * 0.03, ty - H * 0.34], [cx + rx * 0.06, ty - H * 0.06]]);
+  return finish(c);
+}
+function islandBlossom(W, H) { // a pink blossom tree and lanterns of light
+  const c = begin(W, H, 303);
+  const { cx, ty, rx } = islandBody(W, H, 0, ['#e3bfa2', '#c99d82', '#f0d8c4', '#8d6551'], ['#b8e08c', '#d7efa8']);
+  wc('#8e5f45', 240, 0.1); poly([[cx + rx * 0.05, ty], [cx + rx * 0.1, ty - H * 0.22], [cx + rx * 0.16, ty]]);
+  wc('#ffb7cf', 230, 0.22); blob(cx + rx * 0.1, ty - H * 0.3, rx * 0.36, H * 0.12, 0.12);
+  wc('#ffd6e4', 190, 0.3); blob(cx + rx * 0.02, ty - H * 0.34, rx * 0.2, H * 0.07, 0.12);
+  wc('#ff93b7', 150, 0.3); blob(cx + rx * 0.22, ty - H * 0.25, rx * 0.16, H * 0.05, 0.12);
+  for (let i = 0; i < 14; i++) { brush.wash('#ffc2d6', 230); brush.circle(cx + R(-rx * 0.6, rx * 0.8), ty + R(-H * 0.02, H * 0.35), R(4, 8)); }
+  brush.noWash();
+  return finish(c);
+}
+function islandRock(W, H) { // a little rocky isle with a golden gem
+  const c = begin(W, H, 404);
+  const { cx, ty, rx } = islandBody(W, H, 0, ['#c9b6a0', '#ad977f', '#e2d4c3', '#7b6450'], ['#c6e39a', '#e1f2b8']);
+  wc('#bfae9a', 235, 0.14); blob(cx - rx * 0.25, ty - H * 0.08, rx * 0.22, H * 0.09, 0.12);
+  wc('#d8cbbb', 190, 0.25); blob(cx - rx * 0.3, ty - H * 0.11, rx * 0.12, H * 0.045, 0.1);
+  wc('#ffc93c', 240, 0.12, 0.2); poly([[cx + rx * 0.2, ty - H * 0.02], [cx + rx * 0.14, ty - H * 0.12], [cx + rx * 0.2, ty - H * 0.2], [cx + rx * 0.27, ty - H * 0.12]]);
+  wc('#fff2b0', 200, 0.2); poly([[cx + rx * 0.19, ty - H * 0.06], [cx + rx * 0.17, ty - H * 0.13], [cx + rx * 0.2, ty - H * 0.17]]);
+  return finish(c);
+}
+
+window.layers = {
+  'cloud-1': () => cloud(11, 900, 360), 'cloud-2': () => cloud(12, 720, 300), 'cloud-3': () => cloud(13, 560, 240),
+  'cloud-4': () => cloud(14, 980, 380), 'cloud-5': () => cloud(15, 640, 260), 'cloud-6': () => cloud(16, 460, 200),
+  mountains: () => mountains(3200, 620),
+  hills: () => hills(3200, 520),
+  meadow: () => meadow(3200, 380),
+  'island-meadow': () => islandMeadow(640, 700),
+  'island-crystal': () => islandCrystal(560, 640),
+  'island-blossom': () => islandBlossom(600, 660),
+  'island-rock': () => islandRock(420, 480),
+};
+window.ready = true;
+</script>

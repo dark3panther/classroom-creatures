@@ -33,7 +33,7 @@ export function AbilityIcon({ def, element, size = 48, asleep }: { def: AbilityD
   return (
     <svg viewBox="0 0 12 12" width={size} height={size} shapeRendering="crispEdges" aria-hidden>
       <rect x={0} y={0} width={12} height={12} fill={frame} />
-      <rect x={1} y={1} width={10} height={10} fill={asleep ? '#e6ebe1' : '#16241c'} />
+      <rect x={1} y={1} width={10} height={10} fill={asleep ? '#e6ebe1' : '#13253f'} />
       {/* corner rivets show the kind: bursts get rays, shields a full rim, signature a star, ultimate a crown */}
       {def.kind === 'shield' && <rect x={1} y={1} width={10} height={10} fill="none" stroke={frame} strokeWidth={0.5} opacity={0.6} />}
       {def.kind === 'signature' && <rect x={9} y={1} width={2} height={2} fill="#fff6c4" />}
@@ -65,7 +65,7 @@ export function AbilityTree({ student, onCast, canEdit }: { student: Student; on
           const asleep = v.rank === 0;
           return (
             <li key={v.def.id} className="relative flex items-start gap-3">
-              <div className={`relative z-10 shrink-0 rounded-[4px] ${!asleep ? 'shadow-[0_0_0_3px_#fff,0_4px_10px_-4px_rgb(22_36_28/.5)]' : 'shadow-[0_0_0_3px_#fff]'}`}>
+              <div className={`relative z-10 shrink-0 rounded-[4px] ${!asleep ? 'shadow-[0_0_0_3px_#fff,0_4px_10px_-4px_rgb(19_37_63/.5)]' : 'shadow-[0_0_0_3px_#fff]'}`}>
                 <AbilityIcon def={v.def} element={sp.element} size={56} asleep={asleep} />
               </div>
               <div className={`min-w-0 flex-1 rounded-xl p-2.5 ring-1 ${asleep ? 'bg-wash ring-rule' : 'bg-white ring-rule shadow-[var(--shadow-card)]'}`}>

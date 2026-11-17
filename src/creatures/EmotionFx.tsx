@@ -41,7 +41,7 @@ export function EmotionFx({ mood, compact }: { mood: Mood; compact?: boolean }) 
       );
     case 'sleepy':
       return (
-        <div className="pointer-events-none absolute right-[14%] top-[6%] font-display font-bold text-white" aria-hidden style={{ textShadow: '0 2px 0 #1d5643' }}>
+        <div className="pointer-events-none absolute right-[14%] top-[6%] font-display font-bold text-white" aria-hidden style={{ textShadow: '0 2px 0 #1b4f97' }}>
           {['z', 'Z', 'Z'].map((z, i) => (
             <span key={i} className="cc-zzz absolute" style={{ animationDelay: `${i * 0.8}s`, fontSize: (compact ? 12 : 18) + i * 5 }}>{z}</span>
           ))}

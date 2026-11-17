@@ -1,5 +1,7 @@
 import { navigate } from '../lib/router';
-import { useEffect, useMemo, useState } from 'react';
+import { slidePill } from '../lib/motion';
+import { CountUp } from '../components/CountUp';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { awardSound, playCreature, playPop } from '../audio/sfx';
 import { MOODS } from '../engine/mood';
 import { useMood } from '../lib/useMood';
@@ -44,6 +46,10 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
   const award = useStore((s) => s.award);
   const replay = useStore((s) => s.replayEvolution);
   const [tab, setTab] = useState<Tab>('award');
+  const tabRow = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => slidePill(tabRow.current), [tab]);
+  // the pop-up springs open, so measure again once it has settled
+  useEffect(() => { const t = setTimeout(() => slidePill(tabRow.current, true), 650); return () => clearTimeout(t); }, []);
   const [act, setAct] = useState<{ type: CreatureAction; key: number } | null>(null);
   const { species: sp, prog, stage, next } = v;
   const r = RARITIES[sp.rarity];
@@ -75,7 +81,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
         <div className="mt-4">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="font-display text-[34px] font-extrabold leading-tight tracking-[-0.02em]">{student.name}</h2>
-            <button className="btn btn-cloth !py-1.5 !text-sm" onClick={() => navigate(`/creature/${student.id}`)}><Icon name="book" size={15} />Creature profile</button>
+            <button className="btn btn-azure !py-1.5 !text-sm" onClick={() => navigate(`/creature/${student.id}`)}><Icon name="book" size={15} />Creature profile</button>
             {student.isDemo && <span className="chip bg-berry/10 text-berry ring-1 ring-berry/30">Demo</span>}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-ink-soft">
@@ -87,7 +93,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
           <p className="mt-2 text-[15px] text-ink-soft">{sp.personality}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             <span className="chip bg-white !py-1 !text-sm text-ink ring-1 ring-rule"><span className="h-2.5 w-2.5 rounded-full" style={{ background: MOODS[mood].color }} />Feeling {MOODS[mood].label.toLowerCase()}</span>
-            <span className="chip bg-[#fdf2d6] !py-1 !text-sm text-[#7a5308] ring-1 ring-[#e7c77a]"><CoinIcon size={15} /><span className="tabular">{student.coins ?? 0}</span> coins</span>
+            <span className="chip bg-[#fdf2d6] !py-1 !text-sm text-[#7a5308] ring-1 ring-[#e7c77a]"><CoinIcon size={15} /><CountUp value={student.coins ?? 0} className="tabular" /> coins</span>
             {(student.milestoneRewards ?? []).filter((r) => !r.given).length > 0 && (
               <span className="chip bg-[#f3e2d3] !py-1 !text-sm text-[#6b3f22] ring-1 ring-[#d9b89c]"><ChocoStick size={18} />{(student.milestoneRewards ?? []).filter((r) => !r.given).length} reward{(student.milestoneRewards ?? []).filter((r) => !r.given).length === 1 ? '' : 's'} to hand out</span>
             )}
@@ -96,22 +102,22 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
           <div className="mt-4 rounded-xl bg-wash p-4 ring-1 ring-rule">
             <div className="flex items-end justify-between gap-3">
               <span className="font-display font-extrabold leading-[0.85] tracking-[-0.03em]"><span className="text-2xl">Level </span><span className="text-[84px] tabular">{prog.level}</span></span>
-              <span className="text-right font-display leading-[0.85]"><span className="text-[52px] font-extrabold tracking-[-0.02em] tabular">{student.xp.toLocaleString()}</span><span className="text-xl font-bold text-ink-soft"> XP</span></span>
+              <span className="text-right font-display leading-[0.85]"><CountUp value={student.xp} className="text-[52px] font-extrabold tracking-[-0.02em] tabular" /><span className="text-xl font-bold text-ink-soft"> XP</span></span>
             </div>
             <ProgressBar pct={prog.pct} height={16} color={ELEMENTS[sp.element].color} className="mt-3" />
             <div className="mt-1.5 text-sm font-bold text-ink-soft">
               {prog.isMax ? 'Maximum level reached. Amazing!' : `${prog.toNext} XP to Level ${prog.level + 1}`}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold">
-              {v.evo.ready ? <span className="flex items-center gap-1.5"><Icon name="sparkle" size={16} className="shrink-0 text-gilt-deep" /><span>Ready to evolve into <span className="text-cloth-800">{STAGE_NAMES[v.evo.next!]}</span>!</span></span>
-                : next ? <span className="flex items-center gap-1.5"><Icon name="target" size={16} className="shrink-0 text-cloth-800" /><span>Next evolution: <span className="text-cloth-800">{STAGE_NAMES[next.stage]}</span> at Level {next.level} · {next.xpNeeded} XP to go</span></span>
-                : <span className="flex items-center gap-1.5"><Icon name="crown" size={16} className="shrink-0 text-cloth-800" />{sp.name} has reached its final form{student.branch === 'b' && BRANCHES[sp.id] ? `: ${BRANCHES[sp.id].b.title}` : ''}!</span>}
+              {v.evo.ready ? <span className="flex items-center gap-1.5"><Icon name="sparkle" size={16} className="shrink-0 text-gilt-deep" /><span>Ready to evolve into <span className="text-azure-800">{STAGE_NAMES[v.evo.next!]}</span>!</span></span>
+                : next ? <span className="flex items-center gap-1.5"><Icon name="target" size={16} className="shrink-0 text-azure-800" /><span>Next evolution: <span className="text-azure-800">{STAGE_NAMES[next.stage]}</span> at Level {next.level} · {next.xpNeeded} XP to go</span></span>
+                : <span className="flex items-center gap-1.5"><Icon name="crown" size={16} className="shrink-0 text-azure-800" />{sp.name} has reached its final form{student.branch === 'b' && BRANCHES[sp.id] ? `: ${BRANCHES[sp.id].b.title}` : ''}!</span>}
               <EvolveBadge student={student} className="ml-auto" />
             </div>
             {v.evo.next && (
               <div className="mt-2">
                 <div className="flex justify-between text-[12px] font-bold text-ink-soft"><span>Evolution progress</span><span className="tabular">{Math.round(v.evo.pct * 100)}%</span></div>
-                <ProgressBar pct={v.evo.pct} height={10} color={v.evo.ready ? '#f4b631' : '#1d5643'} className="mt-1" />
+                <ProgressBar pct={v.evo.pct} height={10} color={v.evo.ready ? '#ffc23d' : '#1b4f97'} className="mt-1" />
               </div>
             )}
           </div>
@@ -130,7 +136,7 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
                       <CreatureSvg species={sp} stage={st} effects={false} noShadow className="h-full w-full" />
                     </div>
                     <div className="text-[11px] font-bold leading-tight text-ink-soft">{reached ? STAGE_NAMES[st] : `Lv ${settings.evolutionLevels[st - 1]}`}</div>
-                    {reached && st > 1 && <span className="absolute right-1 top-1 hidden rounded-full bg-white p-0.5 text-cloth-800 shadow group-hover:block"><Icon name="replay" size={12} strokeWidth={2.6} /></span>}
+                    {reached && st > 1 && <span className="absolute right-1 top-1 hidden rounded-full bg-white p-0.5 text-azure-800 shadow group-hover:block"><Icon name="replay" size={12} strokeWidth={2.6} /></span>}
                   </button>
                 );
               })}
@@ -142,10 +148,11 @@ function ProfileBody({ student, onClose }: { student: Student; onClose: () => vo
 
       {/* tabs side */}
       <div className="border-t border-rule p-4 sm:p-6 lg:border-l lg:border-t-0">
-        <div className="mb-4 mr-12 flex gap-1 overflow-x-auto rounded-full bg-wash p-1 ring-1 ring-rule" role="tablist">
+        <div ref={tabRow} className="relative mb-4 mr-12 flex gap-1 overflow-x-auto rounded-full bg-wash p-1 ring-1 ring-rule" role="tablist">
+          <span data-pill className="pointer-events-none absolute left-0 top-0 rounded-full bg-gradient-to-b from-azure-600 to-azure-700 shadow-[0_6px_14px_-6px_rgb(27_79_151/.8)]" style={{ opacity: 0 }} aria-hidden />
           {([['award', 'Award'], ['look', 'Look'], ['badges', 'Badges'], ['history', 'History'], ['manage', 'Manage']] as const).map(([k, l]) => (
             <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-              className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 font-display font-semibold transition ${tab === k ? 'bg-cloth-800 text-white' : 'text-ink-soft hover:bg-white hover:text-ink'}`}>{l}</button>
+              className={`relative z-[1] flex-1 whitespace-nowrap rounded-full px-3 py-2 font-display font-semibold transition-colors ${tab === k ? 'text-white' : 'text-ink-soft hover:bg-white hover:text-ink'}`}>{l}</button>
           ))}
         </div>
         {tab === 'award' && (
@@ -171,7 +178,7 @@ function LookTab({ student }: { student: Student }) {
     <div>
       <div className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-[#fdf2d6] px-4 py-3 ring-1 ring-[#e7c77a]">
         <span className="flex items-center gap-2 font-display text-xl font-bold text-[#6b4806]"><CoinIcon size={22} /><span className="tabular">{student.coins ?? 0}</span> coins</span>
-        <button className="btn btn-cloth" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Open the dressing room</button>
+        <button className="btn btn-azure" onClick={() => navigate(`/creature/${student.id}/customize`)}><Icon name="sparkle" size={16} />Open the dressing room</button>
       </div>
       <p className="mb-3 text-sm text-ink-soft">Shop, wardrobe, armor, trails and effects are all in the dressing room, where students can try things on before buying.</p>
       {worn.length === 0 ? <p className="rounded-xl bg-wash p-4 text-sm font-bold text-ink-soft ring-1 ring-rule">Nothing equipped yet.</p> : (
@@ -206,7 +213,7 @@ function Badges({ student }: { student: Student }) {
           const got = have.has(a.id);
           return (
             <div key={a.id} className={`flex items-center gap-2 rounded-2xl p-2 ${got ? '' : 'opacity-50 grayscale'}`} style={{ background: got ? `${a.color}22` : 'rgb(43 33 64 / .05)' }}>
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xl" style={{ background: got ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(22 36 28 / .07)' }}>{got ? <Glyph icon={a.icon} size={20} /> : <Icon name="lock" size={18} className="text-ink-soft" />}</span>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-xl" style={{ background: got ? `color-mix(in srgb, ${a.color} 20%, white)` : 'rgb(19 37 63 / .07)' }}>{got ? <Glyph icon={a.icon} size={20} /> : <Icon name="lock" size={18} className="text-ink-soft" />}</span>
               <span className="min-w-0 leading-tight">
                 <span className="block truncate text-sm font-extrabold">{a.name}</span>
                 <span className="block text-[11px] font-bold text-ink-soft">{got ? `Earned ${timeAgo(have.get(a.id)!, now)}` : a.description}</span>
@@ -225,7 +232,7 @@ function Badges({ student }: { student: Student }) {
                 <span className="flex items-center gap-1.5"><Icon name={p.done ? 'check' : c.period === 'daily' ? 'sun' : 'calendar'} size={16} strokeWidth={2.4} className={p.done ? 'text-leaf' : 'text-sky'} />{c.title}</span>
                 <span className="tabular-nums text-ink-soft">{p.value}/{c.target}</span>
               </div>
-              <ProgressBar pct={p.value / c.target} color={p.done ? '#23864a' : '#1f7fbf'} height={8} className="mt-1.5" />
+              <ProgressBar pct={p.value / c.target} color={p.done ? '#2563b8' : '#1f7fbf'} height={8} className="mt-1.5" />
             </div>
           );
         })}
@@ -312,7 +319,7 @@ function Manage({ student, onClose }: { student: Student; onClose: () => void })
           <div className="mt-3 grid max-h-80 grid-cols-[repeat(auto-fill,minmax(84px,1fr))] gap-1.5 overflow-y-auto scroll-thin pr-1">
             {SPECIES.map((sp) => (
               <button key={sp.id} onClick={() => { assign(student.id, sp.id); setMode('none'); notify(`Now ${sp.name}`); }}
-                className={`rounded-xl p-1 text-center ${sp.id === student.speciesId ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-endpaper'}`} title={taken.has(sp.id) ? 'A classmate already has this creature' : sp.name}>
+                className={`rounded-xl p-1 text-center ${sp.id === student.speciesId ? 'bg-gilt-pale ring-2 ring-gilt-deep' : 'bg-wash hover:bg-mist'}`} title={taken.has(sp.id) ? 'A classmate already has this creature' : sp.name}>
                 <CreatureSvg species={sp} stage={1} effects={false} noShadow className="aspect-square w-full" />
                 <div className="truncate text-[11px] font-extrabold">{sp.name}</div>
                 {taken.has(sp.id) && <div className="text-[9px] font-bold text-ink-soft">taken</div>}

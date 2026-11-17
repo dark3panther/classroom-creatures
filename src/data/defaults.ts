@@ -96,7 +96,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'creature-collector', name: 'Creature Collector', description: 'Your class discovers a quarter of the field guide.', icon: '📖', color: '#24b47e', rule: { kind: 'collection', pct: 0.25 }, reward: 'Star Trail' },
   { id: 'field-researcher', name: 'Field Researcher', description: 'Your class discovers half of the field guide.', icon: '🔬', color: '#36c2b4', rule: { kind: 'collection', pct: 0.5 }, reward: 'Star Guardian Armor' },
   { id: 'master-collector', name: 'Master Collector', description: 'Your class discovers three quarters of the field guide.', icon: '🏆', color: '#eab308', rule: { kind: 'collection', pct: 0.75 }, reward: 'Crystal Cave' },
-  { id: 'grand-naturalist', name: 'Grand Naturalist', description: 'Your class completes the whole field guide.', icon: '🌟', color: '#1d5643', rule: { kind: 'collection', pct: 1 }, reward: 'Naturalist’s Hat' },
+  { id: 'grand-naturalist', name: 'Grand Naturalist', description: 'Your class completes the whole field guide.', icon: '🌟', color: '#1b4f97', rule: { kind: 'collection', pct: 1 }, reward: 'Naturalist’s Hat' },
 ];
 
 /** Dressing-room categories in display order: singular and plural labels. */
@@ -220,6 +220,7 @@ export const DEFAULT_SETTINGS: Settings = {
   negativeEnabled: true,
   soundEnabled: true,
   reducedMotion: false,
+  skyMotion: true,
   pinHash: null,
   currentClassId: null,
   onboarded: false,

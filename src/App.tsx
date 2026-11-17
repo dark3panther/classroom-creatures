@@ -1,7 +1,9 @@
 import { AnimatePresence } from 'framer-motion';
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { playClick, setSoundEnabled, setUiSounds, setVolume } from './audio/sfx';
 import { CelebrationHost } from './components/Celebrations';
+import { installInteractions } from './lib/interactions';
+import { riseIn } from './lib/motion';
 import { BranchChooserHost } from './components/Evolve';
 import { LockScreen } from './components/PinPad';
 import { Toasts } from './components/Toasts';
@@ -50,6 +52,22 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('reduce-motion', reduced);
   }, [reduced]);
+  // springy buttons, hover lifts, sparks and tilting cards everywhere (anime.js)
+  useEffect(() => installInteractions(), []);
+  // each screen's sections rise into place when it opens, and [data-stagger] groups ripple in after them
+  const mainRef = useRef<HTMLElement>(null);
+  const routeKey = `${route.view}/${'id' in route ? route.id : ''}/${'tab' in route ? route.tab ?? '' : ''}`;
+  useEffect(() => {
+    let raf = 0, tries = 0;
+    const run = () => {
+      const page = mainRef.current?.firstElementChild as HTMLElement | null;
+      if (!page || !page.children.length) { if (tries++ < 40) raf = requestAnimationFrame(run); return; }
+      riseIn(page.children, { gap: 70, distance: 22 });
+      page.querySelectorAll('[data-stagger]').forEach((g) => riseIn(g.children, { gap: 26, distance: 18 }));
+    };
+    raf = requestAnimationFrame(run);
+    return () => cancelAnimationFrame(raf);
+  }, [routeKey, ready, locked]);
   useEffect(() => {
     const onHide = () => { if (document.visibilityState === 'hidden') flushSave(); };
     document.addEventListener('visibilitychange', onHide);
@@ -83,11 +101,11 @@ export default function App() {
   if (locked && (route.view === 'creature' || route.view === 'customize') && shopWhileLocked) {
     return (
       <div className="min-h-full">
-        <header className="cloth on-cloth sticky top-0 z-30 flex items-center gap-3 px-4 py-2.5 sm:px-6">
+        <header className="azure on-azure sticky top-0 z-30 flex items-center gap-3 px-4 py-2.5 sm:px-6">
           <button className="btn btn-ghost" onClick={() => navigate('/present')}><Icon name="back" size={18} />Back to Presentation Mode</button>
           <span className="ml-auto flex items-center gap-1.5 text-[13px] font-semibold text-white/75"><Icon name="lock" size={15} />Teacher controls are locked</span>
         </header>
-        <main><Suspense fallback={null}>{route.view === 'customize' ? <Customize studentId={route.id} /> : <CreatureProfile studentId={route.id} />}</Suspense></main>
+        <main ref={mainRef}><Suspense fallback={null}>{route.view === 'customize' ? <Customize studentId={route.id} /> : <CreatureProfile studentId={route.id} />}</Suspense></main>
         <BranchChooserHost />
         <CelebrationHost />
         <Toasts />
@@ -99,7 +117,7 @@ export default function App() {
   return (
     <div className="min-h-full">
       <TopBar route={route} />
-      <main><Suspense fallback={null}>
+      <main ref={mainRef}><Suspense fallback={null}>
         {route.view === 'classroom' && <Dashboard />}
         {route.view === 'creatures' && <Creaturedex />}
         {route.view === 'rewards' && <Rewards />}
