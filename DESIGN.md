@@ -1,25 +1,30 @@
 ---
 name: Classroom Creatures
-description: A class's creatures kept as a living naturalist's field guide, bound in green bookcloth.
+description: A class's creatures living in a bright painted sky world, with sun, drifting clouds and floating islands.
 colors:
-  cloth-950: "#0d2e23"
-  cloth-800: "#1d5643"
-  cloth-700: "#2a6d56"
-  endpaper: "#e5ecdc"
-  rule: "#c3d0b8"
-  wash: "#eef3e8"
+  azure-950: "#0e2a52"
+  azure-800: "#1b4f97"
+  azure-700: "#2563b8"
+  azure-600: "#3b7fd3"
+  sky-top: "#5bb8f0"
+  sky-mid: "#a9dcf8"
+  sky-horizon: "#fff1d6"
+  mist: "#e9f4fd"
+  rule: "#cddfee"
+  wash: "#f2f8fe"
   paper: "#ffffff"
-  ink: "#16241c"
-  ink-soft: "#46584c"
-  gilt: "#f4b631"
-  gilt-deep: "#c98a0c"
-  gilt-ink: "#3b2800"
-  gilt-pale: "#fdf0cc"
-  gilt-text: "#f6cb62"
-  leaf: "#1c7240"
-  leaf-pale: "#e1f1e5"
-  brick: "#b8432d"
-  brick-pale: "#f8e4df"
+  ink: "#13253f"
+  ink-soft: "#4a5d78"
+  gilt: "#ffc23d"
+  gilt-deep: "#d99400"
+  gilt-ink: "#3a2700"
+  gilt-pale: "#fff3cc"
+  gilt-text: "#ffd166"
+  leaf: "#1a8f4c"
+  leaf-pale: "#e0f4e7"
+  buy: "#1f9653"
+  brick: "#c8412f"
+  brick-pale: "#fbe5e0"
   coin: "#8a5d07"
   berry: "#a3245a"
   sky: "#1f7fbf"
@@ -60,7 +65,7 @@ typography:
 rounded:
   wash: "8px"
   tile: "12px"
-  card: "14px"
+  card: "18px"
   pill: "999px"
 spacing:
   xs: "6px"
@@ -76,7 +81,7 @@ components:
     rounded: "{rounded.pill}"
     padding: "10px 18px"
   button-primary-hover:
-    backgroundColor: "#f7c04a"
+    backgroundColor: "#ffcf5a"
   button-ghost:
     backgroundColor: "transparent"
     textColor: "{colors.ink}"
@@ -85,13 +90,18 @@ components:
     padding: "10px 18px"
   button-ghost-hover:
     backgroundColor: "{colors.wash}"
-  button-cloth:
-    backgroundColor: "{colors.cloth-800}"
+  button-azure:
+    backgroundColor: "{colors.azure-700}"
     textColor: "{colors.paper}"
     rounded: "{rounded.pill}"
     padding: "10px 18px"
-  button-cloth-hover:
-    backgroundColor: "{colors.cloth-700}"
+  button-azure-hover:
+    backgroundColor: "{colors.azure-600}"
+  button-buy:
+    backgroundColor: "{colors.buy}"
+    textColor: "{colors.paper}"
+    rounded: "{rounded.pill}"
+    padding: "10px 18px"
   button-danger:
     backgroundColor: "{colors.brick}"
     textColor: "{colors.paper}"
@@ -115,7 +125,7 @@ components:
     rounded: "{rounded.tile}"
   level-tab:
     backgroundColor: "{colors.paper}"
-    textColor: "{colors.cloth-800}"
+    textColor: "{colors.azure-800}"
     rounded: "{rounded.pill}"
   option-selected:
     backgroundColor: "{colors.gilt-pale}"
@@ -127,58 +137,54 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Living Field Guide"**
+**Creative North Star: "The Sky World"**
 
-The class is a naturalist's field guide that fills up as the year goes on. The shell is woven bookcloth in deep green with a gilt title; every page sits on a sage endpaper printed with faint leaves, tracks and paw prints; each student's creature is a numbered specimen on a white plate, standing on a watercolour wash painted in its element colour with a pooled darker edge. The teacher is the curator: the interface frames specimens and gets out of their way.
+The class lives in a bright, painted daytime world. Behind every screen is a watercolour landscape (painted with p5.brush, scripts/sky): a blue sky warming to gold at the horizon, the sun with turning rays, clouds drifting across, far periwinkle mountains, floating islands that bob gently, hills and a flower meadow. anime.js keeps it alive: clouds cross the screen at their own speeds, now and then a little winged creature flies past, pollen floats up, and every layer shifts slightly with the pointer. Each student's creature still stands on its own watercolour plate inside a white card that floats on that sky.
 
-The system is light, bright and dense enough to show a whole class at a glance, and loud only at the scale where the room needs it. Present mode, the profile and the big moments set names, levels and XP at monumental scale on bookcloth or white, one message per band. Everything else is quiet ink on paper, so the one marigold thing on screen is always the thing happening now.
+The world is the visual, the interface is clear in front of it. Cards are solid white for reading from the back of the room; the header and the floating summary cards are frosted glass so the sky shows through; headings set straight on the sky carry a soft white halo. Big moments and Present bands use deep azure, a daytime blue, never a night sky.
 
-It refuses both the dark game HUD with glowing pills it replaced and the grey admin table. It must not read as toddler pastel: colour comes from the painted plates and the creatures, not from tinted chrome.
+It refuses the dark purple night-sky HUD of v1 and the green bookcloth field guide of v1.3. It must not read as toddler pastel: the sky is real painting with depth, and colour in the chrome stays disciplined.
 
 **Key Characteristics:**
-- Green bookcloth shell (header, Present bands, celebrations) with a real woven texture, gilt type on top.
-- Sage endpaper ground with a faint printed naturalist pattern; white plates with a rule hairline on it.
+- An animated painted sky world behind every screen (components/SkyWorld.tsx), still under Reduce Motion or with "Animated background" off.
+- White cards on the sky; frosted glass for the header and floating summaries; azure for filled controls, Present bands and big moments.
 - Watercolour washes per element behind every creature; plate art is raster, never CSS gradients.
-- Marigold gilt reserved for "now": selection, current tab, primary action, the just-rewarded ribbon.
-- Field numbers (No. 001 to 030) on every species surface, set in tabular figures.
+- Sun gold reserved for "now": selection, current tab, primary action, the just-rewarded ribbon.
+- Everything moves with springs (anime.js): buttons squash and spring back, cards tilt toward the pointer, numbers roll.
 - One drawn 24px stroke icon set; emoji only as the teacher's own content.
 
 ## Colors
 
-A green-and-paper book with one marigold signal and two plain state colours; element colours belong to the creatures, not the chrome.
+A painted daytime sky, white cards, one deep azure for weight, sun gold for "now", and plain state colours; element colours belong to the creatures.
 
 ### Primary
-- **Bookcloth Green** (cloth-800): the shell. Header, Present top and bottom bands, the cloth button, the active segment of in-panel tab bars, level-tab rings and numerals, focus outlines on paper (cloth-700). Always carries the woven linen overlay when used as a surface.
-- **Deep Bookcloth** (cloth-950): the big-moment surface (evolution, whole-class celebration, night-toned modal) and the modal scrim at 55%.
-- **Lifted Bookcloth** (cloth-700): hover for cloth buttons, focus outline and input focus border on paper.
+- **Azure** (azure-700, a gradient from azure-600): filled controls (the azure button, the selected tab pill, selection-mode button, the dressing-room and Evolutions buttons), focus outlines, level-tab rings and numerals.
+- **Deep Azure** (azure-800 to azure-950 radial): Present top and bottom bands, the selection bar, the lock screen, big moments (evolution, whole-class celebration) and the modal scrim at 45%.
 
 ### Secondary
-- **Marigold Gilt** (gilt): the "now" colour. Primary button, current main-nav underline, selected plate glow, the just-rewarded ribbon, selection check, focus outline on cloth.
-- **Gilt Deep** (gilt-deep): border of a selected plate and ring of a selected option.
-- **Gilt Ink** (gilt-ink): text on gilt fills.
-- **Gilt Pale** (gilt-pale): fill of a selected option tile (stage, wardrobe item, icon picker).
-- **Gilt Type** (gilt-text): the title on bookcloth (wordmark, Present class name, celebration headlines, selected count).
+- **Sun Gold** (gilt): the "now" colour. Primary button (with a lighter top), the sliding main-nav underline, selected plate glow, the just-rewarded ribbon, the class-goal bar in Present.
+- **Gilt Deep / Ink / Pale**: selected plate border, text on gold, fill of a selected option tile.
+- **Gilt Type** (gilt-text): titles on azure (Present class name, celebration headlines).
 
 ### Tertiary
-- **Award Leaf** (leaf / leaf-pale): positive XP figures, owned items, toggles on, positive activity rows.
-- **Reminder Brick** (brick / brick-pale): deductions and destructive actions. Deductions are a small pale-brick square beside the awards, never a red banner.
-- **Coin Ochre** (coin): coin counts and the drawn coin, kept apart from gilt so currency never reads as "now".
-- **Berry** (berry) and **Sky** (sky): content tags only (demo-data chip, challenge period chip, tear drops). Never chrome.
+- **Buy Green** (buy): the purchase button only, kept green as asked in 1.4.
+- **Award Leaf** (leaf / leaf-pale): positive XP figures, owned items, toggles on.
+- **Reminder Brick** (brick / brick-pale): deductions and destructive actions.
+- **Coin Ochre** (coin): coin counts and the drawn coin, never gold.
+- **Berry** and **Sky** (data): content tags only.
 
 ### Neutral
-- **Endpaper Sage** (endpaper): the page ground, under the printed pattern tile.
-- **Rule** (rule): plate hairlines, input borders, dividers, ring on light chips.
-- **Wash** (wash): hover fill on paper, unselected option tiles, the modal close button.
-- **Paper** (paper): plates, panels, inputs, award tiles, level tabs.
-- **Ink** (ink) and **Ink Soft** (ink-soft): primary text and secondary meta text.
+- **Sky Top / Mid / Horizon**: the background gradient under the painting (also the instant fallback before it loads).
+- **Mist** and **Wash**: insets and hover fills inside cards. **Rule**: hairlines and input borders, a cool blue-grey.
+- **Paper**: cards, panels, inputs, award tiles. **Ink** (deep navy) and **Ink Soft**: text.
 
 ### Element colours
-Each of the ten elements keeps a fixed colour (src/data/elements.ts) used as the plate's 3px ribbon above the name, its progress bar fill, its stage pips and its element icon. Element badges tint a chip with 15% of the colour on white and a 45% inset ring. Behaviour colours chosen by the teacher are mixed the same way (15 to 22% fill, 45 to 55% ring, icon at 70% mixed toward ink), so labels always stay ink.
+Each of the ten elements keeps a fixed colour (src/data/elements.ts) used as the plate's 3px ribbon, its progress bar, its stage pips and its element icon. Element and behaviour colours enter chrome only as a 15 to 22% tint on white with a 45 to 55% ring; labels stay ink.
 
 ### Named Rules
-**The Marigold Means Now Rule.** Gilt appears only on the active thing: the primary action, the current tab, the current selection, the most recent award. Never as decoration, never on a resting surface. If two unrelated things are marigold, one of them is wrong.
+**The Gold Means Now Rule.** Sun gold appears only on the active thing: the primary action, the current tab, the current selection, the most recent award. If two unrelated things are gold, one is wrong.
 
-**The Tinted Not Painted Rule.** Any colour that is not part of the book (element, behaviour, content tag) enters chrome only as a tint on white with a ring of the same hue; text on it stays ink.
+**The World Behind, Words In Front Rule.** Text never sits directly on a busy part of the painting without help: on cards, on glass, or with the sky halo (`.on-sky`, and the automatic halo for headings set on the sky).
 
 ## Typography
 
@@ -202,60 +208,60 @@ Each of the ten elements keeps a fixed colour (src/data/elements.ts) used as the
 
 ## Layout
 
-Content sits in a centred column up to 1600px with 16px side padding (24px from the small breakpoint). The classroom page leads with the class name left and the class goal meter right on one wrapping row, a ruled divider, then a single toolbar row (actions left, search and filters right on large screens). Below it, a plate grid of auto-filling 184px-minimum columns (two fixed columns on phones, 12px gaps, 16px from the small breakpoint) beside a 320px activity column from the xl breakpoint; below xl the column drops under the grid.
+Content sits in a centred column up to 1600px with 16px side padding (24px from the small breakpoint). The classroom page leads with the class name set straight on the sky (with its halo) and the class goal on a floating glass card to the right, then a toolbar row (actions left, search and filters right on large screens), leaving a band of open sky at the top where the sun, clouds, islands and flyers show. Below it, a card grid of auto-filling 184px-minimum columns (two on phones) beside a 320px activity column from the xl breakpoint.
 
-Plates are dense: 8px inset for the wash, 12px internal padding, a 48px row of award buttons at the foot. Award tiles auto-fill at 176px minimum (158px compact). Present mode removes chrome to two bookcloth bands with a centred plate grid between them on the endpaper. Modals become bottom sheets on phones and centred sheets above the small breakpoint. The main nav wraps to its own scrollable row below md with a fade mask.
+Present mode fills the screen: a deep azure top band, the creature cards fitted to the space between (they scroll on a phone), the awards ticker and an azure control band, with the sky world visible all around the cards. Modals are bottom sheets on phones and centred sheets above the small breakpoint. The main nav wraps to its own scrollable row below md.
 
 ## Elevation & Depth
 
-Paper lifted slightly off cloth-dyed endpaper: soft, ink-tinted, long-falloff shadows, never hard offsets. Plates and panels rest on a three-layer card shadow; hover lifts them 3px with a deeper shadow; modals and pop-overs use the lift shadow. Bookcloth bands cast a soft dark-green shadow down onto the page. The selected plate gets a 3px gilt ring with a warm glow.
+White cards float on the sky with soft, blue-tinted, long-falloff shadows; hover lifts them with a deeper shadow and cards lean slightly toward the pointer. The header is frosted glass (78% white, 14px blur) with a soft blue shadow. The painting itself has depth: its layers move at different speeds (parallax) from the far mountains to the meadow.
 
 ### Shadow Vocabulary
-- **Card** (`0 1px 0 rgb(22 36 28 / .04), 0 1px 2px rgb(22 36 28 / .08), 0 10px 24px -14px rgb(22 36 28 / .35)`): plates, panels, award tiles at rest.
-- **Lift** (`0 2px 4px rgb(22 36 28 / .08), 0 18px 34px -16px rgb(22 36 28 / .42)`): hovered plates, modals, deduction pop-over.
-- **Glow** (`0 0 0 3px gilt, 0 12px 28px -12px rgb(201 138 12 / .7)`): the selected plate only.
-- **Cloth band** (`0 8px 20px -14px rgb(13 46 35 / .9)`): header and Present top band.
+- **Card** (`0 1px 0 rgb(19 37 63 / .04), 0 2px 4px rgb(19 37 63 / .06), 0 14px 30px -16px rgb(27 79 151 / .45)`): cards, panels, award tiles at rest.
+- **Lift** (`0 4px 8px rgb(19 37 63 / .08), 0 24px 44px -18px rgb(27 79 151 / .55)`): hovered cards, modals, pop-overs.
+- **Glow** (`0 0 0 3px gilt, 0 12px 28px -12px rgb(217 148 0 / .7)`): the selected card only.
 
 ### Named Rules
-**The Paper On Endpaper Rule.** Depth is one sheet thick. A plate never sits on another plate; tiles inside a sheet use rings and tints, not shadows.
+**The One Sheet Rule.** A card never sits on another card; tiles inside a card use rings and tints, not shadows.
 
 ## Shapes
 
-Gently rounded sheets (14px) for plates, panels and modals; 12px for tiles and inputs inside them; 8px for the wash inset in a plate. Every action, chip, tab bar and level tab is a full pill. Borders are 1px rule hairlines on sheets and 1.5px inset rings on buttons and tinted tiles. The irregular shape belongs to the watercolour wash alone: its pooled ragged edge is the only non-geometric silhouette, set against the plate's clean corners. Two drawn marks complete the book: the ribbon (a gilt bookmark with a notched tail) and the round level seal.
+Softly rounded cards (18px) for plates, panels and modals; 12px for tiles and inputs; 8px for the wash inset in a plate. Every action, chip, tab bar and level tab is a full pill. The irregular shapes belong to the paintings: the watercolour washes behind creatures and the painted clouds, islands and hills. Two drawn marks remain: the gold ribbon bookmark and the round level seal.
 
 ## Components
 
 ### Buttons
-Tactile and rounded, set in the display face.
-- **Shape:** full pill (999px), 10px by 18px padding, 8px icon gap; press nudges down 1px and scales to 0.98.
-- **Primary:** gilt with gilt-ink text, an inner top highlight and a warm drop shadow. One per view region (Present, Award whole class, Pick a student, Hooray).
-- **Ghost:** transparent with a 1.5px ink ring at 22%; on bookcloth it turns white with a white ring at 30%.
-- **Light:** white with a rule ring, used for secondary actions on endpaper.
-- **Cloth:** bookcloth fill, white text, for confirming actions inside paper.
+Tactile and rounded, set in the display face. Their feel comes from anime.js (lib/interactions.ts): pressed buttons squash to 93% and spring back past rest; under the mouse they lift 2px; primary and buy buttons throw a few sparks on click.
+- **Shape:** full pill (999px), 10px by 18px padding, 8px icon gap.
+- **Primary:** sun gold with a lighter top, gilt-ink text, an inner highlight and a warm shadow. One per view region (Present, Award whole class, Pick a student, Hooray).
+- **Azure:** azure gradient, white text, for confirming and selected actions inside cards.
+- **Buy:** grass green gradient, white text, for "Buy and wear" only.
+- **Light:** white with a rule ring; the default secondary action, also on the open sky.
+- **Ghost:** transparent with an ink ring at 22%; on azure it turns white with a white ring.
 - **Danger:** brick fill, white text, destructive confirmations only.
-- **Disabled:** 45% opacity.
+- **Disabled:** 45% opacity, no motion.
 
 ### Chips
 - **Style:** pill, 12px bold, 2px by 10px. Tinted by the colour they name (element, mood, demo data, coins) on white, with a matching ring.
 - **State:** chips are labels, not controls.
 
 ### Plates (signature)
-The specimen card. White sheet, rule hairline, card shadow, 14px corners. Inside: an 8px-rounded watercolour wash (144px tall, 160px from small) holding the creature, the level tab top-left, a mood chip bottom-left when the mood is not calm. Under it: a 3px ribbon in the element colour, the name at title size, a meta line (element icon, field number, species in bold), an element-coloured progress bar with into/span figures, stage pips, XP and coins. The foot is a row of 48px-tall award buttons tinted by behaviour colour, then a small pale-brick deduct square that opens a pop-over. Hover lifts the plate. Selecting replaces the award row with a round check top-right; a selected plate takes the gilt-deep border and glow. The just-rewarded plate wears the gilt ribbon from the top edge until the next award.
+The specimen card. White sheet, rule hairline, card shadow, 18px corners. Inside: an 8px-rounded watercolour wash (144px tall, 160px from small) holding the creature, the level tab top-left, a mood chip bottom-left when the mood is not calm. Under it: a 3px ribbon in the element colour, the name at title size, a meta line (element icon, field number, species in bold), an element-coloured progress bar with into/span figures, stage pips, XP and coins. The foot is a row of 48px-tall award buttons tinted by behaviour colour, then a small pale-brick deduct square that opens a pop-over. Hover lifts the plate. Selecting replaces the award row with a round check top-right; a selected plate takes the gilt-deep border and glow. The just-rewarded plate wears the gilt ribbon from the top edge until the next award.
 
 ### Watercolour Wash
 Rasters in public/plates/<element>-<1|2|3>.webp, rendered by scripts/plates/. Each species keeps its wash by its index within its element, so a creature's plate never changes. Unlockable backgrounds are painted inside the same wash shape as a mask, with the wash multiplied over at 35%.
 
 ### Level Tab
-White pill with a 2px bookcloth ring and bookcloth numeral, a small "Lv" before the number. The large size becomes a 56px round seal.
+White pill with a 2px azure ring and azure numeral, a small "Lv" before the number. The large size becomes a 56px round seal.
 
 ### Inputs / Fields
 - **Style:** white, 1.5px rule border, 12px radius, 10px by 14px padding; selects use a drawn chevron.
 - **Hover:** border darkens to a sage grey.
-- **Focus:** border goes to cloth-700 with a 4px cloth halo at 18%.
+- **Focus:** border goes to azure-700 with a 4px azure halo at 18%.
 
 ### Navigation
-- **Main nav:** on bookcloth, display face 16px semibold, white at 75% resting and full white current, with a 3px gilt underline pill under the current tab.
-- **In-panel tabs:** a pill track on wash; the current segment is filled bookcloth with white text.
+- **Main nav:** in the glass header, display face 16px semibold, ink soft resting and azure-800 current, with a sun-gold underline that slides from tab to tab (anime.js).
+- **In-panel tabs:** a white pill track; an azure pill slides behind the current tab (`slidePill` in lib/motion.ts).
 - **Selected option tiles:** gilt-pale fill with a 2px gilt-deep ring; unselected are wash with a rule ring.
 
 ### Award Tiles
@@ -265,13 +271,13 @@ White 12px tiles with a rule ring and the card shadow; a 44px tinted icon square
 One drawn set on a 24px grid with 2px round strokes. A behaviour's emoji is shown through its drawn twin when one exists. The coin has its own two-tone ochre drawing.
 
 ### Big Moments
-Evolution and whole-class celebrations take the full screen in deep bookcloth with linen. An evolution charges first: the plate darkens to the element colour, the creature turns to white light under a pixel pillar in the element palette, the caption (field number, species, current stage) sits on a cloth-950 pill above the effect layer, and a white flash hands over to the reveal. The new form then sits on a large plate beside the old one, with a rotated round seal (gilt ring, field number, roman stage); a mythical form adds a rarity-tinted path chip; headline in gilt display type; actions are a ghost Replay and a gilt primary. Skip is always offered.
+Evolution and whole-class celebrations take the full screen in deep azure. An evolution charges first: the plate darkens to the element colour, the creature turns to white light under a pixel pillar in the element palette, the caption (field number, species, current stage) sits on a deep azure pill above the effect layer, and a white flash hands over to the reveal. The new form then sits on a large plate beside the old one, with a rotated round seal (gilt ring, field number, roman stage); a mythical form adds a rarity-tinted path chip; headline in gilt display type; actions are a ghost Replay and a gilt primary. Skip is always offered.
 
 ### Creature Profile
-A two-column page on the endpaper. Left: one large plate holding the creature on its wash, a mood chip, the evolve badge, and a row of light buttons (Pet, Feed, Play, Sing) with the Dressing room as the cloth action. Feed and Play open a wash tray of pixel snacks and toys. Right: a stack of paper sheets: level and XP as monumental numerals over an element-coloured bar; the evolution line as five small plates (the current one gilt-pale with a gilt-deep ring, undiscovered ones as silhouettes); personality; abilities; achievements; forms revealed. Coins sit top-right in the ochre coin pill.
+A two-column page on the sky. Left: one large plate holding the creature on its wash, a mood chip, the evolve badge, and a row of light buttons (Pet, Feed, Play, Sing) with the Dressing room as the azure action. Feed and Play open a wash tray of pixel snacks and toys. Right: a stack of paper sheets: level and XP as monumental numerals over an element-coloured bar; the evolution line as five small plates (the current one gilt-pale with a gilt-deep ring, undiscovered ones as silhouettes); personality; abilities; achievements; forms revealed. Coins sit top-right in the ochre coin pill.
 
 ### Dressing Room
-Category list on the left (light pills with a count, the current one bookcloth), the creature on a large plate in the middle with the selected item tried on and an action panel under it, item cards on the right. The worn items are chips with a remove button under the plate. Item cards: white, the item shown on the student's own creature, name in the display face, one state chip (Wearing in leaf, Owned in leaf-pale, a coin price in ochre, Locked in ink-soft). Rare cards take a gilt-deep ring and a gilt Rare chip; seasonal cards say until when. Buying is always the cloth button ("Buy and wear · 60"), never gilt.
+Category list on the left (light pills with a count, the current one azure), the creature on a large plate in the middle with the selected item tried on and an action panel under it, item cards on the right. The worn items are chips with a remove button under the plate. Item cards: white, the item shown on the student's own creature, name in the display face, one state chip (Wearing in leaf, Owned in leaf-pale, a coin price in ochre, Locked in ink-soft). Rare cards take a gilt-deep ring and a gilt Rare chip; seasonal cards say until when. Buying is always the green buy button ("Buy and wear · 60"), never gold.
 
 ### Ability Tree
 Four rows joined by a thin rule spine. Each row: a pixel icon tile, the name at title size with its tier, a one-line description, rank diamonds, and the action (gilt "Awaken · 1 point" or "Rank up", light "Use"). Asleep abilities are dimmed with the level they wake at.
@@ -286,27 +292,33 @@ The progression table is a paper sheet with a wash header row, rule dividers, ta
 Pixel art is the RPG layer around the illustrated creatures: effects from the vendored pixelfx library, trail particles, snacks, toys, ability icons and painted pixel scenes. All of it runs on one shared animation clock and loads on first use. On large views (profile, dressing room, spotlight) the pixels get big, so an effect must never cover the creature's face: full-body effects keep only their rim (a radial mask) or move beside the creature, mood effects use a smaller stand-in whose head sits at the creature's head, and floating pickups drop their floor shadow. Mythical forms wear drifting particles, not a full-body aura.
 
 ### Motion
-Painted creatures blink: a feathered eyelid in the measured skin colour with a soft lash curve, closed for about 120ms every 2.5 to 7 seconds per creature, sometimes twice; sleepy creatures keep their eyes shut. Large views breathe slowly under the species loop. Creatures idle with CSS loops (bob, float, hop, sway, breathe) chosen per species; UI uses Framer springs (plates stiffness 400, modals 320) and 120 to 150ms transitions on buttons and inputs. Every loop stops under Reduce Motion, from the OS or the in-app setting.
+anime.js (src/vendor/animejs, from dark3panther/anime) drives the interface through lib/motion.ts and lib/interactions.ts: springy presses, hover lifts and click sparks on every button; cards that lean toward the pointer; screens whose sections rise in one after another, with card grids rippling in; numbers (XP, coins, levels, class XP) that roll to new values; a card that bounces when it gets an award while "+5 XP" springs up out of it; pop-ups that spring up and sink away; progress bars that spring to length; tab pills that slide; the card grid gliding to its new order when re-sorted. The sky world (components/SkyWorld.tsx) uses the same engine for drifting clouds, bobbing islands, the turning sun, pollen, passing flyers and pointer parallax.
+
+Painted creatures blink (a feathered eyelid every 2.5 to 7 seconds per creature, sometimes twice; shut while sleepy) and large views breathe under the species idle loop (CSS). The evolution sequence and a few exit animations still use Framer Motion. Under Reduce Motion (OS or setting) every one of these stands down: changes happen at once, the sky is a still painting. "Animated background" off stills only the sky.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep marigold gilt for the one active thing on screen: primary action, current tab, selection, the latest award.
-- **Do** put every creature on its watercolour wash inside a white plate with the field number beside the species name.
-- **Do** use bookcloth with the linen texture for the shell and for big moments, with gilt type for titles on it.
+- **Do** keep sun gold for the one active thing on screen: primary action, current tab, selection, the latest award.
+- **Do** put every creature on its watercolour wash inside a white card with the field number beside the species name.
+- **Do** let the sky world show: leave open sky at the top of pages and around Present's cards; use glass for floating summaries.
+- **Do** give text on the painting help: a card, glass or the sky halo.
+- **Do** use deep azure with gold type for Present bands and big moments.
 - **Do** tint element and behaviour colours onto white with a ring of the same hue and keep the text ink.
-- **Do** set changeable numbers in tabular figures and give monumental numerals one message per band in Present and the profile.
-- **Do** use the drawn 24px stroke icon set for every control.
-- **Do** keep purchases deterministic and visible: the price on the card, the student's coins in view, one cloth button to buy.
+- **Do** set changeable numbers in tabular figures and let them roll (CountUp) when they change.
+- **Do** route new motion through lib/motion.ts so it respects Reduce Motion.
+- **Do** keep purchases deterministic and visible: the price on the card, the student's coins in view, one green button to buy.
 - **Do** check a pixel effect on the largest view it can appear in before shipping it.
 
 ### Don't:
-- **Don't** use gilt on a resting surface, a decorative border or a heading on paper.
-- **Don't** return to a dark night-sky ground with glowing pills, or to a grey admin table.
-- **Don't** paint chrome in element colours or pastels; colour belongs to the creatures and their plates.
-- **Don't** use hard offset shadows or stacked sheets; one paper layer on the endpaper.
+- **Don't** use gold on a resting surface, a decorative border or a heading.
+- **Don't** return to a dark night-sky ground, to green bookcloth, or to a grey admin table.
+- **Don't** put small text straight on busy parts of the painting.
+- **Don't** paint chrome in element colours or pastels; colour belongs to the creatures, their plates and the sky.
+- **Don't** use hard offset shadows or stack cards on cards.
+- **Don't** animate with CSS transitions on transform where anime.js already moves the element; they fight.
 - **Don't** build hierarchy from uppercase or letterspaced labels; use the size scale.
 - **Don't** put emoji in chrome; emoji appear only as the teacher's own behaviour, prize and badge content.
-- **Don't** let coins borrow gilt; currency is ochre.
+- **Don't** let coins borrow gold; currency is ochre.
 - **Don't** add loot boxes, random rolls for money or anything that can be bought twice.
 - **Don't** let a pixel effect sit on a creature's face, or replace creature art with emoji.

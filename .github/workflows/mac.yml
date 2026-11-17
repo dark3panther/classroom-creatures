@@ -17,7 +17,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - name: Build universal .dmg and .zip (ad-hoc signed)
+      - name: Build the Apple Silicon .dmg and .zip (ad-hoc signed)
         run: npm run app:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

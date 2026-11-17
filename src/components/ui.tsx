@@ -28,7 +28,7 @@ export function Modal({ open, onClose, children, wide, label, tone = 'paper' }: 
     if (open) {
       if (reducedMotion()) { utils.set(b, { opacity: 1 }); utils.set(p, { opacity: 1, y: 0, scale: 1 }); return; }
       animate(b, { opacity: [0, 1], duration: 220, ease: 'out(2)' });
-      animate(p, { opacity: [0, 1], y: [56, 0], scale: [0.94, 1], ease: bouncy });
+      animate(p, { opacity: { from: 0, to: 1, duration: 200, ease: 'out(2)' }, y: [56, 0], scale: [0.94, 1], ease: bouncy });
       return;
     }
     if (reducedMotion()) { setShown(false); return; }

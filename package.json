@@ -1,7 +1,7 @@
 {
   "name": "classroom-creatures",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
     "typecheck": "tsc -b",
     "app": "npm run build && electron .",
     "app:mac": "npm run build && electron-builder --mac",
-    "app:mac-zip": "npm run build && electron-builder --mac zip --arm64 --x64",
+    "app:mac-zip": "npm run build && electron-builder --mac zip --arm64",
     "test:e2e": "node scripts/e2e.mjs"
   },
   "devDependencies": {
@@ -57,13 +57,13 @@
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "arm64"
           ]
         },
         {
           "target": "zip",
           "arch": [
-            "universal"
+            "arm64"
           ]
         }
       ],

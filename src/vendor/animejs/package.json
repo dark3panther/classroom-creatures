@@ -1,0 +1,6 @@
+{
+  "name": "animejs-vendored",
+  "private": true,
+  "type": "module",
+  "sideEffects": false
+}

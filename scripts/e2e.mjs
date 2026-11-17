@@ -141,6 +141,27 @@ await p.evaluate(() => window.__cc.getState().updateSettings({ reducedMotion: tr
 const rmBlinks = await p.evaluate(() => new Promise((res) => { let n = 0; const t0 = performance.now(); const iv = setInterval(() => { n += document.querySelectorAll('.cc-lids[data-blink]').length; if (performance.now() - t0 > 5000) { clearInterval(iv); res(n); } }, 20); }));
 ok(rmBlinks === 0, 'no blinking with Reduce Motion on');
 await p.evaluate(() => window.__cc.getState().updateSettings({ reducedMotion: false }));
+await wait(600); // let the change save before the next page load
+
+// ---------- 6c. the painted sky moves, and anime.js drives presses, sparks and pop-ups ----------
+await p.goto(U); await wait(1500);
+const cloudAt = () => p.evaluate(() => getComputedStyle(document.querySelector('[data-cloud]')).transform);
+const c1 = await cloudAt(); await wait(1200); const c2 = await cloudAt();
+ok(c1 !== c2, 'clouds drift across the sky');
+const awardBtn = p.getByRole('button', { name: 'Award whole class' }); const ab = await awardBtn.boundingBox();
+await p.mouse.move(ab.x + ab.width / 2, ab.y + ab.height / 2); await p.mouse.down(); await wait(140);
+const pressed = await awardBtn.evaluate((e) => getComputedStyle(e).transform);
+ok(/matrix\(0\.9/.test(pressed), `buttons squash when pressed (${pressed})`);
+await p.mouse.up(); await wait(60);
+ok(await p.locator('.spark-layer').count() > 0, 'primary buttons throw sparks');
+await wait(500);
+ok(Number(await p.evaluate(() => getComputedStyle(document.querySelector('[role=dialog]')).opacity)) > 0.97, 'pop-ups spring open');
+await p.keyboard.press('Escape'); await wait(500);
+ok(await p.locator('[role=dialog]').count() === 0, 'pop-ups animate away and close');
+await p.evaluate(() => window.__cc.getState().updateSettings({ skyMotion: false })); await wait(400);
+const still1 = await cloudAt(); await wait(1000);
+ok(still1 === await cloudAt(), 'Animated background off keeps the sky still');
+await p.evaluate(() => window.__cc.getState().updateSettings({ skyMotion: true }));
 
 // ---------- 7. locked mode: students cannot touch XP or coins ----------
 await p.evaluate(() => window.__cc.getState().setLocked(true)); await wait(300);

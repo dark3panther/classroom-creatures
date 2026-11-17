@@ -21,3 +21,4 @@ Ideas for the next versions, roughly in order of classroom value.
 - **Accessibility pass**: colour-blind friendly element colours, larger text option, screen-reader labels on every card action.
 - **Teacher analytics**: behaviour trends over the term (private to the teacher, never shown in Presentation Mode).
 - **Windows build** alongside the Mac app (the Electron config already supports it).
+- **Seasons for the sky world**: blossom in spring, golden leaves in autumn, snow in winter, painted with the same p5.brush script.

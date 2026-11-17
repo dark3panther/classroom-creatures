@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { illustrationUrl } from '../creatures/Illustrated';
 import { animate, createAnimatable, createScope, utils } from '../vendor/animejs/index.js';
-import { reducedMotion } from '../lib/motion';
 import { useStore } from '../store/store';
 
 /**
@@ -38,7 +37,9 @@ export function SkyWorld() {
 
   useEffect(() => {
     const el = root.current;
-    if (!el || !motion || reduced || reducedMotion()) return;
+    // read the setting itself, not the page's reduce-motion class: App updates that class after this effect runs
+    const osReduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!el || !motion || reduced || osReduced) return;
     let flyerTimer = 0;
     const scope = createScope({ root: el }).add(() => {
       // clouds drift left to right and wrap around, each at its own speed and starting point

@@ -1,6 +1,6 @@
 # Classroom Creatures
 
-A gamified classroom management app for Grade 2 and Grade 3 teachers. Every student gets their own original fantasy creature. The teacher awards XP for positive behaviour, and the creatures celebrate, level up and evolve through five forms (ten of them can take a mythical final path). Students dress their creature up with the coins they earn, awaken its abilities and play with it, and the class fills in a field guide of every form it discovers. It all shows on a projector-friendly presentation screen.
+A gamified classroom management app for Grade 2 and Grade 3 teachers. Every student gets their own original fantasy creature. The teacher awards XP for positive behaviour, and the creatures celebrate, level up and evolve through five forms (ten of them can take a mythical final path). Students dress their creature up with the coins they earn, awaken its abilities and play with it, and the class fills in a field guide of every form it discovers. It all happens in a bright, animated painted sky world, and shows on a projector-friendly presentation screen.
 
 - **Runs locally.** No accounts, no student emails, no cloud, no paid services. Works offline once installed.
 - **Saves automatically** to the browser's IndexedDB (with a localStorage mirror), plus daily safety snapshots and downloadable backup files.
@@ -18,6 +18,15 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 | <img src="docs/screenshots/field-guide.jpg" alt="The class field guide: discovery progress, class milestones with rewards, and creature cards, undiscovered ones as silhouettes" width="300"> | <img src="docs/screenshots/teacher-controls.jpg" alt="Settings, Creatures and Shop: evolution mode, one creature waiting, and the class progression table" width="300"> | <img src="docs/screenshots/presentation.jpg" alt="Presentation mode on a projector" width="300"> |
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
+
+## What's new in 1.5: the sky world
+
+- **A living painted sky behind every screen.** The green look is gone. The app now sits in a bright daytime world painted in watercolour: a blue sky warming to gold at the horizon, the sun with slowly turning rays, clouds drifting across, far mountains, floating islands that bob gently, rolling hills and a flower meadow. Now and then one of the class's winged creatures flies past, pollen floats up through the light, and the whole scene shifts a little as you move the mouse, near layers more than far ones.
+- **Everything responds.** Buttons squash when pressed and spring back, lift under the mouse, and the main buttons throw a few sparks. Student cards lean towards the pointer. When a student gets points, their card bounces and "+5 XP" springs out of it, and XP and coin numbers roll to their new values. Pages build up section by section when they open, the creature cards ripple in, pop-up windows spring up and sink away, progress bars spring to their new length, and the tab underline and tab pills slide from tab to tab. Re-sorting the class makes the cards glide to their new places.
+- **Clear on a projector.** Cards stay solid white, the header is frosted glass, headings on the sky carry a soft white halo, and Present uses a deep daytime blue with a gold class-goal bar. Buying keeps its green button.
+- **For slower computers:** Settings → Classroom & PIN → *Animated background* turns the sky into a still painting, and *Reduce motion* calms every animation at once.
+- **Mac app for Apple Silicon.** One download, for Macs with Apple chips (M1 and newer), built on a current Electron for macOS 26 and 27.
+- The painting is made in code: `scripts/sky/paint.mjs` paints every layer with the p5.brush watercolour library, and the motion uses the anime.js animation library. Both are open source (MIT) and come from forks in this account.
 
 ## What's new in 1.4: the creature RPG update
 
@@ -87,6 +96,8 @@ npm run preview
 
 Classroom Creatures also runs as a normal Mac app (a dock icon, its own window, native full screen for the projector, menu shortcuts ⌘1–⌘3 for the tabs, ⌘, for Settings and ⌘P for Presentation Mode). It works fully offline.
 
+The app is built for Macs with Apple chips (M1 and newer).
+
 **Easiest: build it on your Mac** (needs Node.js 18+):
 
 ```bash
@@ -94,7 +105,7 @@ npm install
 npm run app:mac
 ```
 
-This creates `release/Classroom Creatures-<version>-universal.dmg` (works on both Apple Silicon and Intel Macs). Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
+This creates `release/Classroom Creatures-<version>-mac-arm64.dmg`. Open the `.dmg` and drag **Classroom Creatures** into **Applications**.
 
 **Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and a Release is published either by pushing a tag such as `v1.4.0` or from **Actions → Release → Run workflow** with the version number (the tag is created for you).
 
@@ -106,7 +117,7 @@ xattr -cr "/Applications/Classroom Creatures.app"
 
 **Your data in the Mac app** is stored in `~/Library/Application Support/Classroom Creatures`, separately from any browser copy. To move a class from the browser version into the app, use Settings → Backup & Data → *Download backup file* in the browser, then *Restore from file* in the app.
 
-**No Mac to build on?** `npm run app:mac-zip` also works on Linux and Windows. It makes two zips, `Classroom Creatures-<version>-mac-arm64.zip` for Apple Silicon (M1 and later) and `Classroom Creatures-<version>-mac-x64.zip` for Intel Macs, instead of the universal .dmg, which only a Mac can make. Give each Mac the zip for its chip: the Intel app on an Apple Silicon Mac runs through Rosetta, which recent macOS versions warn is being retired. The Apple Silicon app keeps Electron's built-in ad-hoc signature, so it runs once opened with right-click → **Open** (or the `xattr` command above).
+**No Mac to build on?** `npm run app:mac-zip` also works on Linux and Windows and makes `Classroom Creatures-<version>-mac-arm64.zip`. It keeps Electron's built-in ad-hoc signature, so it runs once opened with right-click → **Open** (or the `xattr` command above). Intel builds are no longer made: Intel apps on Apple Silicon need Rosetta, which macOS is retiring.
 
 To try the desktop shell without packaging: `npm run app`. The same config also builds Windows (`npx electron-builder --win`) and Linux (`npx electron-builder --linux`) versions.
 
@@ -162,10 +173,14 @@ src/
 │   └── mythic.tsx           Colour grade and ornaments for the mythical final forms
 ├── (electron/main.cjs)     Desktop shell: serves dist/ from a private app:// origin, menus, full screen
 ├── audio/sfx.ts             All sounds synthesised with Web Audio (original, offline)
-├── components/              Cards, award grid, celebrations, toasts, top bar, PIN lock, UI kit
+├── components/              Cards, award grid, celebrations, toasts, top bar, PIN lock, UI kit,
+│                            SkyWorld (the animated painted background), CountUp (rolling numbers)
 ├── views/                   Dashboard, StudentProfile, CreatureProfile, Customize (dressing room), Creaturedex
 │                            (field guide), Rewards, Settings, TeacherCreatures, Present, Onboarding
-└── lib/                     Hash router and view-model helpers
+├── lib/                     Hash router, view-model helpers, motion.ts (anime.js vocabulary: springs, pops,
+│                            count-ups, staggered entrances, sliding tab pills) and interactions.ts (app-wide
+│                            button presses, hover lifts, sparks and card tilt)
+└── vendor/                  anime.js and pixelfx (both MIT, unmodified except where noted)
 ```
 
 **Data flow.** UI → store action → pure engine function returns a new `AppData` → store commits it (debounced save to IndexedDB) and pushes UI-only celebration events (evolution, level-up, achievement, class goal) to a queue that `CelebrationHost` plays one at a time.
@@ -204,6 +219,9 @@ The vector version of a creature is drawn from parameters, so a new species work
 - New body parts or element features go in `CreatureSvg.tsx` (`Ears`, `Tail`, `WingPair`, `ElementFeatures`). Accessories go in `accessories.tsx` plus an entry in `ITEMS` (`src/data/defaults.ts`).
 
 ## Adding animations
+
+- **Interface motion** goes through `src/lib/motion.ts` (built on anime.js), which checks *Reduce motion* for you: `pop(el)`, `riseIn(elements)`, `countTo(el, from, to)`, `sparkle(x, y)`, `slidePill(row)` and the `bouncy` / `settle` springs. Any `.btn` or element with `data-press` gets the springy press automatically; `data-tilt` makes a card lean towards the pointer; `data-stagger` makes a container's children ripple in when a page opens.
+- **The sky world** is `src/components/SkyWorld.tsx`. Its paintings are in `public/sky/`; to change one, edit `scripts/sky/paint.html` and run `node scripts/sky/paint.mjs [layer]` (needs Playwright).
 
 - **Idle loops** are CSS keyframes in `src/index.css` (`.idle-bob`, `.idle-hop`…), chosen per species with `idle`. They are cheap on classroom computers and switch off with *Reduce motion* or the OS setting. Large views add `.cc-breath` underneath.
 - **Blinking** on the paintings: `scripts/creature-anchors.py` measures an eyelid per eye (size, the skin colour around it, a lash colour) into `src/data/creatureArt.json`, `Illustrated.tsx` draws the lids with a feathered rim, and `src/creatures/blink.ts` closes them for a moment on one shared timer (nothing animates between blinks). Where the measurement misreads an image, set the eye centres and half-sizes in `scripts/creature-anchor-overrides.json` and rerun the script. In development, `?sheet&art&lids` shows every form with its eyes shut.
