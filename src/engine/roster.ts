@@ -1,20 +1,27 @@
-import { DEFAULT_CATEGORIES, DEFAULT_CHALLENGES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_SETTINGS } from '../data/defaults';
+import { freshQuests } from '../data/adventure';
+import { DEFAULT_CATEGORIES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_SETTINGS } from '../data/defaults';
 import { SPECIES } from '../data/species';
-import type { AppData, ClassRoom, Student } from '../types';
+import type { AppData, ClassAdventure, ClassRoom, Student } from '../types';
 import { recordDiscoveries } from './collection';
 import { shuffle, uid } from './util';
 
-export const DATA_VERSION = 3;
+/** 1 = 1.0, 2 = 1.1 (coins), 3 = 1.4 (creature RPG), 4 = 1.5 (World of Adventures) */
+export const DATA_VERSION = 4;
 
-export function emptyData(): AppData {
+export function emptyData(now = Date.now()): AppData {
   return {
     version: DATA_VERSION,
     classes: [],
     students: [],
     categories: [...DEFAULT_CATEGORIES, ...DEFAULT_NEGATIVE_CATEGORIES].map((c) => ({ ...c })),
     events: [],
-    challenges: DEFAULT_CHALLENGES.map((c) => ({ ...c })),
+    challenges: [],
     settings: { ...DEFAULT_SETTINGS, milestones: DEFAULT_SETTINGS.milestones.map((m) => ({ ...m })), prizes: DEFAULT_SETTINGS.prizes.map((p) => ({ ...p })) },
+    quests: freshQuests(now),
+    questRecords: [],
+    bosses: [],
+    adventureLog: [],
+    rewardLedger: {},
   };
 }
 
@@ -49,12 +56,16 @@ export function newStudent(name: string, classId: string, speciesId: string, now
     tagCounts: {}, tagXp: {}, bestStage: 1, challengeCompletions: [],
     coins: 0, lifetimeXp: 0, milestoneRewards: [],
     evolutionLog: [], skills: {}, interactions: { pet: 0, feed: 0, play: 0 },
+    adventure: { visited: [], treasures: [], bosses: [] },
   };
 }
 
 export function newClass(name: string, grade: string, now = Date.now()): ClassRoom {
-  return { id: uid('c'), name: name.trim(), grade, archived: false, createdAt: now, goal: 1000, goalStep: 1000, prizeHistory: [] };
+  return { id: uid('c'), name: name.trim(), grade, archived: false, createdAt: now, goal: 1000, goalStep: 1000, prizeHistory: [], adventure: newClassAdventure() };
 }
+
+/** A class's World of Adventures state at the start: Verdant Valley open, a little meadow camp in the sanctuary. */
+export const newClassAdventure = (): ClassAdventure => ({ regions: {}, locations: { sanctuary: 1 }, opened: ['verdant'], milestones: [] });
 
 /** Add students to a class, each with an automatically assigned unique creature. */
 export function addStudents(data: AppData, classId: string, names: string[], rand = Math.random, now = Date.now()): AppData {
@@ -112,5 +123,12 @@ export function resetProgress(data: AppData, studentId: string, now = Date.now()
   if (!st) return data;
   const fresh = newStudent(st.name, st.classId, st.speciesId, now);
   const reset: Student = { ...fresh, id: st.id, createdAt: st.createdAt, ...(st.nickname ? { nickname: st.nickname } : {}), ...(st.isDemo ? { isDemo: true } : {}) };
-  return { ...data, students: data.students.map((s) => (s.id === studentId ? reset : s)), events: data.events.filter((e) => e.studentId !== studentId) };
+  // their quests, treasure and journal start again too; class-wide adventure (bosses, regions) is kept
+  const ledger = Object.fromEntries(Object.entries(data.rewardLedger ?? {}).filter(([k]) => !k.endsWith(`:${studentId}`)));
+  return {
+    ...data, students: data.students.map((s) => (s.id === studentId ? reset : s)), events: data.events.filter((e) => e.studentId !== studentId),
+    questRecords: (data.questRecords ?? []).filter((r) => r.studentId !== studentId),
+    adventureLog: (data.adventureLog ?? []).filter((l) => l.studentId !== studentId),
+    rewardLedger: ledger,
+  };
 }

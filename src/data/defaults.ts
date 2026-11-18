@@ -65,7 +65,11 @@ export interface AchievementDef {
     | { kind: 'branch' }
     | { kind: 'interactions'; min: number }
     | { kind: 'evoMaster' }
-    | { kind: 'collection'; pct: number };
+    | { kind: 'collection'; pct: number }
+    /** World of Adventures: chests opened, bosses befriended, regions explored */
+    | { kind: 'treasures'; min: number }
+    | { kind: 'bosses'; min: number }
+    | { kind: 'regions'; min: number };
   /** what the achievement gives (shown on the badge); the item itself unlocks through its own rule */
   reward?: string;
 }
@@ -84,7 +88,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'rising-star', name: 'Rising Star', description: 'Reach Level 5.', icon: '🌠', color: '#4f8cff', rule: { kind: 'level', min: 5 } },
   { id: 'advanced-form', name: 'Mighty Form', description: 'Reach the Advanced stage.', icon: '🛡️', color: '#9b51e0', rule: { kind: 'stage', min: 4 } },
   { id: 'living-legend', name: 'First Legendary', description: 'Reach the Legendary Form.', icon: '👑', color: '#f2a20c', rule: { kind: 'stage', min: 5 }, reward: 'Aurora Peaks' },
-  { id: 'challenge-champ', name: 'Challenge Champion', description: 'Complete 5 challenges.', icon: '🏆', color: '#eab308', rule: { kind: 'challenges', min: 5 }, reward: 'Champion Cape' },
+  { id: 'challenge-champ', name: 'Quest Champion', description: 'Complete 5 quests.', icon: '🏆', color: '#eab308', rule: { kind: 'challenges', min: 5 }, reward: 'Champion Cape' },
   // ── 1.4: creature achievements ──
   { id: 'customizer', name: 'Customization Expert', description: 'Wear items in 5 different slots at once.', icon: '🎨', color: '#c2366b', rule: { kind: 'equipped', min: 5 } },
   { id: 'item-collector', name: 'Wardrobe Collector', description: 'Own 10 items.', icon: '🧩', color: '#0ea5e9', rule: { kind: 'items', min: 10 } },
@@ -97,6 +101,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'field-researcher', name: 'Field Researcher', description: 'Your class discovers half of the field guide.', icon: '🔬', color: '#36c2b4', rule: { kind: 'collection', pct: 0.5 }, reward: 'Star Guardian Armor' },
   { id: 'master-collector', name: 'Master Collector', description: 'Your class discovers three quarters of the field guide.', icon: '🏆', color: '#eab308', rule: { kind: 'collection', pct: 0.75 }, reward: 'Crystal Cave' },
   { id: 'grand-naturalist', name: 'Grand Naturalist', description: 'Your class completes the whole field guide.', icon: '🌟', color: '#1b4f97', rule: { kind: 'collection', pct: 1 }, reward: 'Naturalist’s Hat' },
+  // ── 1.5: World of Adventures ──
+  { id: 'first-quest', name: 'Quest Starter', description: 'Complete your first quest.', icon: '📜', color: '#2f8f5b', rule: { kind: 'challenges', min: 1 } },
+  { id: 'quest-hero', name: 'Quest Hero', description: 'Complete 25 quests.', icon: '🗺️', color: '#1f6fb2', rule: { kind: 'challenges', min: 25 } },
+  { id: 'treasure-hunter', name: 'Treasure Hunter', description: 'Open 3 treasure chests.', icon: '🧰', color: '#c98a12', rule: { kind: 'treasures', min: 3 } },
+  { id: 'boss-buster', name: 'Boss Befriender', description: 'Help your class befriend a boss.', icon: '🤝', color: '#c8412f', rule: { kind: 'bosses', min: 1 } },
+  { id: 'legendary-ally', name: 'Legendary Ally', description: 'Help your class befriend 5 bosses.', icon: '🛡️', color: '#8b3fd0', rule: { kind: 'bosses', min: 5 } },
+  { id: 'world-explorer', name: 'World Explorer', description: 'Explore 3 regions of the world.', icon: '🧭', color: '#2563b8', rule: { kind: 'regions', min: 3 } },
+  { id: 'master-explorer', name: 'Master Explorer', description: 'Explore all 6 regions.', icon: '🏔️', color: '#13253f', rule: { kind: 'regions', min: 6 } },
 ];
 
 /** Dressing-room categories in display order: singular and plural labels. */
@@ -132,7 +144,7 @@ export const ITEMS: Item[] = [
   // magic
   { id: 'magic-sparkles', name: 'Sparkle Aura', slot: 'magic', unlock: { type: 'achievement', id: 'first-steps' }, description: 'A little bit of magic.' },
   { id: 'magic-halo', name: 'Glow Halo', slot: 'magic', unlock: { type: 'achievement', id: 'great-listener' }, description: 'Calm, bright focus.' },
-  { id: 'magic-orbit', name: 'Orbiting Stars', slot: 'magic', unlock: { type: 'challenges', count: 3 }, description: 'Earned by completing challenges.' },
+  { id: 'magic-orbit', name: 'Orbiting Stars', slot: 'magic', unlock: { type: 'challenges', count: 3 }, description: 'Earned by completing quests.' },
   { id: 'magic-rainbow', name: 'Rainbow Trail', slot: 'magic', unlock: { type: 'level', level: 8 }, description: 'Colourful and proud.' },
   // backgrounds
   { id: 'bg-habitat', name: 'Home Habitat', slot: 'background', unlock: { type: 'free' }, description: 'Your creature’s natural home.' },
@@ -162,7 +174,7 @@ export const ITEMS: Item[] = [
   { id: 'deco-bow', name: 'Ribbon Bow', slot: 'decoration', unlock: { type: 'level', level: 3 }, description: 'Tied with care.' },
   { id: 'deco-scarf', name: 'Cozy Scarf', slot: 'decoration', unlock: { type: 'achievement', id: 'team-captain' }, description: 'Warm like teamwork.' },
   { id: 'deco-medal', name: 'Hero Medal', slot: 'decoration', unlock: { type: 'achievement', id: 'evolution-master' }, description: 'Awarded for evolving.' },
-  { id: 'deco-cape', name: 'Champion Cape', slot: 'decoration', unlock: { type: 'achievement', id: 'challenge-champ' }, description: 'For challenge champions.' },
+  { id: 'deco-cape', name: 'Champion Cape', slot: 'decoration', unlock: { type: 'achievement', id: 'challenge-champ' }, description: 'For quest champions.' },
 
   // ── 1.4: armor ──
   { id: 'armor-leather', name: 'Adventurer Vest', slot: 'armor', unlock: { type: 'shop', price: 55 }, description: 'Stitched leather with a brass buckle.' },
@@ -201,6 +213,20 @@ export const ITEMS: Item[] = [
   { id: 'bg-pixel-village', name: 'Lantern Village', slot: 'background', unlock: { type: 'shop', price: 120 }, rare: true, description: 'Rooftops and lanterns under the stars.' },
   { id: 'bg-pixel-cave', name: 'Crystal Cave', slot: 'background', unlock: { type: 'collection', pct: 0.75 }, description: 'For classes that discover three quarters of the field guide.' },
   { id: 'hat-pith', name: 'Naturalist’s Hat', slot: 'hat', unlock: { type: 'collection', pct: 1 }, description: 'For classes that complete the whole field guide.' },
+  // ── 1.5: World of Adventures treasure (only from chests, never sold) ──
+  { id: 'bg-region-verdant', name: 'Verdant Valley', slot: 'background', unlock: { type: 'treasure', id: 'verdant-cosmetic' }, description: 'The Great Oak and its meadows.' },
+  { id: 'bg-region-crystal', name: 'Crystal Caverns', slot: 'background', unlock: { type: 'treasure', id: 'crystal-cosmetic' }, description: 'Glowing crystals deep under the hills.' },
+  { id: 'bg-region-frostpeak', name: 'Frostpeak Mountains', slot: 'background', unlock: { type: 'treasure', id: 'frostpeak-cosmetic' }, description: 'Snowy peaks under the northern lights.' },
+  { id: 'bg-region-ember', name: 'Ember Kingdom', slot: 'background', unlock: { type: 'treasure', id: 'ember-cosmetic' }, description: 'Volcanoes, lava rivers and storm clouds.' },
+  { id: 'bg-region-sky', name: 'Sky Islands', slot: 'background', unlock: { type: 'treasure', id: 'sky-cosmetic' }, description: 'Floating islands and rainbow bridges.' },
+  { id: 'bg-region-ancient', name: 'Ancient Kingdom', slot: 'background', unlock: { type: 'treasure', id: 'ancient-cosmetic' }, description: 'Starlit ruins of an old kingdom.' },
+  { id: 'bg-worldmap', name: 'World Map', slot: 'background', unlock: { type: 'treasure', id: 'hero-chest' }, rare: true, description: 'The whole world of adventures.' },
+  { id: 'hat-bramble', name: 'Bramble Crown', slot: 'hat', unlock: { type: 'treasure', id: 'verdant-boss' }, description: 'A thank-you from Grumblethorn, in full flower.' },
+  { id: 'trail-crystal', name: 'Crystal Trail', slot: 'trail', unlock: { type: 'treasure', id: 'crystal-boss' }, description: 'Glimmerjaw’s gems sparkle behind you.' },
+  { id: 'glasses-snow', name: 'Snow Goggles', slot: 'glasses', unlock: { type: 'treasure', id: 'frostpeak-boss' }, description: 'Sir Snowsulk’s own pair.' },
+  { id: 'trail-lava', name: 'Lava Trail', slot: 'trail', unlock: { type: 'treasure', id: 'ember-boss' }, description: 'Warm little bubbles from Magmaw.' },
+  { id: 'trail-cloud', name: 'Cloud Trail', slot: 'trail', unlock: { type: 'treasure', id: 'sky-boss' }, description: 'Puffs of cloud from Whirlwing.' },
+  { id: 'hat-relic', name: 'Star Temple Crown', slot: 'hat', unlock: { type: 'treasure', id: 'ancient-boss' }, rare: true, description: 'A gift from the Clockwork Colossus.' },
 ];
 
 export const ITEMS_BY_ID: Record<string, Item> = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
@@ -235,4 +261,7 @@ export const DEFAULT_SETTINGS: Settings = {
   disabledItems: [],
   itemPrices: {},
   shopWhileLocked: true,
+  adventureEnabled: true,
+  classWorld: true,
+  adventureWhileLocked: true,
 };

@@ -98,7 +98,8 @@ export function unlockLabel(item: Item, achievementName: (id: string) => string 
   switch (u.type) {
     case 'level': return `Reach Level ${u.level}`;
     case 'achievement': return `Badge: ${achievementName(u.id)}`;
-    case 'challenges': return `Complete ${u.count} challenges`;
+    case 'challenges': return `Complete ${u.count} quests`;
+    case 'treasure': return 'Found in a treasure chest';
     case 'stage': return `Evolve to ${STAGE_LABEL[u.stage - 1]}`;
     case 'collection': return `Class discovers ${Math.round(u.pct * 100)}% of the field guide`;
     case 'shop': return `${u.price} coins`;

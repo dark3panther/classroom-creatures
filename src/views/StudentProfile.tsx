@@ -20,7 +20,7 @@ import { ItemThumb } from '../components/ItemThumb';
 import { displayStage } from '../engine/progression';
 import { ELEMENTS, RARITIES, STAGE_NAMES } from '../data/elements';
 import { SPECIES, fieldNo, getSpecies } from '../data/species';
-import { challengeProgress } from '../engine/awards';
+import { questBoard, type QuestState } from '../engine/adventure';
 import { speciesChoices } from '../engine/roster';
 import { timeAgo } from '../engine/util';
 import { useStudentView } from '../lib/stats';
@@ -200,9 +200,12 @@ function LookTab({ student }: { student: Student }) {
   );
 }
 
+const QUEST_STATE_LABEL: Record<QuestState, string> = {
+  todo: 'To do', submitted: 'Waiting for teacher', approved: 'Reward ready', rejected: 'Try again', collected: 'Done', locked: 'Locked', upcoming: 'Soon', ended: 'Ended',
+};
+
 function Badges({ student }: { student: Student }) {
-  const challenges = useStore((s) => s.data.challenges);
-  const events = useStore((s) => s.data.events);
+  const data = useStore((s) => s.data);
   const have = new Map(student.achievements.map((a) => [a.id, a.at]));
   const now = Date.now();
   return (
@@ -222,21 +225,26 @@ function Badges({ student }: { student: Student }) {
           );
         })}
       </div>
-      <div className="mb-2 mt-5 font-display text-[16px] font-bold text-ink">Challenges</div>
+      <div className="mb-2 mt-5 flex items-center justify-between gap-2">
+        <span className="font-display text-[16px] font-bold text-ink">Quests</span>
+        {data.settings.adventureEnabled && <a className="text-sm font-bold text-azure-800 underline-offset-2 hover:underline" href={`#/adventure/quests?student=${student.id}`}>Quest board</a>}
+      </div>
       <div className="flex flex-col gap-2">
-        {challenges.filter((c) => c.active).map((c) => {
-          const p = challengeProgress(c, student.id, events, now);
+        {questBoard(data, student, now).filter((v) => v.state !== 'locked' && v.state !== 'ended' && v.state !== 'upcoming').slice(0, 8).map((v) => {
+          const tracked = v.quest.requirement.type === 'tracked';
+          const done = v.state === 'approved' || v.state === 'collected';
+          const value = done ? v.progress.target : v.progress.value;
           return (
-            <div key={c.id} className="rounded-2xl bg-ink/5 p-3">
+            <div key={v.quest.id} className="rounded-2xl bg-ink/5 p-3">
               <div className="flex items-center justify-between gap-2 text-sm font-bold">
-                <span className="flex items-center gap-1.5"><Icon name={p.done ? 'check' : c.period === 'daily' ? 'sun' : 'calendar'} size={16} strokeWidth={2.4} className={p.done ? 'text-leaf' : 'text-sky'} />{c.title}</span>
-                <span className="tabular-nums text-ink-soft">{p.value}/{c.target}</span>
+                <span className="flex items-center gap-1.5"><Icon name={done ? 'check' : v.quest.kind === 'daily' ? 'sun' : v.quest.kind === 'weekly' ? 'calendar' : 'scroll'} size={16} strokeWidth={2.4} className={done ? 'text-leaf' : 'text-sky'} />{v.quest.title}</span>
+                <span className="tabular-nums text-ink-soft">{tracked ? `${value}/${v.progress.target}` : QUEST_STATE_LABEL[v.state]}</span>
               </div>
-              <ProgressBar pct={p.value / c.target} color={p.done ? '#2563b8' : '#1f7fbf'} height={8} className="mt-1.5" />
+              {tracked && <ProgressBar pct={value / v.progress.target} color={done ? '#2563b8' : '#1f7fbf'} height={8} className="mt-1.5" />}
             </div>
           );
         })}
-        <div className="text-xs font-bold text-ink-soft">Challenges completed so far: {student.challengeCompletions.length}</div>
+        <div className="text-xs font-bold text-ink-soft">Quests completed so far: {student.challengeCompletions.length}</div>
       </div>
     </div>
   );

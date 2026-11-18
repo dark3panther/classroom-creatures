@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { DEFAULT_NEGATIVE_CATEGORIES, ITEMS_BY_ID } from '../data/defaults';
-import { ADJUST_CATEGORY_ID, applyAward, refreshAll, refreshStudent as refreshStudentPure, undoBatch } from '../engine/awards';
+import { ADJUST_CATEGORY_ID, applyAward, refreshAll, refreshStudent as refreshStudentPure } from '../engine/awards';
+import * as adv from '../engine/adventure';
+import type { BattleSetup } from '../engine/adventure';
 import { equipItem, purchase } from '../engine/shop';
 import { raiseAbility as raiseAbilityPure, resetAbilities as resetAbilitiesPure } from '../engine/abilities';
 import { approveEvolution as approveEvolutionPure, canChooseBranch, chooseBranch as chooseBranchPure, needsBranchChoice, pendingStage } from '../engine/evolution';
@@ -9,7 +11,7 @@ import { validateProgression } from '../engine/progression';
 import { migrate } from '../engine/backup';
 import { addStudents as addStudentsPure, emptyData, newClass, pickSpecies, resetProgress as resetProgressPure } from '../engine/roster';
 import { uid } from '../engine/util';
-import type { AppData, AwardOutcome, Category, Challenge, ClassRoom, ItemSlot, Settings, Stage, Student } from '../types';
+import type { AppData, AwardOutcome, Category, ClassRoom, ItemSlot, LocationId, Quest, RegionId, Settings, Stage, Student } from '../types';
 import { addSnapshot, dailySnapshot, loadData, requestPersistence, scheduleSave } from './storage';
 
 export type Celebration =
@@ -18,7 +20,13 @@ export type Celebration =
   | { id: string; type: 'levelup'; studentId: string; level: number }
   | { id: string; type: 'achievement'; studentId: string; achievementId: string }
   | { id: string; type: 'classGoal'; classId: string; goal: number }
-  | { id: string; type: 'milestone'; studentId: string; label: string; icon: string; atXp: number; others?: string[] };
+  | { id: string; type: 'milestone'; studentId: string; label: string; icon: string; atXp: number; others?: string[] }
+  // World of Adventures
+  | { id: string; type: 'quest'; studentId: string; questId: string; waiting: boolean; others?: string[] }
+  | { id: string; type: 'bossWon'; classId: string; bossId: string; battleId: string }
+  | { id: string; type: 'region'; classId: string; regionId: RegionId }
+  | { id: string; type: 'treasure'; studentId: string; treasureId: string; coins: number; itemId?: string }
+  | { id: string; type: 'decoration'; classId: string; name: string };
 
 export interface Pulse { n: number; xp: number; icon: string; coins: number; kind: 'good' | 'bad'; categoryId: string; levelUp: boolean; achievement: boolean; milestone: boolean }
 
@@ -83,8 +91,25 @@ interface Actions {
 
   upsertCategory: (c: Category) => void;
   deleteCategory: (id: string) => void;
-  upsertChallenge: (c: Challenge) => void;
-  deleteChallenge: (id: string) => void;
+  /* World of Adventures. Teacher actions need controls unlocked; `as` is the student using the kiosk while locked. */
+  saveQuest: (q: Quest) => boolean;
+  duplicateQuest: (id: string) => string | null;
+  deleteQuest: (id: string) => boolean;
+  submitQuest: (questId: string, studentId: string, note?: string) => boolean;
+  approveQuest: (recordId: string) => boolean;
+  rejectQuest: (recordId: string, reason: string) => boolean;
+  collectQuest: (recordId: string) => boolean;
+  approveAllQuests: (classId: string) => boolean;
+  collectAllQuests: (classId: string) => boolean;
+  startBattle: (setup: BattleSetup) => boolean;
+  controlBattle: (battleId: string, action: 'pause' | 'resume' | 'end') => boolean;
+  classActivity: (classId: string, amount: number, label: string) => boolean;
+  setRegion: (classId: string, regionId: RegionId, mode: 'open' | 'locked' | 'auto') => boolean;
+  visitRegion: (studentIds: string[], regionId: RegionId) => boolean;
+  upgradeLocation: (classId: string, id: LocationId) => boolean;
+  openTreasure: (studentId: string, treasureId: string) => boolean;
+  /** run the boss battle clock (App calls this every minute) */
+  tickAdventure: () => void;
   updateSettings: (patch: Partial<Settings>) => string | null;
 
   replaceData: (data: AppData, reason: string) => Promise<void>;
@@ -102,6 +127,61 @@ export const useStore = create<Store>()((set, get) => {
   const commit = (data: AppData) => {
     set({ data });
     scheduleSave(data);
+  };
+
+  /** The person acting: the teacher when controls are unlocked, otherwise the student at the kiosk. */
+  const actorFor = (studentId?: string): adv.Actor | null => (!get().locked ? adv.TEACHER : studentId ? adv.asStudent(studentId) : null);
+
+  /** Celebrations for adventure moments and for the levels, evolutions and treats rewards brought. */
+  const adventureCelebrations = (r: adv.AdventureResult): Celebration[] => {
+    const out: Celebration[] = [];
+    for (const o of r.outcomes) {
+      for (const m of o.newMilestoneRewards) out.push({ id: id(), type: 'milestone', studentId: o.studentId, label: m.label, icon: m.icon, atXp: m.atXp });
+      if (o.evolved) out.push({ id: id(), type: 'evolution', studentId: o.studentId, from: o.stageBefore, to: o.stageAfter });
+      else if (o.readyToEvolve) out.push({ id: id(), type: 'ready', studentId: o.studentId, stage: o.stageAfter });
+      else if (o.levelAfter > o.levelBefore && r.outcomes.length <= 3) out.push({ id: id(), type: 'levelup', studentId: o.studentId, level: o.levelAfter });
+    }
+    const quests = r.notes.filter((n): n is Extract<adv.AdventureNote, { type: 'quest-done' }> => n.type === 'quest-done' && !n.waiting);
+    if (quests.length) out.push({ id: id(), type: 'quest', studentId: quests[0].studentId, questId: quests[0].questId, waiting: false, ...(quests.length > 1 ? { others: quests.slice(1).map((q) => q.studentId) } : {}) });
+    const achievements = r.notes.filter((n): n is Extract<adv.AdventureNote, { type: 'achievement' }> => n.type === 'achievement');
+    if (achievements.length <= 3) for (const a of achievements) out.push({ id: id(), type: 'achievement', studentId: a.studentId, achievementId: a.achievementId });
+    for (const n of r.notes) {
+      if (n.type === 'boss-won') out.push({ id: id(), type: 'bossWon', classId: n.classId, bossId: n.bossId, battleId: n.battleId });
+      else if (n.type === 'region-opened') out.push({ id: id(), type: 'region', classId: n.classId, regionId: n.regionId });
+      else if (n.type === 'treasure') out.push({ id: id(), type: 'treasure', studentId: n.studentId, treasureId: n.treasureId, coins: n.coins, itemId: n.itemId });
+      else if (n.type === 'decoration') out.push({ id: id(), type: 'decoration', classId: n.classId, name: n.name });
+    }
+    return out;
+  };
+
+  /** A newly given item goes straight on when its slot is empty (not backgrounds). */
+  const wearNew = (data: AppData, pairs: { studentId: string; itemId?: string }[]): AppData => {
+    let d = data;
+    for (const { studentId, itemId } of pairs) {
+      const it = itemId ? ITEMS_BY_ID[itemId] : undefined;
+      if (!it || it.slot === 'background') continue;
+      d = { ...d, students: d.students.map((s) => (s.id === studentId && !s.equipped[it.slot] ? { ...s, equipped: { ...s.equipped, [it.slot]: it.id } } : s)) };
+    }
+    return d;
+  };
+
+  /** Run one adventure change: refusals become a gentle notice, results are celebrated and saved. */
+  const runAdventure = (fn: (data: AppData, actor: adv.Actor) => adv.AdventureResult | AppData, studentId?: string, ok?: string): boolean => {
+    const actor = actorFor(studentId);
+    if (!actor) { get().notify('Ask your teacher to unlock the controls', 'warn'); return false; }
+    try {
+      const out = fn(get().data, actor);
+      const r: adv.AdventureResult = 'notes' in out ? out : { data: out, notes: [], outcomes: [] };
+      const items = r.notes.flatMap((n) => (n.type === 'treasure' || n.type === 'quest-collected' ? [{ studentId: n.studentId, itemId: n.itemId }] : []));
+      const celebrations = adventureCelebrations(r);
+      if (celebrations.length) set({ celebrations: [...get().celebrations, ...celebrations] });
+      commit(wearNew(r.data, items));
+      if (ok) get().notify(ok, 'success');
+      return true;
+    } catch (e) {
+      if (e instanceof adv.AdventureError) { get().notify(e.message, 'warn'); return false; }
+      throw e;
+    }
   };
 
   return {
@@ -125,6 +205,9 @@ export const useStore = create<Store>()((set, get) => {
         // keep a copy of the pre-upgrade data the first time a newer version opens it
         if (before !== data.version) { void addSnapshot(await loadData() ?? data, `Before upgrading to Classroom Creatures ${__APP_VERSION__}`); scheduleSave(data, 0); }
       }
+      // the boss clock kept running while the app was closed
+      const synced = adv.syncAllWorlds(data);
+      if (synced !== data) { data = synced; scheduleSave(data); }
       set({ data, ready: true, locked: !!data.settings.pinHash });
       void requestPersistence();
       void dailySnapshot(data);
@@ -132,8 +215,12 @@ export const useStore = create<Store>()((set, get) => {
 
     award: (studentIds, categoryId) => {
       const before = get().data;
-      const { data, outcomes, batchId } = applyAward(before, studentIds, categoryId);
+      const awarded = applyAward(before, studentIds, categoryId);
+      const { outcomes, batchId } = awarded;
       if (!outcomes.length) return [];
+      // the adventure follows the award: boss hits, tracked quests, regions opening
+      const adventure = adv.afterAward(awarded);
+      const data = adventure.data;
       const cat = before.categories.find((c) => c.id === categoryId)!;
       const celebrations: Celebration[] = [];
       const pulses = { ...get().pulses };
@@ -178,6 +265,7 @@ export const useStore = create<Store>()((set, get) => {
         const first = ms[0];
         queued = [...queued.filter((c) => c.type !== 'milestone' || c === first)].map((c) => (c === first ? { ...first, others: ms.slice(1).map((m) => m.studentId) } : c));
       }
+      queued = [...queued, ...adventureCelebrations(adventure)];
       set({
         pulses,
         celebrations: [...get().celebrations, ...queued],
@@ -219,7 +307,7 @@ export const useStore = create<Store>()((set, get) => {
       });
     },
     undo: (batchId) => {
-      const d = undoBatch(get().data, batchId);
+      const d = adv.undoAdventure(get().data, batchId);
       const removedStudents = new Set(get().data.events.filter((e) => e.batchId === batchId).map((e) => e.studentId));
       set({
         lastAward: null,
@@ -247,7 +335,9 @@ export const useStore = create<Store>()((set, get) => {
       return true;
     },
     adjustXp: (studentId, delta, note) => {
-      const r = applyAward(get().data, [studentId], ADJUST_CATEGORY_ID, Date.now(), { xp: delta, note });
+      const corrected = applyAward(get().data, [studentId], ADJUST_CATEGORY_ID, Date.now(), { xp: delta, note });
+      // a correction is not activity, but it can still open a region (adventure points come from XP)
+      const r = { ...corrected, data: corrected.outcomes.length ? adv.afterAward(corrected).data : corrected.data };
       if (!r.outcomes.length) return false;
       const o = r.outcomes[0];
       const celebrations: Celebration[] = [];
@@ -328,6 +418,10 @@ export const useStore = create<Store>()((set, get) => {
         ...d, classes,
         students: d.students.filter((s) => s.classId !== cid),
         events: d.events.filter((e) => e.classId !== cid),
+        quests: d.quests.filter((q) => q.classId !== cid),
+        questRecords: d.questRecords.filter((r) => r.classId !== cid),
+        bosses: d.bosses.filter((b) => b.classId !== cid),
+        adventureLog: d.adventureLog.filter((l) => l.classId !== cid),
         settings: { ...d.settings, currentClassId: d.settings.currentClassId === cid ? classes.find((c) => !c.archived)?.id ?? null : d.settings.currentClassId },
       });
     },
@@ -345,7 +439,10 @@ export const useStore = create<Store>()((set, get) => {
     removeStudent: async (sid) => {
       const d = get().data;
       await addSnapshot(d, `Before removing ${d.students.find((s) => s.id === sid)?.name ?? 'a student'}`);
-      commit({ ...d, students: d.students.filter((s) => s.id !== sid), events: d.events.filter((e) => e.studentId !== sid) });
+      commit({
+        ...d, students: d.students.filter((s) => s.id !== sid), events: d.events.filter((e) => e.studentId !== sid),
+        questRecords: d.questRecords.filter((r) => r.studentId !== sid), adventureLog: d.adventureLog.filter((l) => l.studentId !== sid),
+      });
     },
     moveStudent: (sid, classId) => {
       const d = get().data;
@@ -354,6 +451,7 @@ export const useStore = create<Store>()((set, get) => {
         ...d,
         students: d.students.map((s) => (s.id === sid ? { ...s, classId } : s)),
         events: d.events.map((e) => (e.studentId === sid ? { ...e, classId } : e)),
+        questRecords: d.questRecords.map((r) => (r.studentId === sid ? { ...r, classId } : r)),
       });
     },
     assignSpecies: (sid, speciesId) => get().updateStudent(sid, { speciesId }),
@@ -394,14 +492,32 @@ export const useStore = create<Store>()((set, get) => {
       const d = get().data;
       commit({ ...d, categories: d.categories.filter((c) => c.id !== cid) });
     },
-    upsertChallenge: (c) => {
-      const d = get().data;
-      const exists = d.challenges.some((x) => x.id === c.id);
-      commit({ ...d, challenges: exists ? d.challenges.map((x) => (x.id === c.id ? c : x)) : [...d.challenges, c] });
+    saveQuest: (q) => runAdventure((d, a) => adv.saveQuest(d, a, q), undefined, 'Quest saved'),
+    duplicateQuest: (qid) => {
+      let copy: string | null = null;
+      runAdventure((d, a) => { const r = adv.duplicateQuest(d, a, qid); copy = r.quest.id; return r.data; }, undefined, 'Quest duplicated');
+      return copy;
     },
-    deleteChallenge: (cid) => {
+    deleteQuest: (qid) => runAdventure((d, a) => adv.deleteQuest(d, a, qid), undefined, 'Quest deleted (its history is kept)'),
+    submitQuest: (questId, studentId, note) => runAdventure((d, a) => adv.submitQuest(d, a, questId, studentId, Date.now(), note), studentId,
+      get().locked ? 'Handed in! Your teacher will check it.' : undefined),
+    approveQuest: (rid) => runAdventure((d, a) => adv.approveQuest(d, a, rid)),
+    rejectQuest: (rid, reason) => runAdventure((d, a) => adv.rejectQuest(d, a, rid, reason), undefined, 'Sent back with your note'),
+    collectQuest: (rid) => runAdventure((d, a) => adv.collectQuest(d, a, rid), get().data.questRecords.find((r) => r.id === rid)?.studentId),
+    approveAllQuests: (classId) => runAdventure((d, a) => adv.approveAll(d, a, classId), undefined, 'Every handed-in quest approved'),
+    collectAllQuests: (classId) => runAdventure((d, a) => adv.collectAll(d, a, classId), undefined, 'Rewards handed out'),
+    startBattle: (setup) => runAdventure((d, a) => adv.startBattle(d, a, setup)),
+    controlBattle: (bid, action) => runAdventure((d, a) => adv.controlBattle(d, a, bid, action)),
+    classActivity: (classId, amount, label) => runAdventure((d, a) => adv.classActivity(d, a, classId, amount, label)),
+    setRegion: (classId, regionId, mode) => runAdventure((d, a) => adv.setRegion(d, a, classId, regionId, mode)),
+    visitRegion: (studentIds, regionId) => runAdventure((d, a) => adv.visitRegion(d, a, studentIds, regionId), studentIds.length === 1 ? studentIds[0] : undefined),
+    upgradeLocation: (classId, lid) => runAdventure((d, a) => adv.upgradeLocation(d, a, classId, lid)),
+    openTreasure: (studentId, tid) => runAdventure((d, a) => adv.openTreasure(d, a, studentId, tid), studentId),
+    tickAdventure: () => {
       const d = get().data;
-      commit({ ...d, challenges: d.challenges.filter((c) => c.id !== cid) });
+      if (!d.bosses.some((b) => b.status === 'active')) return;
+      const r = adv.tickBattles(d);
+      if (r.data !== d) commit(r.data);
     },
     updateSettings: (patch) => {
       const d = get().data;

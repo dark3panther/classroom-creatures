@@ -1,10 +1,11 @@
 import { DEFAULT_CATEGORIES, DEFAULT_MILESTONES, DEFAULT_NEGATIVE_CATEGORIES, DEFAULT_PRIZES, DEFAULT_SETTINGS } from '../data/defaults';
 import { BRANCHES } from '../data/branches';
 import { SPECIES_BY_ID } from '../data/species';
-import type { AppData, EvolutionEntry, Settings, Stage, Student } from '../types';
+import { MIGRATED_REWARD, REGIONS_BY_ID, TAG_CATEGORY, freshQuests } from '../data/adventure';
+import type { AdventureLogEntry, AppData, BossBattle, ClassRoom, EvolutionEntry, Quest, QuestRecord, RegionId, Settings, Stage, Student } from '../types';
 import { formsOf, withDiscovered } from './collection';
 import { validateProgression } from './progression';
-import { DATA_VERSION } from './roster';
+import { DATA_VERSION, newClassAdventure } from './roster';
 
 // coins / lifetimeXp / milestoneRewards are deliberately absent: migrate() derives them for old backups
 const STUDENT_DEFAULTS = (): Pick<Student, 'equipped' | 'unlockedItems' | 'achievements' | 'tagCounts' | 'tagXp' | 'bestStage' | 'challengeCompletions' | 'createdAt'> => ({
@@ -20,12 +21,16 @@ const STUDENT_DEFAULTS = (): Pick<Student, 'equipped' | 'unlockedItems' | 'achie
  *  - v2 → v3 (1.4): evolution mode and history, branching paths, abilities, interactions, class
  *    encyclopedia discoveries, sound and shop settings. Discoveries are seeded from every creature's
  *    current form; the evolution history is seeded from the stages already reached.
+ *  - v3 → v4 (1.5): the World of Adventures. Every 1.4 challenge becomes a tracked quest in Verdant Valley
+ *    (the `challenges` list itself is kept untouched), the starting quests that do not repeat one are
+ *    added, and every challenge already completed is kept as a finished quest so it is not paid twice.
  */
 export function migrate(data: AppData): AppData {
   let d = data;
   if ((d.version ?? 1) < 2 || !d.settings?.milestones) d = migrateV2(d);
   if ((d.version ?? 2) < 3) d = migrateV3(d);
-  return normaliseV3(d);
+  if ((d.version ?? 3) < 4) d = migrateV4(d);
+  return normaliseV4(normaliseV3(d));
 }
 
 function migrateV2(data: AppData): AppData {
@@ -64,7 +69,87 @@ function migrateV3(data: AppData): AppData {
     return { ...s, bestStage: best, evolutionLog: log };
   });
   const classes = data.classes.map((c) => withDiscovered(c, students.filter((s) => s.classId === c.id).flatMap((s) => formsOf(s))).cls);
-  return { ...data, version: DATA_VERSION, students, classes };
+  return { ...data, version: 3, students, classes };
+}
+
+const questSignature = (q: Quest) => `${q.kind}|${q.requirement.type === 'tracked' ? `${q.requirement.metric}|${q.requirement.metric === 'count' ? q.requirement.tag ?? '' : ''}` : 'check'}`;
+
+function migrateV4(data: AppData, now = Date.now()): AppData {
+  const challenges = Array.isArray(data.challenges) ? data.challenges : [];
+  const converted: Quest[] = challenges.filter((c) => c && typeof c.id === 'string').map((c) => ({
+    id: `q-${c.id}`, classId: null, title: (c.title || 'Challenge').slice(0, 80),
+    description: 'A challenge from before the World of Adventures, now a quest.',
+    category: c.tag && c.metric === 'count' ? TAG_CATEGORY[c.tag] ?? 'custom' : 'behaviour',
+    kind: c.period === 'weekly' ? 'weekly' : 'daily', regionId: 'verdant', assign: 'class',
+    reward: { ...MIGRATED_REWARD[c.period === 'weekly' ? 'weekly' : 'daily'] },
+    requirement: { type: 'tracked', metric: c.metric === 'xp' ? 'xp' : 'count', ...(c.metric !== 'xp' && c.tag ? { tag: c.tag } : {}), target: Math.max(1, Math.round(Number(c.target) || 1)) },
+    approval: false, active: c.active !== false, createdAt: now, updatedAt: now, fromChallenge: c.id,
+  }));
+  const taken = new Set(converted.filter((q) => q.active).map(questSignature));
+  const quests = [...converted, ...freshQuests(now).filter((q) => !taken.has(questSignature(q)))];
+  const fromChallenge = new Map(converted.map((q) => [q.fromChallenge!, q.id]));
+  // completions from 1.4 become finished quests: they show in the history and are never paid again
+  const questRecords: QuestRecord[] = data.students.flatMap((s) => (s.challengeCompletions ?? [])
+    .filter((cc) => fromChallenge.has(cc.challengeId))
+    .map((cc) => ({
+      id: `qr-${s.id}-${cc.challengeId}-${cc.periodKey}`, questId: fromChallenge.get(cc.challengeId)!, studentId: s.id, classId: s.classId,
+      period: cc.periodKey, status: 'collected' as const,
+      history: [{ status: 'collected' as const, at: cc.at, by: 'auto' as const, note: 'Completed before the World of Adventures' }],
+      createdAt: cc.at, updatedAt: cc.at,
+    })));
+  const adventureLog: AdventureLogEntry[] = data.classes.map((c) => ({
+    id: `log-woa-${c.id}`, at: now, kind: 'milestone', classId: c.id, title: 'The World of Adventures opens',
+    detail: 'Verdant Valley is ready to explore.', regionId: 'verdant',
+  }));
+  return { ...data, version: 4, quests, questRecords, bosses: [], adventureLog, rewardLedger: {} };
+}
+
+const REGION_IDS = Object.keys(REGIONS_BY_ID) as RegionId[];
+const isRegion = (v: unknown): v is RegionId => typeof v === 'string' && REGION_IDS.includes(v as RegionId);
+const arr = <T,>(v: unknown, ok: (x: T) => boolean): T[] => (Array.isArray(v) ? (v as T[]).filter((x) => x && typeof x === 'object' && ok(x)) : []);
+
+/** Fill any v4 (World of Adventures) field that is missing or damaged (idempotent, safe on every load). */
+function normaliseV4(data: AppData): AppData {
+  const st = data.settings;
+  const settings: Settings = {
+    ...st,
+    adventureEnabled: st.adventureEnabled !== false,
+    classWorld: st.classWorld !== false,
+    adventureWhileLocked: st.adventureWhileLocked !== false,
+  };
+  const classes: ClassRoom[] = data.classes.map((c) => {
+    const a = c.adventure;
+    const base = newClassAdventure();
+    if (!a || typeof a !== 'object') return { ...c, adventure: base };
+    const regions = Object.fromEntries(Object.entries(a.regions ?? {}).filter(([k, v]) => isRegion(k) && (v === 'open' || v === 'locked')));
+    const locations = Object.fromEntries(Object.entries(a.locations ?? {}).filter(([, v]) => typeof v === 'number' && v >= 0 && v <= 3).map(([k, v]) => [k, Math.round(v as number)]));
+    const opened = Array.isArray(a.opened) ? [...new Set(a.opened.filter(isRegion))] : [];
+    if (!opened.includes('verdant')) opened.unshift('verdant');
+    return { ...c, adventure: { regions, locations: Object.keys(locations).length ? locations : base.locations, opened, milestones: Array.isArray(a.milestones) ? a.milestones.filter((m) => typeof m === 'string') : [] } };
+  });
+  const students: Student[] = data.students.map((s) => {
+    const a = s.adventure;
+    return {
+      ...s,
+      adventure: {
+        visited: arr<{ regionId: RegionId; at: number }>(a?.visited, (v) => isRegion(v.regionId)),
+        treasures: arr<{ id: string; at: number; coins: number }>(a?.treasures, (t) => typeof t.id === 'string'),
+        bosses: arr<{ battleId: string; bossId: string; at: number }>(a?.bosses, (b) => typeof b.battleId === 'string'),
+      },
+    };
+  });
+  return {
+    ...data,
+    version: DATA_VERSION,
+    settings,
+    classes,
+    students,
+    quests: arr<Quest>(data.quests, (q) => typeof q.id === 'string' && !!q.requirement && !!q.reward && isRegion(q.regionId)),
+    questRecords: arr<QuestRecord>(data.questRecords, (r) => typeof r.id === 'string' && typeof r.questId === 'string' && typeof r.studentId === 'string'),
+    bosses: arr<BossBattle>(data.bosses, (b) => typeof b.id === 'string' && Array.isArray(b.contributions)),
+    adventureLog: arr<AdventureLogEntry>(data.adventureLog, (e) => typeof e.id === 'string' && typeof e.at === 'number'),
+    rewardLedger: data.rewardLedger && typeof data.rewardLedger === 'object' && !Array.isArray(data.rewardLedger) ? data.rewardLedger : {},
+  };
 }
 
 const clampStage = (v: unknown): Stage => (typeof v === 'number' && v >= 1 && v <= 5 ? Math.round(v) : 1) as Stage;
@@ -152,6 +237,11 @@ export function parseBackup(json: string): { data: AppData; summary: BackupSumma
     events: Array.isArray(data.events) ? data.events : [],
     challenges: Array.isArray(data.challenges) ? data.challenges : [],
     settings,
+    quests: Array.isArray(data.quests) ? data.quests : [],
+    questRecords: Array.isArray(data.questRecords) ? data.questRecords : [],
+    bosses: Array.isArray(data.bosses) ? data.bosses : [],
+    adventureLog: Array.isArray(data.adventureLog) ? data.adventureLog : [],
+    rewardLedger: data.rewardLedger && typeof data.rewardLedger === 'object' ? data.rewardLedger : {},
   };
   const migrated = migrate({ ...normalised, version: data.version ?? 1 });
   return {

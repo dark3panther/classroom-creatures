@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_LEVEL_XP, DEFAULT_EVOLUTION_LEVELS } from '../data/defaults';
+import { DEFAULT_CHALLENGES, DEFAULT_LEVEL_XP, DEFAULT_EVOLUTION_LEVELS } from '../data/defaults';
 import { SPECIES } from '../data/species';
 import type { AppData } from '../types';
 import { applyAward, challengeProgress, undoBatch } from './awards';
@@ -149,8 +149,9 @@ describe('awarding XP', () => {
     expect(r.data.events[0].xp).toBe(-2);
     expect(stageForXp(r.data.students[0].xp, prog)).toBe(2);
   });
-  it('tracks daily challenges and records completion once per day', () => {
+  it('still tracks 1.4 challenges in data saved before the World of Adventures (once per day)', () => {
     let { data, ids } = classWith(['C']);
+    data = { ...data, challenges: DEFAULT_CHALLENGES.map((c) => ({ ...c })), quests: undefined as unknown as AppData['quests'] };
     const ch = data.challenges.find((c) => c.id === 'ch-participate-3')!;
     data = applyAward(data, ids, 'cat-participating', NOW).data;
     data = applyAward(data, ids, 'cat-participating', NOW + 1).data;

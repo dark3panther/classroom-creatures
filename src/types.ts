@@ -69,7 +69,9 @@ export type UnlockRule =
   | { type: 'free' }
   | { type: 'shop'; price: number }
   | { type: 'stage'; stage: Stage }
-  | { type: 'collection'; pct: number };
+  | { type: 'collection'; pct: number }
+  /** granted by opening a World of Adventures treasure chest */
+  | { type: 'treasure'; id: string };
 
 /** A shop item sold only between two month-days each year (e.g. autumn). Owned items stay owned. */
 export interface SeasonWindow { from: [month: number, day: number]; to: [month: number, day: number]; label: string }
@@ -141,6 +143,143 @@ export interface Student {
   skills?: Record<string, number>;
   /** cosmetic interaction counters (pet / feed / play); nothing is ever lost by not interacting */
   interactions?: { pet: number; feed: number; play: number };
+  /** World of Adventures progress that belongs to this student */
+  adventure?: StudentAdventure;
+}
+
+/* ───────────────────────────── World of Adventures (1.5, data version 4) ───────────────────────────── */
+
+export type RegionId = 'verdant' | 'crystal' | 'frostpeak' | 'ember' | 'sky' | 'ancient';
+export type LocationId = 'sanctuary' | 'village' | 'library' | 'arena' | 'castle';
+
+export interface StudentAdventure {
+  /** regions this student has explored, with when */
+  visited: { regionId: RegionId; at: number }[];
+  /** treasure chests opened: what they gave */
+  treasures: { id: string; at: number; coins: number; itemId?: string; batchId?: string }[];
+  /** boss battles this student contributed to that the class won */
+  bosses: { battleId: string; bossId: string; at: number }[];
+}
+
+export type QuestKind = 'daily' | 'weekly' | 'custom';
+export type QuestCategory = 'participation' | 'work' | 'reading' | 'teamwork' | 'helping' | 'behaviour' | 'english' | 'creativity' | 'custom';
+
+export type QuestRequirement =
+  /** counted automatically from teacher awards in the quest's period */
+  | { type: 'tracked'; metric: 'count' | 'xp'; tag?: CategoryTag; target: number }
+  /** someone says it is done (a student submits, or the teacher marks it) */
+  | { type: 'check' };
+
+export interface QuestReward { xp: number; coins: number; itemId?: string }
+
+export interface Quest {
+  id: string;
+  /** the class it belongs to; null = every class */
+  classId: string | null;
+  title: string;
+  description: string;
+  category: QuestCategory;
+  kind: QuestKind;
+  regionId: RegionId;
+  /** the whole class, or these students */
+  assign: 'class' | string[];
+  reward: QuestReward;
+  requirement: QuestRequirement;
+  /** completions wait for the teacher before the reward can be collected */
+  approval: boolean;
+  startAt?: number;
+  endAt?: number;
+  active: boolean;
+  /** deleted quests stay in the data so their history keeps its titles */
+  deleted?: boolean;
+  createdAt: number;
+  updatedAt: number;
+  /** id of the 1.4 challenge this quest was made from */
+  fromChallenge?: string;
+}
+
+export type QuestStatus = 'submitted' | 'approved' | 'rejected' | 'collected';
+
+export interface QuestRecord {
+  id: string;
+  questId: string;
+  studentId: string;
+  classId: string;
+  /** 'YYYY-MM-DD' for daily, 'YYYY-Www' for weekly, 'once' for custom quests */
+  period: string;
+  status: QuestStatus;
+  history: { status: QuestStatus; at: number; by: 'teacher' | 'student' | 'auto'; note?: string }[];
+  /** the teacher's explanation when rejected */
+  reason?: string;
+  /** award batch of a tracked completion (so undo can take it back) and of the collected reward */
+  sourceBatchId?: string;
+  rewardBatchId?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type BossStatus = 'active' | 'paused' | 'won' | 'ended';
+
+export interface BossContribution {
+  id: string;
+  studentId?: string;
+  amount: number;
+  at: number;
+  source: 'award' | 'quest' | 'class';
+  /** award batch id or quest record id */
+  ref?: string;
+  label: string;
+}
+
+export interface BossBattle {
+  id: string;
+  classId: string;
+  bossId: string;
+  /** total contribution needed to befriend the boss */
+  hp: number;
+  status: BossStatus;
+  startedAt: number;
+  durationMs: number;
+  /** milliseconds spent paused so far, and when the current pause began */
+  pausedMs: number;
+  pausedAt?: number;
+  endedAt?: number;
+  reward: QuestReward;
+  contributions: BossContribution[];
+}
+
+export type AdventureLogKind =
+  | 'quest-submitted' | 'quest-approved' | 'quest-rejected' | 'quest-collected'
+  | 'boss-started' | 'boss-paused' | 'boss-resumed' | 'boss-won' | 'boss-ended'
+  | 'treasure' | 'region-visited' | 'region-unlocked' | 'region-locked' | 'location-upgraded' | 'milestone';
+
+/** Append-only history of the adventure: the journal and the teacher's history are views of it. */
+export interface AdventureLogEntry {
+  id: string;
+  at: number;
+  kind: AdventureLogKind;
+  classId: string;
+  /** set for one student's moments; absent for class-wide moments */
+  studentId?: string;
+  title: string;
+  detail?: string;
+  /** quest record, battle, treasure, region or location id */
+  ref?: string;
+  regionId?: RegionId;
+  xp?: number;
+  coins?: number;
+  itemId?: string;
+}
+
+export interface ClassAdventure {
+  /** teacher overrides: open a region early or close one */
+  regions: Partial<Record<RegionId, 'open' | 'locked'>>;
+  /** shared world: stage of each location (0 = not built) */
+  locations: Partial<Record<LocationId, number>>;
+  /** regions the class has opened so far (opened regions stay open unless the teacher closes them) */
+  opened: RegionId[];
+  /** class decorations already celebrated */
+  milestones: string[];
 }
 
 export interface EvolutionEntry { speciesId: string; stage: Stage; branch?: 'a' | 'b'; at: number }
@@ -170,6 +309,8 @@ export interface ClassRoom {
   isDemo?: boolean;
   /** creature forms the class has discovered (`${speciesId}-${stage}` or `${speciesId}-5b`) */
   discovered?: string[];
+  /** World of Adventures: region overrides and shared world stages */
+  adventure?: ClassAdventure;
 }
 
 export interface AwardEvent {
@@ -193,6 +334,8 @@ export interface AwardEvent {
   /** a teacher's manual XP correction (not a behaviour award) */
   adjust?: boolean;
   note?: string;
+  /** an adventure reward (quest, boss, treasure): not a behaviour award, never counts as activity */
+  reward?: { kind: 'quest' | 'boss' | 'treasure'; key: string; ref: string; itemId?: string };
 }
 
 export type ChallengePeriod = 'daily' | 'weekly';
@@ -243,6 +386,12 @@ export interface Settings {
   itemPrices: Record<string, number>;
   /** students may buy and equip from the Presentation Mode spotlight while teacher controls are locked */
   shopWhileLocked: boolean;
+  /** World of Adventures on/off */
+  adventureEnabled: boolean;
+  /** the shared class world (Creature Sanctuary, Village, ...) on/off */
+  classWorld: boolean;
+  /** students may open Adventure (their quests, chests, journal) while teacher controls are locked */
+  adventureWhileLocked: boolean;
 }
 
 export interface AppData {
@@ -251,8 +400,15 @@ export interface AppData {
   students: Student[];
   categories: Category[];
   events: AwardEvent[];
+  /** 1.4 challenges; since data version 4 they live on as tracked quests and this list is kept unchanged */
   challenges: Challenge[];
   settings: Settings;
+  quests: Quest[];
+  questRecords: QuestRecord[];
+  bosses: BossBattle[];
+  adventureLog: AdventureLogEntry[];
+  /** every adventure reward ever granted, by key (quest:…, boss:…, treasure:…): each key is granted once */
+  rewardLedger: Record<string, { at: number; batchId: string }>;
 }
 
 export interface AwardOutcome {

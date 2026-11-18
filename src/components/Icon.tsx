@@ -76,6 +76,23 @@ const PATHS: Record<string, ReactNode> = {
   shootingStar: <><path d="M14 4l1.4 2.9 3.2.5-2.3 2.2.5 3.2L14 11.3 11.2 12.8l.5-3.2L9.4 7.4l3.2-.5z" /><path d="M9 13l-5.5 5.5M11 16l-3.5 3.5M6 11l-3 3" /></>,
   shield: <path d="M12 3l7.5 3v5.5c0 4.8-3.2 8.2-7.5 9.5-4.3-1.3-7.5-4.7-7.5-9.5V6z" />,
   cape: <><circle cx="12" cy="5.5" r="2.5" /><path d="M8.5 9h7l3.5 11.5H5z" /><path d="M12 9v11.5" /></>,
+  // World of Adventures
+  scroll: <><path d="M7 4h11a2 2 0 0 1 2 2v1h-4" /><path d="M16 7v11a2.5 2.5 0 0 1-5 0v-1H4v1a2.5 2.5 0 0 0 2.5 2.5H13.5" /><path d="M7 4a2 2 0 0 0-2 2v11M9 9h4M9 12.5h4" /></>,
+  map: <><path d="M3.5 6.5l5.5-2.5 6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z" /><path d="M9 4v13.5M15 6.5V20" /></>,
+  chest: <><path d="M4 11h16v8.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z" /><path d="M4 11V9a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2" /><path d="M10.5 11v3h3v-3M4 15h6.5M13.5 15H20" /></>,
+  compass: <><circle cx="12" cy="12" r="8.5" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></>,
+  mountain: <><path d="M2.5 20l7-12 4 6.5 2.5-3.5 5.5 9z" /><path d="M7.4 11.6l2.1 1.4 1.9-1.6" /></>,
+  castle: <><path d="M4 21V9h3v2h2V9h2v2h2V9h2v2h2V9h3v12z" /><path d="M10 21v-4a2 2 0 0 1 4 0v4M12 3v5M12 3l3 1.2-3 1.2" /></>,
+  swords: <><path d="M4 4l10 10M4 4v3.5M4 4h3.5M20 4L10 14M20 4v3.5M20 4h-3.5" /><path d="M12 16l-3.5 3.5M12 16l3.5 3.5M6.5 13.5l4 4M17.5 13.5l-4 4" /></>,
+  journal: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 3v18M12 8h4M12 11.5h4" /></>,
+  sparkles: <><path d="M9 4l1.4 4.1L14.5 9.5l-4.1 1.4L9 15l-1.4-4.1L3.5 9.5l4.1-1.4z" /><path d="M17 13l.9 2.6 2.6.9-2.6.9L17 20l-.9-2.6-2.6-.9 2.6-.9z" /></>,
+  pause: <path d="M8.5 5v14M15.5 5v14" />,
+  play: <path d="M7.5 5v14l11-7z" />,
+  stop: <rect x="6" y="6" width="12" height="12" rx="2" />,
+  copy: <><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2" /><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5" /></>,
+  edit: <><path d="M4 20l1.2-4.3L16 4.9l3.1 3.1L8.3 18.8z" /><path d="M14 7l3 3" /></>,
+  eye: <><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="3" /></>,
+  history: <><path d="M4 12a8 8 0 1 0 2.4-5.7" /><path d="M4 4v4.5h4.5M12 8v4.5l3 2" /></>,
 };
 
 /** The teacher picks behaviour icons as emoji; every one in the picker (and the defaults) has a drawn twin. */
@@ -87,6 +104,7 @@ const EMOJI_ICON: Record<string, string> = {
   // achievement badges
   '👣': 'paw', '📚': 'book', '🦸': 'cape', '🏅': 'medal', '🧬': 'dna', '🎧': 'headphones', '🚩': 'flag', '💯': 'hundred',
   '🌠': 'shootingStar', '🛡️': 'shield', '👑': 'crown',
+  '📜': 'scroll', '🗺️': 'map', '🧰': 'chest', '🧭': 'compass', '🏔️': 'mountain', '🏰': 'castle', '⚔️': 'swords',
 };
 
 export type IconName = keyof typeof PATHS;

@@ -31,6 +31,9 @@ export function achievementMet(def: AchievementDef, s: Student, settings: Prog, 
     case 'interactions': { const i = s.interactions; return (i ? i.pet + i.feed + i.play : 0) >= r.min; }
     case 'evoMaster': return displayStage(s, settings) >= 5 && Object.values(s.skills ?? {}).filter((v) => v > 0).length >= 4;
     case 'collection': return !!cls && collectionStats(cls).pct >= r.pct;
+    case 'treasures': return (s.adventure?.treasures.length ?? 0) >= r.min;
+    case 'bosses': return (s.adventure?.bosses.length ?? 0) >= r.min;
+    case 'regions': return (s.adventure?.visited.length ?? 0) >= r.min;
   }
 }
 
@@ -51,6 +54,7 @@ export function qualifiedItems(s: Student, settings: Prog, cls?: Pick<ClassRoom,
     if (u.type === 'shop') return false; // bought with coins, never auto-unlocked
     if (u.type === 'stage') return stage >= u.stage;
     if (u.type === 'collection') return pct >= u.pct || (pct < 0 && s.unlockedItems.includes(it.id));
+    if (u.type === 'treasure') return !!s.adventure?.treasures.some((t) => t.id === u.id && t.itemId === it.id);
     return s.challengeCompletions.length >= u.count;
   }).map((i) => i.id);
 }
@@ -70,7 +74,8 @@ export function challengeProgress(c: Challenge, studentId: string, events: Award
   const from = periodStart(c.period, now);
   let value = 0;
   for (const e of events) {
-    if (e.studentId !== studentId || e.undone || e.at < from || e.at > now) continue;
+    // adventure rewards are not classroom activity, so a quest's own reward never counts towards a quest
+    if (e.studentId !== studentId || e.undone || e.reward || e.at < from || e.at > now) continue;
     if (c.metric === 'xp') value += Math.max(0, e.xp);
     else if (!c.tag || e.tag === c.tag) { if (e.xp > 0) value += 1; }
   }
@@ -83,7 +88,8 @@ export function challengeProgress(c: Challenge, studentId: string, events: Award
  */
 function refreshUnlocks(s: Student, data: AppData, now: number) {
   const newChallenges: string[] = [];
-  for (const c of data.challenges) {
+  // since data version 4 the 1.4 challenges live on as quests (engine/adventure); this loop is for older data only
+  for (const c of Array.isArray(data.quests) ? [] : data.challenges) {
     if (!c.active) continue;
     const key = periodKey(c.period, now);
     if (s.challengeCompletions.some((cc) => cc.challengeId === c.id && cc.periodKey === key)) continue;
@@ -171,7 +177,6 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
   if (!cat || cat.xp === 0 || (cat.xp < 0 && !adjust && !data.settings.negativeEnabled) || studentIds.length === 0) {
     return { data, outcomes: [], batchId };
   }
-  const auto = data.settings.evolutionMode !== 'approval';
   const ids = new Set(studentIds);
   const newEvents: AwardEvent[] = [];
   const students = data.students.map((s) => {
@@ -197,6 +202,15 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
   });
 
   const next: AppData = { ...data, students, events: [...data.events, ...newEvents] };
+  return settle(data, next, ids, now, batchId);
+}
+
+/**
+ * Everything that follows a change of XP, shared by awards and adventure rewards: evolution (or the
+ * "ready to evolve" notice), badges, items, milestone treats and class discoveries.
+ */
+function settle(data: AppData, next: AppData, ids: Set<string>, now: number, batchId: string): AwardResult {
+  const auto = data.settings.evolutionMode !== 'approval';
   const outcomes: AwardOutcome[] = [];
   next.students = next.students.map((s) => {
     if (!ids.has(s.id)) return s;
@@ -245,6 +259,62 @@ export function applyAward(data: AppData, studentIds: string[], categoryId: stri
   return { data: next, outcomes, batchId };
 }
 
+/** Category id of adventure reward events (quests, bosses, treasure). */
+export const REWARD_CATEGORY_ID = 'adventure-reward';
+
+export interface RewardGrant {
+  studentId: string;
+  /** reward ledger key: a key is granted once, ever (until the reward itself is undone) */
+  key: string;
+  xp: number;
+  coins: number;
+  /** an item to give; skipped when the student already owns it */
+  itemId?: string;
+}
+
+/**
+ * Give World of Adventures rewards through the same pipeline as awards, so levels, evolutions, badges,
+ * milestone treats, undo and the history all work. Grants whose ledger key was already used are skipped,
+ * which makes every reward idempotent (a double click, two windows). XP from rewards counts towards levels
+ * but never towards tags, quests or boss battles.
+ */
+export function applyReward(
+  data: AppData, grants: RewardGrant[],
+  meta: { kind: 'quest' | 'boss' | 'treasure'; ref: string; label: string; icon: string },
+  now = Date.now(),
+): AwardResult & { granted: RewardGrant[] } {
+  const batchId = uid('b');
+  const ledger = { ...(data.rewardLedger ?? {}) };
+  const byStudent = new Map<string, RewardGrant>();
+  for (const g of grants) {
+    if (ledger[g.key] || byStudent.has(g.studentId)) continue;
+    if (!data.students.some((s) => s.id === g.studentId)) continue;
+    byStudent.set(g.studentId, g);
+  }
+  if (!byStudent.size) return { data, outcomes: [], batchId, granted: [] };
+  const newEvents: AwardEvent[] = [];
+  const students = data.students.map((s) => {
+    const g = byStudent.get(s.id);
+    if (!g) return s;
+    const xp = Math.max(0, Math.round(g.xp) || 0);
+    const coins = Math.max(0, Math.round(g.coins) || 0);
+    const item = g.itemId && !s.unlockedItems.includes(g.itemId) ? g.itemId : undefined;
+    ledger[g.key] = { at: now, batchId };
+    newEvents.push({
+      id: uid('e'), classId: s.classId, studentId: s.id, batchId, categoryId: REWARD_CATEGORY_ID, categoryName: meta.label,
+      icon: meta.icon, tag: 'other', xp, at: now, bestStageBefore: s.bestStage, coins,
+      reward: { kind: meta.kind, key: g.key, ref: meta.ref, ...(item ? { itemId: item } : {}) },
+    });
+    return {
+      ...s, xp: s.xp + xp, coins: (s.coins ?? 0) + coins, lifetimeXp: (s.lifetimeXp ?? s.xp) + xp,
+      unlockedItems: item ? [...s.unlockedItems, item] : s.unlockedItems,
+    };
+  });
+  const next: AppData = { ...data, students, events: [...data.events, ...newEvents], rewardLedger: ledger };
+  const r = settle(data, next, new Set(byStudent.keys()), now, batchId);
+  return { ...r, granted: [...byStudent.values()] };
+}
+
 /**
  * Reverse every award in a batch. Anything unlocked only because of that batch
  * (and no longer earned) is taken back too, so an accidental click leaves no trace.
@@ -259,7 +329,8 @@ export function undoBatch(data: AppData, batchId: string): AppData {
     if (!e) return s;
     const tagCounts = { ...s.tagCounts };
     const tagXp = { ...s.tagXp };
-    if (e.xp > 0) {
+    // corrections and adventure rewards never counted a tag, so undoing them takes none away
+    if (e.xp > 0 && !e.adjust && !e.reward) {
       tagCounts[e.tag] = Math.max(0, (tagCounts[e.tag] ?? 0) - 1);
       tagXp[e.tag] = Math.max(0, (tagXp[e.tag] ?? 0) - e.xp);
     }
