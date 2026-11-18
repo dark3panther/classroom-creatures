@@ -13,7 +13,7 @@ import { EmptyNote, Px } from './common';
 
 // where each place stands on the 320×200 meadow (top-left, in pixels of the meadow picture)
 const SPOT: Record<LocationId, [number, number]> = { castle: [137, 5], arena: [16, 71], library: [240, 71], sanctuary: [65, 104], village: [197, 104] };
-const DECO_SPOT: Record<string, [number, number, number]> = { bunting: [199, 98, 60], lanterns: [238, 64, 60], fountain: [110, 150, 26], rainbow: [138, 156, 44] };
+const DECO_SPOT: Record<string, [number, number, number]> = { bunting: [199, 112, 60], lanterns: [238, 64, 60], fountain: [110, 150, 26], rainbow: [138, 156, 44] };
 const pct = (x: number, total: number) => `${(x / total) * 100}%`;
 /** the meadow path, as in scripts/pixel/world.px.js */
 const pathAt = (t: number): [number, number] => [160 + 112 * Math.cos(t * Math.PI * 2) + 9 * Math.sin(t * Math.PI * 6), 110 + 52 * Math.sin(t * Math.PI * 2) + 7 * Math.cos(t * Math.PI * 4)];

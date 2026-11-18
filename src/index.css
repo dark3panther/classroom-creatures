@@ -264,7 +264,9 @@ main .text-ink-soft:not(:is(.panel, .paper, .glass, .azure, .azure-deep, [role='
 
 /* ───────────── World of Adventures ───────────── */
 .pixel { image-rendering: pixelated; image-rendering: crisp-edges; }
-.adv-map { position: relative; aspect-ratio: 16 / 10; border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-lift), inset 0 0 0 3px rgb(255 255 255 / .6); }
+.adv-map { position: relative; aspect-ratio: 16 / 10; border-radius: var(--radius-card); overflow: hidden; box-shadow: var(--shadow-lift), inset 0 0 0 3px rgb(255 255 255 / .6);
+  /* the whole map fits on one projector screen under the header */
+  width: 100%; max-width: max(560px, calc((100dvh - 240px) * 1.6)); margin-inline: auto; }
 .adv-map > img.sea { position: absolute; inset: 0; width: 100%; height: 100%; }
 .adv-isle { position: absolute; display: block; transform-origin: 50% 80%; cursor: pointer; border-radius: 30%; }
 .adv-isle img { width: 100%; height: auto; display: block; filter: drop-shadow(0 6px 0 rgb(14 42 82 / .25)); transition: filter .25s; }

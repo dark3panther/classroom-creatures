@@ -20,7 +20,7 @@ colors:
   gilt-ink: "#3a2700"
   gilt-pale: "#fff3cc"
   gilt-text: "#ffd166"
-  leaf: "#1a8f4c"
+  leaf: "#157a40"
   leaf-pale: "#e0f4e7"
   buy: "#1f9653"
   brick: "#c8412f"
@@ -291,6 +291,9 @@ The progression table is a paper sheet with a wash header row, rule dividers, ta
 ### Pixel Layer
 Pixel art is the RPG layer around the illustrated creatures: effects from the vendored pixelfx library, trail particles, snacks, toys, ability icons and painted pixel scenes. All of it runs on one shared animation clock and loads on first use. On large views (profile, dressing room, spotlight) the pixels get big, so an effect must never cover the creature's face: full-body effects keep only their rim (a radial mask) or move beside the creature, mood effects use a smaller stand-in whose head sits at the creature's head, and floating pickups drop their floor shadow. Mythical forms wear drifting particles, not a full-body aura.
 
+### World of Adventures
+A pixel-art layer inside the sky world: islands, region places, bosses, chests, relics and class-world buildings drawn in code with claude-pxl (scripts/pixel, one shared palette) and shown crisp (`.pixel`). Pixel art always sits on a paper card or inside a framed map (`.adv-map`: card radius, lift shadow, a white inner rim) so it reads as an object on the painting; everything around it is the normal interface. The world map is a sea image with six island images over it, each bobbing and lifting under the pointer, locked ones greyed under white fog with an ink chip ("40 points"); a gold marching route joins open regions; the same regions repeat as a card list below. The map is sized to fit one projector screen. Bosses are only ever grumpy or befriended, never hurt: activity is a wobble, a white flash and a floating "+N", and the meter is Friendship (pink to gold) that fills. Chests show their contents before opening, a ready one wiggles and takes the gilt ring, and opening is a shake then the open chest with what was inside. Region pages lead with the region's place art on a plate beside a paper sheet of facts. The Adventure section uses the slidePill tab row, StudentChip (creature + first name) for whose page it is, and the compass AP pill.
+
 ### Motion
 anime.js (src/vendor/animejs, from dark3panther/anime) drives the interface through lib/motion.ts and lib/interactions.ts: springy presses, hover lifts and click sparks on every button; cards that lean toward the pointer; screens whose sections rise in one after another, with card grids rippling in; numbers (XP, coins, levels, class XP) that roll to new values; a card that bounces when it gets an award while "+5 XP" springs up out of it; pop-ups that spring up and sink away; progress bars that spring to length; tab pills that slide; the card grid gliding to its new order when re-sorted. The sky world (components/SkyWorld.tsx) uses the same engine for drifting clouds, bobbing islands, the turning sun, pollen, passing flyers and pointer parallax.
 
@@ -309,6 +312,8 @@ Painted creatures blink (a feathered eyelid every 2.5 to 7 seconds per creature,
 - **Do** route new motion through lib/motion.ts so it respects Reduce Motion.
 - **Do** keep purchases deterministic and visible: the price on the card, the student's coins in view, one green button to buy.
 - **Do** check a pixel effect on the largest view it can appear in before shipping it.
+- **Do** frame pixel art (paper card or map frame) and keep it crisp; scale it by whole steps where you can.
+- **Do** show what a reward or chest contains before it is collected; nothing is random.
 
 ### Don't:
 - **Don't** use gold on a resting surface, a decorative border or a heading.
@@ -318,6 +323,8 @@ Painted creatures blink (a feathered eyelid every 2.5 to 7 seconds per creature,
 - **Don't** use hard offset shadows or stack cards on cards.
 - **Don't** animate with CSS transitions on transform where anime.js already moves the element; they fight.
 - **Don't** build hierarchy from uppercase or letterspaced labels; use the size scale.
+- **Don't** show a boss being hurt or defeated, or a student being knocked out of anything; bosses are befriended.
+- **Don't** smooth pixel art (no bilinear scaling, no blur), and don't put it straight on the painted sky without a frame.
 - **Don't** put emoji in chrome; emoji appear only as the teacher's own behaviour, prize and badge content.
 - **Don't** let coins borrow gold; currency is ochre.
 - **Don't** add loot boxes, random rolls for money or anything that can be bought twice.

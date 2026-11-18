@@ -1,6 +1,6 @@
 # Classroom Creatures
 
-A gamified classroom management app for Grade 2 and Grade 3 teachers. Every student gets their own original fantasy creature. The teacher awards XP for positive behaviour, and the creatures celebrate, level up and evolve through five forms (ten of them can take a mythical final path). Students dress their creature up with the coins they earn, awaken its abilities and play with it, and the class fills in a field guide of every form it discovers. It all happens in a bright, animated painted sky world, and shows on a projector-friendly presentation screen.
+A gamified classroom management app for Grade 2 and Grade 3 teachers. Every student gets their own original fantasy creature. The teacher awards XP for positive behaviour, and the creatures celebrate, level up and evolve through five forms (ten of them can take a mythical final path). Students dress their creature up with the coins they earn, awaken its abilities and play with it, and the class fills in a field guide of every form it discovers. It all happens in a bright, animated painted sky world, and shows on a projector-friendly presentation screen. In the World of Adventures the class explores six pixel-art regions together: daily and weekly quests, cooperative boss battles where nobody is ever out, treasure chests that say exactly what is inside, a journal for every student and a class world they build up together.
 
 - **Runs locally.** No accounts, no student emails, no cloud, no paid services. Works offline once installed.
 - **Saves automatically** to the browser's IndexedDB (with a localStorage mirror), plus daily safety snapshots and downloadable backup files.
@@ -19,7 +19,31 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
-## What's new in 1.5: the sky world
+## What's new in 1.5: the World of Adventures
+
+<p align="center"><img src="docs/screenshots/adventure-map.jpg" alt="The World of Adventures map: six pixel-art islands on a sea, three open and three under fog with the adventure points they need, Glimmerjaw the crystal crab on Crystal Caverns" width="900"></p>
+
+| Quests | Boss battle | Class world |
+|---|---|---|
+| <img src="docs/screenshots/adventure-quests.jpg" alt="A student's quest board: daily and weekly quests with progress bars, a Collect reward button, and quests waiting in locked regions" width="300"> | <img src="docs/screenshots/adventure-boss.jpg" alt="A boss battle: Glimmerjaw in the crystal cave, the class friendship meter, helpers and the latest contributions" width="300"> | <img src="docs/screenshots/adventure-world.jpg" alt="The shared class world: a meadow with a winding path, the sanctuary tent, the village, building plots and the class's creatures strolling" width="300"> |
+
+| Region | Treasure | Adventure Control Center |
+|---|---|---|
+| <img src="docs/screenshots/adventure-region.jpg" alt="The Crystal Caverns region page: the cave artwork, the student's progress, the boss, the four treasure chests, quests and creatures of the region" width="300"> | <img src="docs/screenshots/adventure-treasure.jpg" alt="A student's treasure chests by region, each saying what is inside and what it needs, with ready chests to open" width="300"> | <img src="docs/screenshots/adventure-control.jpg" alt="The teacher's Adventure Control Center: adventure points, regions open, quests waiting, the boss battle, quick actions and region controls" width="300"> |
+
+- **A world map to explore.** Six regions: Verdant Valley, Crystal Caverns, Frostpeak Mountains, Ember Kingdom, Sky Islands and the Ancient Kingdom. Each has its own pixel-art island and place, a description, quests, four treasures, the creatures that live there, a boss and a completion percentage for every student. Regions open for the whole class as it earns **adventure points** (the class average of the XP students earn and the quests they complete, plus 20 for every boss befriended), or whenever the teacher opens one.
+- **Quests.** Daily, weekly and special quests with a title, description, category, region, XP and coin reward and an optional shop item. Assign one to the whole class or to chosen students, give it start and end dates, and choose whether it counts by itself from the points you give or whether students hand it in. Create, edit, duplicate and delete quests (their history is kept), approve hand-ins, or send them back with a short note so the student can try again. Your old challenges came along as quests.
+- **Students can never reward themselves.** A student's hand-in always waits for the teacher, and every reward is written into a ledger and given exactly once, however often Collect is pressed. The engine refuses teacher actions from a student; it does not only hide the buttons.
+- **Boss battles the whole class wins together.** Six original bosses (a bramble beast, a crystal crab, a sulky snow giant, a lava toad with hiccups, a storm kite and a clockwork guardian). Pick one, how many points the class needs, how long and the reward. Every point you award, every approved quest and any class activity you add fills the friendship meter. Nobody is ever out; when the meter is full the boss becomes the class's friend, every student gets the reward once and a statue joins the class world. If time runs out the boss just goes home to rest. Pause, resume or end it at any time; undoing an award takes its points back.
+- **Treasure with no luck involved.** Coin chests, background chests, a boss gift per region, six relics to collect and four special treasures. Every chest shows exactly what is inside and what it needs. If a student already owns the item, the chest pays its coin value instead. New items: six region backgrounds, a World Map background, the Bramble Crown, Snow Goggles, Star Temple Crown and Crystal, Lava and Cloud trails.
+- **An adventure journal** for every student: quests, explorations, treasure, the class's bosses and regions, badges and evolutions, by day, with filters.
+- **A class world to build.** The Creature Sanctuary, Fantasy Village, Magical Library, Training Arena and Royal Castle each grow through three stages as the class earns adventure points. Decorations arrive with class quest milestones, befriended bosses leave statues, and the class's creatures stroll around the path. It can be switched off in Settings.
+- **The Adventure Control Center** for the teacher: adventure points, regions, quests waiting, the boss battle and treasure at a glance; approve everything, hand out rewards, open or close regions, see who is helping the boss and the full adventure history.
+- **Students join in from Presentation Mode** while teacher controls are locked: they tap their creature, see their quests, hand them in, collect approved rewards, open their chests and read their journal. Switch this off in Settings → Adventure.
+- **Your data comes with you.** 1.4 data upgrades automatically (a safety snapshot is saved first). Students keep everything; challenges become quests (the original list is kept untouched) and challenges already completed today are not paid again.
+- The pixel art is drawn in code with [claude-pxl](https://github.com/dark3panther/claude-pxl) (`scripts/pixel/*.px.js`, `npm run art:adventure`), and the rules are written up in [docs/adventure-design.md](docs/adventure-design.md).
+
+## Also in 1.5: the sky world
 
 - **A living painted sky behind every screen.** The green look is gone. The app now sits in a bright daytime world painted in watercolour: a blue sky warming to gold at the horizon, the sun with slowly turning rays, clouds drifting across, far mountains, floating islands that bob gently, rolling hills and a flower meadow. Now and then one of the class's winged creatures flies past, pollen floats up through the light, and the whole scene shifts a little as you move the mouse, near layers more than far ones.
 - **Everything responds.** Buttons squash when pressed and spring back, lift under the mouse, and the main buttons throw a few sparks. Student cards lean towards the pointer. When a student gets points, their card bounces and "+5 XP" springs out of it, and XP and coin numbers roll to their new values. Pages build up section by section when they open, the creature cards ripple in, pop-up windows spring up and sink away, progress bars spring to their new length, and the tab underline and tab pills slide from tab to tab. Re-sorting the class makes the cards glide to their new places.
@@ -130,8 +154,10 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Development server with hot reload |
-| `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, challenge, import, backup and storage code (Vitest) |
+| `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, quest, boss, treasure, region, journal, import, backup and storage code (Vitest) |
 | `npm run test:e2e` | End-to-end check in a real browser: the 1.3 to 1.4 upgrade, playing with a creature, abilities, buying an item, a teacher-approved evolution, the field guide, locked student mode, persistence after a restart, and phone width. Needs Playwright (`npm i -D playwright && npx playwright install chromium`); `E2E_SHOTS=out` also saves screenshots |
+| `npm run test:e2e:adventure` | End-to-end check of the World of Adventures: the 1.4 to 1.5 upgrade, creating a quest, a student handing it in from the locked kiosk, approval, collecting a reward exactly once, a boss battle, exploring and opening a chest, the journal, the Control Center, a restart, and phone width |
+| `npm run art:adventure` | Rebuild the pixel art in `public/adventure/` from `scripts/pixel/*.px.js` (needs Node 22.18 or newer) |
 | `npm run typecheck` | TypeScript check |
 | `npm run build` | Type-check and build the production site into `dist/` |
 
@@ -144,6 +170,7 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 5. **Made a mistake?** Every award shows an **Undo** toast for 10 seconds, and any award can be undone later from the activity panel or the student's History tab. Undo also takes back badges or items that award unlocked.
 6. **Evolutions** (with Teacher approval on) lists the creatures ready to evolve. Press **Evolve** for one, or **Evolve all**; a creature at its last stage with two paths asks which one to take.
 7. **Present** opens a full-screen projector view: first names and creatures only (no XP totals, no rankings), a class-goal bar, an awards ticker, a spinning random student picker and a big spotlight view.
+8. **Adventure** is where the class explores: the world map, quests (approve hand-ins, then students collect their rewards), the boss battle, treasure, journals and the class world. The **Control Center** has the quick actions. The points you give on the Classroom tab drive all of it: they fill quests, calm the boss and earn adventure points.
 
 ## Project architecture
 
@@ -151,7 +178,8 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 src/
 ├── types.ts                 Domain types (AppData is everything that is persisted)
 ├── data/                    Pure content: species, elements, defaults, achievements, items, challenges,
-│                            final paths (branches.ts), abilities and personalities
+│                            final paths (branches.ts), abilities and personalities; adventure.ts holds the
+│                            regions, bosses, treasures, class-world places, starting quests and every tuning number
 ├── engine/                  Pure, unit-tested game logic (no React, no storage)
 │   ├── progression.ts       XP → level → stage, next-evolution targets, readiness, table validation
 │   ├── awards.ts            applyAward / undoBatch / unlock evaluation / challenge progress / purchases
@@ -162,7 +190,10 @@ src/
 │   ├── roster.ts            Unique creature assignment, student/class factories, CSV/name parsing
 │   ├── backup.ts            Backup file format, validation, normalisation and step-wise data migrations
 │   ├── demo.ts              Clearly labelled demo class
-│   └── pin.ts               Salted SHA-256 PIN hashing
+│   ├── pin.ts               Salted SHA-256 PIN hashing
+│   └── adventure/           World of Adventures: permissions (Actor), quests (state machine), bosses,
+│                            treasures, world (adventure points, regions, class world), journal, and the
+│                            hooks that run after every award and undo
 ├── store/
 │   ├── store.ts             Zustand store: actions call the engine, queue celebrations, auto-save
 │   └── storage.ts           IndexedDB persistence, localStorage mirror, rolling snapshots
@@ -180,14 +211,20 @@ src/
 ├── components/              Cards, award grid, celebrations, toasts, top bar, PIN lock, UI kit,
 │                            SkyWorld (the animated painted background), CountUp (rolling numbers)
 ├── views/                   Dashboard, StudentProfile, CreatureProfile, Customize (dressing room), Creaturedex
-│                            (field guide), Rewards, Settings, TeacherCreatures, Present, Onboarding
+│                            (field guide), Rewards, Settings, TeacherCreatures, Present, Onboarding;
+│                            adventure/ holds the World Map, Region, Quests, Boss, Treasure, Journal, Class World
+│                            and Control Center screens
 ├── lib/                     Hash router, view-model helpers, motion.ts (anime.js vocabulary: springs, pops,
 │                            count-ups, staggered entrances, sliding tab pills) and interactions.ts (app-wide
 │                            button presses, hover lifts, sparks and card tilt)
 └── vendor/                  anime.js and pixelfx (both MIT, unmodified except where noted)
+scripts/pixel/               The adventure pixel art as code (claude-pxl): islands, regions, bosses, chests, places
+public/adventure/            The built pixel art (68 small PNGs, about 280 KB)
 ```
 
-**Data flow.** UI → store action → pure engine function returns a new `AppData` → store commits it (debounced save to IndexedDB) and pushes UI-only celebration events (evolution, level-up, achievement, class goal) to a queue that `CelebrationHost` plays one at a time.
+**Data flow.** UI → store action → pure engine function returns a new `AppData` → store commits it (debounced save to IndexedDB) and pushes UI-only celebration events (evolution, level-up, achievement, class goal, quest, boss befriended, region opened) to a queue that `CelebrationHost` plays one at a time.
+
+**One reward pipeline.** The adventure has no XP or coin system of its own: quest, boss and treasure rewards go through `applyReward` in `engine/awards.ts`, next to `applyAward`, so levels, evolutions, badges, milestone treats, the history and undo all work for them. Every reward has a ledger key (`quest:<record>`, `boss:<battle>:<student>`, `treasure:<id>:<student>`) that can be granted once.
 
 **Ready for cloud sync later.** All persisted state is one serialisable `AppData` object with a `version` field, every record has a stable id, and awards are an append-only event log with batch ids. A sync backend can replicate `AppData` (or the event log) without changing the UI or the engine.
 
@@ -257,15 +294,17 @@ Only first names (or whatever the teacher types) are stored, and only on this co
 
 ## Credits
 
-All creatures, names, artwork, animations and sounds are original to this project. Inspired by the general appeal of creature-collecting games and classroom point systems; no characters, artwork, sounds or branding from any existing game are used.
+All creatures, bosses, regions, names, artwork, animations and sounds are original to this project. Inspired by the general appeal of creature-collecting games, adventure games and classroom point systems; no characters, artwork, sounds or branding from any existing game are used. The World of Adventures pixel art is drawn in code with claude-pxl.
 
 ## Design documents
 
 - [Architecture & development plan](docs/architecture-and-plan.md)
 - [Visual reference analysis](docs/visual-reference-analysis.md)
 - [Design system](docs/design-system.md)
+- [World of Adventures design](docs/adventure-design.md) (rules, formulas, edge cases and tuning, in the game-design-document structure from Claude-Code-Game-Studios)
+- [1.5.0 release notes](docs/release-notes-1.5.0.md)
 - [Roadmap](ROADMAP.md)
 
 ## License
 
-[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE` and `NOTICE.md`).
+[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE`), as are anime.js (`src/vendor/animejs`) and the [claude-pxl](https://github.com/dark3panther/claude-pxl) tool used to draw the adventure art (`scripts/vendor/claude-pxl/LICENSE`). See [NOTICE.md](NOTICE.md).

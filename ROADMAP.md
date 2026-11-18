@@ -13,10 +13,12 @@ Ideas for the next versions, roughly in order of classroom value.
 8. **More pixel effects** with the pixelfx skill: element-specific evolution bursts (fire ring, frost nova, leaf storm, lightning call) and a pixel "nom nom" when a treat is handed out.
 9. **Painted mythical forms**: the remaining seven (Autumn Elder, Voidvolt, Sunfrost Monarch, Amethyst Heart, Dawn Watcher, Moonbringer, Tempest Monarch), with the same Gemini prompts used for the first three; then new mythical species.
 10. **Ability reset for teachers**: take back a creature's skill points so it can choose again.
+11. **Adventure seasons**: a new region, boss and treasure set each term, and team quests for table groups (World of Adventures, 1.5).
+12. **Quest templates**: a small library of ready-made quests by subject (reading, maths, English speaking) to add with one tap.
 
 ## Later
 - **Optional sync** between two computers (e.g. teacher laptop and classroom PC) using a backup file in a shared folder, then a proper sync service.
-- **Student kiosk mode**: students tap their own name to open their creature without going through Presentation Mode (1.4 already lets them open it from there while teacher controls are locked).
+- **Student kiosk mode**: students tap their own name to open their creature without going through Presentation Mode (1.4 lets them open their creature from there while teacher controls are locked, and 1.5 adds their quests, chests and journal).
 - **Localisation**: Bahasa Malaysia / Bahasa Indonesia, Arabic and Mandarin interface strings for the many non-native English speakers.
 - **Accessibility pass**: colour-blind friendly element colours, larger text option, screen-reader labels on every card action.
 - **Teacher analytics**: behaviour trends over the term (private to the teacher, never shown in Presentation Mode).

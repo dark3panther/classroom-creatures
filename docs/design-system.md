@@ -14,7 +14,7 @@ The class lives in a bright, animated painted daytime world (components/SkyWorld
 | rule / wash | #cddfee / #f2f8fe | Hairlines; hover fills |
 | ink / ink-soft | #13253f / #4a5d78 | Text |
 | gilt / gilt-deep / gilt-ink | #ffc23d / #d99400 / #3a2700 | Reserved for "now": selection, current tab, just-rewarded ribbon, primary action |
-| leaf / buy / brick | #1a8f4c / #1f9653 / #c8412f | Awards / the buy button / behaviour reminders |
+| leaf / buy / brick | #157a40 / #1f9653 / #c8412f | Awards / the buy button / behaviour reminders |
 | coin | #8a5d07 | Coin numerals (never gold) |
 Element colours are in `src/data/elements.ts`; the watercolour tints per element are in `src/creatures/Habitat.tsx` (`WASH`).
 
@@ -38,6 +38,14 @@ Added in 1.4: `EvolveBadge` ("Ready to evolve" gilt chip), `EvolutionQueue` and 
 - Effects from the vendored pixelfx library, trail particles, pixel snacks, toys and ability icons; one shared `requestAnimationFrame` clock; each effect module loads on first use and all are warmed while the app is idle
 - On large views an effect never covers the creature's face: full-body effects keep their rim (radial mask) or move aside, mood effects use a smaller stand-in, floating pickups have no floor shadow
 - Mythical final forms: colour grade + ornaments (`creatures/mythic.tsx`) + drifting particles; a bespoke `public/creatures/<id>-5b.webp` is used when present
+
+## World of Adventures (1.5)
+The adventure is a pixel-art layer that lives inside the sky world, never instead of it. Islands, region places, bosses, chests, relics and the class-world buildings are drawn in code with claude-pxl (`scripts/pixel/*.px.js`, one shared palette in `palette.px.js`) and shown crisp with `.pixel` (`image-rendering: pixelated`) at whole-number-ish sizes. Pixel art always sits on a white paper card or in a framed map (`.adv-map`: rounded, lifted, a white inner rim) so it reads as an object on the painted sky. The interface around it (tabs, cards, chips, buttons, type) is the same as everywhere else: one look, two kinds of artwork.
+
+- **Map.** The sea and the six islands are separate images, so each island can bob, lift under the pointer and glow; locked islands are greyed under a soft white fog with an ink chip naming what they need. The route between them is gold and marching where open, faint white dots where not. Every map has the same regions as a card list below it, for phones and screen readers.
+- **Bosses** are never shown hurt. They have a grumpy form and a befriended form (and a stone statue); activity shows as a wobble, a short white flash and a floating "+N", and the meter is called Friendship and fills up.
+- **Chests** say what is inside before they open; a ready chest wiggles now and then and takes a gilt ring; opening is a short shake and the open chest with the contents named.
+- **Gold** keeps its one meaning: the thing to do now (Collect reward, Open, the ready chest, the current tab).
 
 ## Motion
 - anime.js (`src/vendor/animejs`) through `lib/motion.ts` and `lib/interactions.ts`: springy presses, hover lifts, sparks, card tilt, page entrances, count-ups, award pops, modals, progress bars, sliding tab pills, grid re-sorting, and the sky world (cloud drift, island bob, sun, pollen, flyers, pointer parallax)
