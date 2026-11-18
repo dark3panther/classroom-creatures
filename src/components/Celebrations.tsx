@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { playAchievement, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone } from '../audio/sfx';
+import { playAchievement, playBefriend, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone, playQuest, playRegion } from '../audio/sfx';
+import { ADVENTURE_ART, BOSSES_BY_ID, REGIONS_BY_ID } from '../data/adventure';
+import { navigate } from '../lib/router';
 import { ReadyPopup } from './Evolve';
 import { Glyph, Icon } from './Icon';
 import { PrizeWheel } from './PrizeWheel';
@@ -40,7 +42,85 @@ export function CelebrationHost() {
     case 'milestone': return <MilestonePopup key={current.id} c={current} student={student!} onDone={close} sound={sound} />;
     case 'ready': return <ReadyPopup key={current.id} student={student!} stage={current.stage} onDone={close} />;
     case 'classGoal': return <ClassGoalOverlay key={current.id} c={current} name={classes.find((x) => x.id === current.classId)?.name ?? 'Your class'} onDone={close} sound={sound} />;
+    case 'quest': return <QuestBanner key={current.id} c={current} student={student!} onDone={close} sound={sound} />;
+    case 'bossWon': return <BossFriendOverlay key={current.id} c={current} onDone={close} sound={sound} />;
+    case 'region': return <RegionOverlay key={current.id} c={current} onDone={close} sound={sound} />;
+    case 'decoration': return <AdventureBanner key={current.id} title={`New in the class world: ${current.name}`} sub="For all the quests your class has completed!" art="deco-fountain" onDone={close} sound={sound} />;
   }
+}
+
+/* ───────────── World of Adventures ───────────── */
+
+const advImg = (name: string) => `${ADVENTURE_ART}${name}.png`;
+
+function QuestBanner({ c, student, onDone, sound }: { c: Extract<Celebration, { type: 'quest' }>; student: Student; onDone: () => void; sound: boolean }) {
+  const all = useStore((s) => s.data.students);
+  const quest = useStore((s) => s.data.quests.find((q) => q.id === c.questId));
+  const names = [student, ...(c.others ?? []).map((id) => all.find((x) => x.id === id)).filter(Boolean) as Student[]].map((s) => firstName(s.name));
+  const who = names.length <= 2 ? names.join(' and ') : `${names.slice(0, 2).join(', ')} and ${names.length - 2} more`;
+  useEffect(() => { if (sound) playQuest(); const t = setTimeout(onDone, 3200); return () => clearTimeout(t); }, [onDone, sound]);
+  return (
+    <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} onClick={onDone}>
+      <div className="relative flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 text-ink shadow-[var(--shadow-lift)] ring-[3px] ring-gilt">
+        <div className="relative grid h-20 w-20 place-items-center rounded-full bg-gilt-pale text-gilt-ink">
+          <motion.span initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 12 }}><Icon name="scroll" size={40} /></motion.span>
+          <Burst kind="sparkle" count={10} spread={70} />
+        </div>
+        <div>
+          <div className="font-display text-2xl font-extrabold tracking-[-0.01em]">Quest complete!</div>
+          <div className="text-sm font-bold text-ink-soft">{who} · {quest?.title ?? 'a quest'}</div>
+          <div className="text-[13px] font-bold text-coin">Collect the reward on the Quests page</div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AdventureBanner({ title, sub, art, onDone, sound }: { title: string; sub: string; art: string; onDone: () => void; sound: boolean }) {
+  useEffect(() => { if (sound) playAchievement(); const t = setTimeout(onDone, 3400); return () => clearTimeout(t); }, [onDone, sound]);
+  return (
+    <motion.div className="fixed inset-x-0 top-24 z-50 flex justify-center px-4" initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={onDone}>
+      <div className="flex items-center gap-4 rounded-[20px] bg-white py-3 pl-3 pr-8 shadow-[var(--shadow-lift)] ring-[3px] ring-leaf">
+        <img src={advImg(art)} alt="" className="pixel h-16 w-16 object-contain" />
+        <div><div className="font-display text-xl font-extrabold">{title}</div><div className="text-sm font-bold text-ink-soft">{sub}</div></div>
+      </div>
+    </motion.div>
+  );
+}
+
+function BossFriendOverlay({ c, onDone, sound }: { c: Extract<Celebration, { type: 'bossWon' }>; onDone: () => void; sound: boolean }) {
+  const boss = BOSSES_BY_ID[c.bossId];
+  const battle = useStore((s) => s.data.bosses.find((b) => b.id === c.battleId));
+  useEffect(() => { if (sound) playBefriend(); }, [sound]);
+  return (
+    <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <Burst kind="confetti" count={40} spread={420} size={18} duration={2.4} />
+      <motion.img src={advImg(`boss-${c.bossId}-friend`)} alt={boss?.name} className="pixel relative w-[min(46vw,300px)]" initial={{ scale: 0.3, y: 60, opacity: 0 }} animate={{ scale: 1, y: [0, -18, 0], opacity: 1 }} transition={{ scale: { type: 'spring', stiffness: 140, damping: 11 }, y: { repeat: Infinity, duration: 1.2, delay: 0.6 } }} />
+      <motion.h2 className="gilt-text relative mt-6 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-6xl" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>{boss?.name} is your friend!</motion.h2>
+      <p className="relative mt-3 max-w-2xl text-xl font-bold text-white">{boss?.friendly}</p>
+      {battle && (battle.reward.xp > 0 || battle.reward.coins > 0) && <p className="relative mt-2 text-lg font-bold text-[#ffd166]">Everyone gets {[battle.reward.xp ? `${battle.reward.xp} XP` : '', battle.reward.coins ? `${battle.reward.coins} coins` : ''].filter(Boolean).join(' and ')}. A statue joins the Creature Sanctuary.</p>}
+      <button className="btn btn-primary relative mt-8 px-10 py-4 text-xl" onClick={onDone} autoFocus>Hooray!</button>
+    </motion.div>
+  );
+}
+
+function RegionOverlay({ c, onDone, sound }: { c: Extract<Celebration, { type: 'region' }>; onDone: () => void; sound: boolean }) {
+  const region = REGIONS_BY_ID[c.regionId];
+  const locked = useStore((s) => s.locked);
+  useEffect(() => { if (sound) playRegion(); }, [sound]);
+  return (
+    <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <Burst kind="sparkle" count={24} spread={360} size={16} duration={2} />
+      <motion.div className="text-sm font-extrabold uppercase tracking-[0.2em] text-[#ffd166]" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>A new region is open</motion.div>
+      <motion.img src={advImg(`isle-${c.regionId}`)} alt="" className="pixel relative mt-4 w-[min(60vw,420px)]" initial={{ y: 80, opacity: 0, scale: 0.7 }} animate={{ y: 0, opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 120, damping: 13 }} />
+      <h2 className="gilt-text relative mt-4 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-6xl">{region?.name}</h2>
+      <p className="relative mt-2 max-w-xl text-lg font-bold text-white">{region?.description}</p>
+      <div className="relative mt-8 flex flex-wrap justify-center gap-3">
+        <button className="btn btn-primary px-8 py-3 text-lg" onClick={() => { onDone(); navigate(`/adventure/region/${c.regionId}`); }} autoFocus><Icon name="compass" size={20} />{locked ? 'Take a look' : 'Visit it'}</button>
+        <button className="btn btn-ghost px-6 py-3" onClick={onDone}>Later</button>
+      </div>
+    </motion.div>
+  );
 }
 
 type Phase = 'intro' | 'charge' | 'flash' | 'reveal';

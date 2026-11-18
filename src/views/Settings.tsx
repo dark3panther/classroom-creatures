@@ -16,7 +16,7 @@ import { CreaturesTab } from './TeacherCreatures';
 import { playAward, setVolume } from '../audio/sfx';
 
 const TABS = [
-  ['classes', 'Classes'], ['behaviours', 'Behaviours'], ['progression', 'XP & Evolution'], ['creatures', 'Creatures & Shop'], ['classroom', 'Classroom & PIN'], ['backup', 'Backup & Data'],
+  ['classes', 'Classes'], ['behaviours', 'Behaviours'], ['progression', 'XP & Evolution'], ['creatures', 'Creatures & Shop'], ['adventure', 'Adventure'], ['classroom', 'Classroom & PIN'], ['backup', 'Backup & Data'],
 ] as const;
 
 export function SettingsView({ tab = 'classes' }: { tab?: string }) {
@@ -37,6 +37,7 @@ export function SettingsView({ tab = 'classes' }: { tab?: string }) {
         {tab === 'behaviours' && <BehavioursTab />}
         {tab === 'progression' && <ProgressionTab />}
         {tab === 'creatures' && <CreaturesTab />}
+        {tab === 'adventure' && <AdventureTab />}
         {tab === 'classroom' && <ClassroomTab />}
         {tab === 'backup' && <BackupTab />}
       </div>
@@ -235,6 +236,23 @@ function ProgressionTab() {
         <button className="btn btn-primary" onClick={() => save()}>Save progression</button>
         <button className="btn btn-light" onClick={() => { setLevels(DEFAULT_LEVEL_XP); setEvo([...DEFAULT_EVOLUTION_LEVELS]); save(DEFAULT_LEVEL_XP, [...DEFAULT_EVOLUTION_LEVELS]); }}>Reset to recommended</button>
       </div>
+    </div>
+  );
+}
+
+function AdventureTab() {
+  const settings = useStore((s) => s.data.settings);
+  const updateSettings = useStore((s) => s.updateSettings);
+  return (
+    <div>
+      <h2 className="font-display text-2xl font-bold">World of Adventures</h2>
+      <p className="mt-1 text-sm text-ink-soft">Quests, boss battles, treasure and a shared class world, built on the points you already give. Every reward goes through the same XP and coin system, is given only once, and can be undone from the history like any award.</p>
+      <div className="mt-2 divide-y divide-ink/10">
+        <Toggle label="World of Adventures" hint="Shows the Adventure section. Turning it off hides it and pauses quests and battles; nothing is deleted." checked={settings.adventureEnabled} onChange={(v) => updateSettings({ adventureEnabled: v })} />
+        <Toggle label="Shared class world" hint="The Creature Sanctuary, Fantasy Village, Magical Library, Training Arena and Royal Castle that the class builds together." checked={settings.classWorld} onChange={(v) => updateSettings({ classWorld: v })} />
+        <Toggle label="Students may use Adventure while controls are locked" hint="From Presentation Mode, students can see their quests, hand in quests, collect approved rewards, open their chests and read their journal. They can never approve, change points or start battles." checked={settings.adventureWhileLocked} onChange={(v) => updateSettings({ adventureWhileLocked: v })} />
+      </div>
+      <button className="btn btn-azure mt-4" onClick={() => navigate('/adventure/control')}>Open the Adventure Control Center</button>
     </div>
   );
 }

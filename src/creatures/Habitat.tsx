@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { SPECIES } from '../data/species';
 import { isPixelScene, pixelScene } from './pixelScenes';
+import { ADVENTURE_ART } from '../data/adventure';
 import type { ElementType } from '../types';
 
 /**
@@ -76,7 +77,9 @@ export function Habitat({ element, background, children, className = '', rounded
       <rect x="0" y="86%" width="100%" height="14%" fill="#5b6680" opacity=".7" />
     </>,
   };
-  const pixel = isPixelScene(bg) ? pixelScene(bg) : null;
+  // World of Adventures backgrounds are pixel-art images (public/adventure/region-*.png)
+  const advBg = bg.startsWith('bg-region-') ? `region-${bg.slice('bg-region-'.length)}` : bg === 'bg-worldmap' ? 'region-worldmap' : null;
+  const pixel = advBg ? `${ADVENTURE_ART}${advBg}.png` : isPixelScene(bg) ? pixelScene(bg) : null;
   const scene = pixel ? { style: `url(${pixel}) center / 100% 100% no-repeat`, deco: null } : scenes[bg];
   const mask = `url("${wash}")`;
   return (

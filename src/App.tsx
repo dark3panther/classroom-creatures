@@ -26,6 +26,7 @@ const Customize = lazy(() => import('./views/Customize').then((m) => ({ default:
 const CreatureProfile = lazy(() => import('./views/CreatureProfile').then((m) => ({ default: m.CreatureProfile })));
 const Rewards = lazy(() => import('./views/Rewards').then((m) => ({ default: m.Rewards })));
 const SettingsView = lazy(() => import('./views/Settings').then((m) => ({ default: m.SettingsView })));
+const Adventure = lazy(() => import('./views/adventure/Adventure').then((m) => ({ default: m.Adventure })));
 
 export default function App() {
   const ready = useStore((s) => s.ready);
@@ -33,6 +34,10 @@ export default function App() {
   const locked = useStore((s) => s.locked);
   const onboarded = useStore((s) => s.data.settings.onboarded);
   const shopWhileLocked = useStore((s) => s.data.settings.shopWhileLocked);
+  const adventureKiosk = useStore((s) => s.data.settings.adventureEnabled && s.data.settings.adventureWhileLocked);
+  const tickAdventure = useStore((s) => s.tickAdventure);
+  // the boss battle clock keeps running while the app is open
+  useEffect(() => { const t = setInterval(tickAdventure, 60_000); return () => clearInterval(t); }, [tickAdventure]);
   const sound = useStore((s) => s.data.settings.soundEnabled);
   const reduced = useStore((s) => s.data.settings.reducedMotion);
   const route = useRoute();
@@ -56,7 +61,7 @@ export default function App() {
   useEffect(() => installInteractions(), []);
   // each screen's sections rise into place when it opens, and [data-stagger] groups ripple in after them
   const mainRef = useRef<HTMLElement>(null);
-  const routeKey = `${route.view}/${'id' in route ? route.id : ''}/${'tab' in route ? route.tab ?? '' : ''}`;
+  const routeKey = `${route.view}/${'id' in route ? route.id : ''}/${'tab' in route ? route.tab ?? '' : ''}/${'query' in route ? route.query.student ?? '' : ''}`;
   useEffect(() => {
     let raf = 0, tries = 0;
     const run = () => {
@@ -112,6 +117,21 @@ export default function App() {
       </div>
     );
   }
+  // students may also use the World of Adventures (their quests, treasure, journal) while controls are locked
+  if (locked && route.view === 'adventure' && adventureKiosk) {
+    return (
+      <div className="min-h-full">
+        <header className="azure on-azure sticky top-0 z-30 flex items-center gap-3 px-4 py-2.5 sm:px-6">
+          <button className="btn btn-ghost" onClick={() => navigate('/present')}><Icon name="back" size={18} />Back to Presentation Mode</button>
+          <span className="ml-auto flex items-center gap-1.5 text-[13px] font-semibold text-white/75"><Icon name="lock" size={15} />Teacher controls are locked</span>
+        </header>
+        <main ref={mainRef}><Suspense fallback={null}><Adventure tab={route.tab} id={route.id} query={route.query} /></Suspense></main>
+        <BranchChooserHost />
+        <CelebrationHost />
+        <Toasts />
+      </div>
+    );
+  }
   if (locked) return <LockScreen />;
 
   return (
@@ -121,6 +141,7 @@ export default function App() {
         {route.view === 'classroom' && <Dashboard />}
         {route.view === 'creatures' && <Creaturedex />}
         {route.view === 'rewards' && <Rewards />}
+        {route.view === 'adventure' && <Adventure tab={route.tab} id={route.id} query={route.query} />}
         {route.view === 'settings' && <SettingsView tab={route.tab} />}
         {route.view === 'customize' && <Customize studentId={route.id} />}
         {route.view === 'creature' && <CreatureProfile studentId={route.id} />}

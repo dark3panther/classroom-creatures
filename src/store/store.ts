@@ -25,7 +25,6 @@ export type Celebration =
   | { id: string; type: 'quest'; studentId: string; questId: string; waiting: boolean; others?: string[] }
   | { id: string; type: 'bossWon'; classId: string; bossId: string; battleId: string }
   | { id: string; type: 'region'; classId: string; regionId: RegionId }
-  | { id: string; type: 'treasure'; studentId: string; treasureId: string; coins: number; itemId?: string }
   | { id: string; type: 'decoration'; classId: string; name: string };
 
 export interface Pulse { n: number; xp: number; icon: string; coins: number; kind: 'good' | 'bad'; categoryId: string; levelUp: boolean; achievement: boolean; milestone: boolean }
@@ -148,7 +147,6 @@ export const useStore = create<Store>()((set, get) => {
     for (const n of r.notes) {
       if (n.type === 'boss-won') out.push({ id: id(), type: 'bossWon', classId: n.classId, bossId: n.bossId, battleId: n.battleId });
       else if (n.type === 'region-opened') out.push({ id: id(), type: 'region', classId: n.classId, regionId: n.regionId });
-      else if (n.type === 'treasure') out.push({ id: id(), type: 'treasure', studentId: n.studentId, treasureId: n.treasureId, coins: n.coins, itemId: n.itemId });
       else if (n.type === 'decoration') out.push({ id: id(), type: 'decoration', classId: n.classId, name: n.name });
     }
     return out;

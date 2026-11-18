@@ -42,37 +42,37 @@ export const REGIONS: RegionDef[] = [
     id: 'verdant', name: 'Verdant Valley', tagline: 'Forests, rivers and meadows',
     description: 'Where every adventure begins: tall trees, winding rivers and meadows full of flowers. Nature and water creatures grow up here.',
     elements: ['nature', 'water'], unlockAp: 0, bossId: 'grumblethorn', colors: ['#7cc77a', '#3f8f52', '#ffd166'],
-    map: { x: 8, y: 52, w: 27 }, landmark: 'the Great Oak',
+    map: { x: 6, y: 55, w: 27 }, landmark: 'the Great Oak',
   },
   {
     id: 'crystal', name: 'Crystal Caverns', tagline: 'Glittering caves under the hills',
     description: 'Deep caves that glow with crystals of every colour. Earth and shadow creatures explore the tunnels.',
-    elements: ['earth', 'shadow'], unlockAp: 15, bossId: 'glimmerjaw', colors: ['#9b8ad8', '#5a4a9c', '#7fe0ff'],
-    map: { x: 36, y: 60, w: 24 }, landmark: 'the Echo Geode',
+    elements: ['earth', 'shadow'], unlockAp: 10, bossId: 'glimmerjaw', colors: ['#9b8ad8', '#5a4a9c', '#7fe0ff'],
+    map: { x: 37, y: 58, w: 24 }, landmark: 'the Echo Geode',
   },
   {
     id: 'frostpeak', name: 'Frostpeak Mountains', tagline: 'Snow, ice and northern lights',
     description: 'Snowy peaks and frozen lakes under shimmering northern lights. Ice creatures love the cold air.',
-    elements: ['ice'], unlockAp: 40, bossId: 'snowsulk', colors: ['#d9eefc', '#7aa6d6', '#b9f3ff'],
-    map: { x: 18, y: 10, w: 26 }, landmark: 'the Aurora Pass',
+    elements: ['ice'], unlockAp: 30, bossId: 'snowsulk', colors: ['#d9eefc', '#7aa6d6', '#b9f3ff'],
+    map: { x: 66, y: 53, w: 27 }, landmark: 'the Aurora Pass',
   },
   {
     id: 'ember', name: 'Ember Kingdom', tagline: 'Volcanoes and lightning storms',
     description: 'Warm volcanoes, glowing lava rivers and crackling storm clouds. Fire and electric creatures train here.',
-    elements: ['fire', 'electric'], unlockAp: 80, bossId: 'magmaw', colors: ['#f08a4b', '#a8402a', '#ffd23f'],
-    map: { x: 64, y: 54, w: 27 }, landmark: 'Mount Cinder',
+    elements: ['fire', 'electric'], unlockAp: 60, bossId: 'magmaw', colors: ['#f08a4b', '#a8402a', '#ffd23f'],
+    map: { x: 64, y: 8, w: 27 }, landmark: 'Mount Cinder',
   },
   {
     id: 'sky', name: 'Sky Islands', tagline: 'Floating islands above the clouds',
     description: 'Islands that float on the wind, linked by rainbow bridges. Air and light creatures glide between them.',
-    elements: ['air', 'light'], unlockAp: 130, bossId: 'whirlwing', colors: ['#bfe6ff', '#6aa9e0', '#fff1a8'],
-    map: { x: 62, y: 6, w: 26 }, landmark: 'the Rainbow Bridges',
+    elements: ['air', 'light'], unlockAp: 100, bossId: 'whirlwing', colors: ['#bfe6ff', '#6aa9e0', '#fff1a8'],
+    map: { x: 10, y: 6, w: 26 }, landmark: 'the Rainbow Bridges',
   },
   {
     id: 'ancient', name: 'Ancient Kingdom', tagline: 'Ruins, stars and legends',
     description: 'A legendary kingdom of starlit ruins and old magic, where cosmic creatures and mythical paths are found.',
-    elements: ['cosmic'], unlockAp: 200, bossId: 'colossus', colors: ['#e3c98f', '#8a6a3a', '#c9a8ff'],
-    map: { x: 40, y: 22, w: 22 }, landmark: 'the Star Temple',
+    elements: ['cosmic'], unlockAp: 150, bossId: 'colossus', colors: ['#e3c98f', '#8a6a3a', '#c9a8ff'],
+    map: { x: 39, y: 27, w: 23 }, landmark: 'the Star Temple',
   },
 ];
 export const REGIONS_BY_ID = Object.fromEntries(REGIONS.map((r) => [r.id, r])) as Record<RegionId, RegionDef>;
@@ -80,7 +80,7 @@ export const REGIONS_BY_ID = Object.fromEntries(REGIONS.map((r) => [r.id, r])) a
 /* ───────────── bosses ───────────── */
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'epic';
 export const DIFFICULTY: Record<Difficulty, { label: string; perStudent: number; color: string }> = {
-  easy: { label: 'Easy', perStudent: 8, color: '#1a8f4c' },
+  easy: { label: 'Easy', perStudent: 8, color: '#157a40' },
   medium: { label: 'Medium', perStudent: 14, color: '#2563b8' },
   hard: { label: 'Hard', perStudent: 22, color: '#c8412f' },
   epic: { label: 'Epic', perStudent: 32, color: '#8b3fd0' },
@@ -219,11 +219,11 @@ export interface LocationDef {
   stageNames: [string, string, string];
 }
 export const LOCATIONS: LocationDef[] = [
-  { id: 'sanctuary', name: 'Creature Sanctuary', description: 'A green haven where the class creatures play and befriended bosses come to live.', stages: [0, 25, 70], stageNames: ['Meadow camp', 'Sanctuary garden', 'Grand sanctuary'] },
-  { id: 'village', name: 'Fantasy Village', description: 'Cottages, a market and a well: the class\'s own village.', stages: [10, 45, 110], stageNames: ['A few cottages', 'Market village', 'Lantern town'] },
-  { id: 'library', name: 'Magical Library', description: 'Books that read themselves and maps of every region.', stages: [20, 60, 140], stageNames: ['Reading tent', 'Tower library', 'Library of Stars'] },
-  { id: 'arena', name: 'Training Arena', description: 'Where creatures practise their abilities together.', stages: [30, 80, 160], stageNames: ['Practice ring', 'Training grounds', 'Champion arena'] },
-  { id: 'castle', name: 'Royal Castle', description: 'The class castle, with a banner for every adventure.', stages: [50, 120, 220], stageNames: ['Watchtower', 'Stone keep', 'Royal castle'] },
+  { id: 'sanctuary', name: 'Creature Sanctuary', description: 'A green haven where the class creatures play and befriended bosses come to live.', stages: [0, 20, 55], stageNames: ['Meadow camp', 'Sanctuary garden', 'Grand sanctuary'] },
+  { id: 'village', name: 'Fantasy Village', description: 'Cottages, a market and a well: the class\'s own village.', stages: [10, 35, 90], stageNames: ['A few cottages', 'Market village', 'Lantern town'] },
+  { id: 'library', name: 'Magical Library', description: 'Books that read themselves and maps of every region.', stages: [15, 50, 110], stageNames: ['Reading tent', 'Tower library', 'Library of Stars'] },
+  { id: 'arena', name: 'Training Arena', description: 'Where creatures practise their abilities together.', stages: [25, 65, 130], stageNames: ['Practice ring', 'Training grounds', 'Champion arena'] },
+  { id: 'castle', name: 'Royal Castle', description: 'The class castle, with a banner for every adventure.', stages: [40, 95, 170], stageNames: ['Watchtower', 'Stone keep', 'Royal castle'] },
 ];
 export const LOCATIONS_BY_ID = Object.fromEntries(LOCATIONS.map((l) => [l.id, l])) as Record<LocationId, LocationDef>;
 

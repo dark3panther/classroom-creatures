@@ -33,6 +33,8 @@ export function Present() {
   const award = useStore((s) => s.award);
   const setLocked = useStore((s) => s.setLocked);
   const locked = useStore((s) => s.locked);
+  const adventureOn = useStore((s) => s.data.settings.adventureEnabled);
+  const adventureKiosk = useStore((s) => s.data.settings.adventureWhileLocked);
   const [spot, setSpot] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const [wholeClass, setWholeClass] = useState(false);
@@ -139,6 +141,7 @@ export function Present() {
         <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setPicking(true)} disabled={!students.length}><Icon name="dice" size={24} />Pick a student</button>
         {!locked && <button className="btn btn-ghost px-7 py-4 text-xl" onClick={() => setWholeClass(true)} disabled={!students.length}><Icon name="sparkle" size={24} />Whole class</button>}
         {cls?.pendingSpin && !locked && <button className="btn btn-primary px-7 py-4 text-xl" onClick={() => setWheel(true)}><Icon name="wheel" size={24} />Prize wheel</button>}
+        {adventureOn && (!locked || adventureKiosk) && <button className="btn btn-ghost px-5 py-4 text-xl" onClick={() => navigate('/adventure')}><Icon name="map" size={22} />Adventure</button>}
         <button className="btn btn-ghost px-5 py-4 text-xl" onClick={fullscreen} aria-label="Toggle full screen"><Icon name="expand" size={22} />Full screen</button>
         <button className="btn btn-ghost px-5 py-4 text-xl" onClick={exit}><Icon name="close" size={22} />Exit</button>
       </nav>
@@ -195,6 +198,8 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
   const award = useStore((st) => st.award);
   const locked = useStore((st) => st.locked);
   const shopWhileLocked = useStore((st) => st.data.settings.shopWhileLocked);
+  const adventureOn = useStore((st) => st.data.settings.adventureEnabled);
+  const adventureKiosk = useStore((st) => st.data.settings.adventureWhileLocked);
   const [act, setAct] = useState<{ type: CreatureAction; key: number } | null>({ type: 'celebrate', key: 1 });
   const [showAward, setShowAward] = useState(false);
   const mood = useMood(s);
@@ -229,6 +234,7 @@ function Spotlight({ id, onClose }: { id: string; onClose: () => void }) {
             <div className="mt-4 flex gap-3">
               {!locked && <button className="btn btn-primary flex-1 py-4 text-xl" onClick={() => setShowAward(true)}><Icon name="star" size={22} />Give points</button>}
               {(!locked || shopWhileLocked) && <button className="btn btn-light py-4 text-xl" onClick={() => navigate(`/creature/${s.id}`)}><Icon name="book" size={22} />Profile</button>}
+              {adventureOn && (!locked || adventureKiosk) && <button className="btn btn-light py-4 text-xl" onClick={() => navigate(`/adventure/quests?student=${s.id}`)}><Icon name="scroll" size={22} />Quests</button>}
               <button className="btn btn-ghost py-4 text-xl" onClick={onClose}>Close</button>
             </div>
           )}

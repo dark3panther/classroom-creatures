@@ -5,9 +5,10 @@ import { onSaved } from '../store/storage';
 import { useCurrentClass, useStore } from '../store/store';
 import { Icon } from './Icon';
 
-const TABS: { view: Route['view']; label: string; path: string }[] = [
+const TABS: { view: Route['view']; label: string; path: string; adventure?: boolean }[] = [
   { view: 'classroom', label: 'Classroom', path: '/' },
   { view: 'creatures', label: 'Creatures', path: '/creatures' },
+  { view: 'adventure', label: 'Adventure', path: '/adventure', adventure: true },
   { view: 'rewards', label: 'Rewards', path: '/rewards' },
   { view: 'settings', label: 'Settings', path: '/settings' },
 ];
@@ -18,6 +19,7 @@ export function TopBar({ route }: { route: Route }) {
   const hasPin = useStore((s) => !!s.data.settings.pinHash);
   const setLocked = useStore((s) => s.setLocked);
   const cls = useCurrentClass();
+  const adventure = useStore((s) => s.data.settings.adventureEnabled);
   const [saved, setSaved] = useState<number | null>(null);
   useEffect(() => { const off = onSaved((t) => setSaved(t)); return () => { off(); }; }, []);
   const active = classes.filter((c) => !c.archived);
@@ -33,7 +35,7 @@ export function TopBar({ route }: { route: Route }) {
     b.style.opacity = '1';
     if (reducedMotion() || !b.dataset.ready) { b.style.width = `${w}px`; b.style.transform = `translateX(${x}px)`; b.dataset.ready = '1'; return; }
     animate(b, { x, width: w, duration: 520, ease: 'out(4)' });
-  }, [route.view]);
+  }, [route.view, adventure]);
 
   return (
     <header className="glass sticky top-0 z-30 border-b border-white/70 shadow-[0_10px_30px_-18px_rgb(27_79_151/.6)]">
@@ -57,7 +59,7 @@ export function TopBar({ route }: { route: Route }) {
         )}
 
         <nav ref={nav} className="relative order-last -mx-1 flex w-full gap-0.5 overflow-x-auto [mask-image:linear-gradient(90deg,#000_88%,transparent)] md:order-none md:mx-0 md:w-auto md:gap-1 md:[mask-image:none]" aria-label="Main">
-          {TABS.map((t) => {
+          {TABS.filter((t) => !t.adventure || adventure).map((t) => {
             const on = route.view === t.view;
             return (
               <button key={t.view} onClick={() => navigate(t.path)} aria-current={on ? 'page' : undefined}

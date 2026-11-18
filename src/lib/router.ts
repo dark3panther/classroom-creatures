@@ -7,10 +7,13 @@ export type Route =
   | { view: 'settings'; tab?: string }
   | { view: 'present' }
   | { view: 'creature'; id: string; tab?: string }
-  | { view: 'customize'; id: string };
+  | { view: 'customize'; id: string }
+  /** World of Adventures: tab = map | region | quests | boss | treasure | journal | world | control */
+  | { view: 'adventure'; tab: string; id?: string; query: Record<string, string> };
 
 export function parseHash(hash: string): Route {
-  const [, view, arg, sub] = hash.replace(/^#/, '').split('/');
+  const [path, qs = ''] = hash.replace(/^#/, '').split('?');
+  const [, view, arg, sub] = path.split('/');
   switch (view) {
     case 'creature':
       if (!arg) return { view: 'classroom' };
@@ -19,6 +22,7 @@ export function parseHash(hash: string): Route {
     case 'rewards': return { view: 'rewards' };
     case 'settings': return { view: 'settings', tab: arg };
     case 'present': return { view: 'present' };
+    case 'adventure': return { view: 'adventure', tab: arg || 'map', id: sub, query: Object.fromEntries(new URLSearchParams(qs)) };
     default: return { view: 'classroom' };
   }
 }

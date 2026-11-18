@@ -53,7 +53,7 @@ const before = await p.evaluate(async () => {
 });
 await p.reload(); await wait(1500);
 const after = await p.evaluate(() => { const d = window.__cc.getState().data; return { v: d.version, mode: d.settings.evolutionMode, s: d.students.map((s) => ({ id: s.id, xp: s.xp, coins: s.coins, items: s.unlockedItems, eq: s.equipped, stage: s.bestStage, sp: s.speciesId, log: s.evolutionLog })) }; });
-ok(after.v === 3, `1.3 save migrated to data version ${after.v}`);
+ok(after.v === 4, `1.3 save migrated to data version ${after.v}`);
 ok(after.mode === 'auto', 'upgraded classes keep automatic evolution');
 ok(before.every((x) => { const y = after.s.find((s) => s.id === x.id); return y && y.xp === x.xp && y.coins === x.coins && y.stage === x.stage && y.sp === x.sp && JSON.stringify(y.items) === JSON.stringify(x.items) && JSON.stringify(y.eq) === JSON.stringify(x.eq); }), `all ${before.length} students keep XP, coins, creature, stage, owned and equipped items`);
 ok(after.s.every((s) => Array.isArray(s.log) && s.log.length === s.stage - 1), 'evolution history rebuilt from stages reached');

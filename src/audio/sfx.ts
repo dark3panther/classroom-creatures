@@ -191,3 +191,33 @@ export function awardSound(xp: number, count = 1) {
   if (count > 1) playMultiAward(); else playAward(xp);
   setTimeout(playCoin, 260);
 }
+
+/* ───────────── World of Adventures ───────────── */
+
+/** A quest is complete: a little fanfare. */
+export function playQuest() {
+  [0, 4, 7].forEach((n, i) => tone(semi(587, n), i * 0.08, 0.22, 'triangle', 0.13));
+  tone(semi(587, 12), 0.26, 0.5, 'triangle', 0.12);
+  tone(semi(587, 19), 0.3, 0.4, 'sine', 0.05);
+}
+/** A chest creaks open and treasure sparkles out. */
+export function playChest() {
+  tone(140, 0, 0.25, 'sawtooth', 0.04, 220);
+  [12, 16, 19, 24, 28, 31].forEach((n, i) => tone(semi(523, n), 0.22 + i * 0.06, 0.25, 'triangle', 0.09));
+  setTimeout(playCoin, 520);
+}
+/** A soft "boff" when activity reaches the boss (friendly, never violent). */
+export function playBossHit() {
+  tone(330, 0, 0.12, 'triangle', 0.1, 220);
+  tone(660, 0.03, 0.1, 'sine', 0.05, 990);
+}
+/** The boss becomes the class's friend. */
+export function playBefriend() {
+  [0, 4, 7, 12, 7, 12, 16, 19].forEach((n, i) => tone(semi(392, n), i * 0.11, 0.35, 'triangle', 0.12));
+  [0, 7, 12].forEach((n) => tone(semi(392, n + 12), 0.95, 1.1, 'sine', 0.06));
+}
+/** A new region opens on the map. */
+export function playRegion() {
+  tone(262, 0, 1.2, 'sine', 0.06, 523);
+  [0, 7, 12, 16, 19].forEach((n, i) => tone(semi(523, n), 0.3 + i * 0.1, 0.4, 'triangle', 0.1));
+}

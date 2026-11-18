@@ -97,17 +97,22 @@ befriended bosses (statues) and class quest milestones. The shared world can be 
 
 ## 4. Formulas
 
-* **Adventure points** (class): `AP = floor(Σ lifetimeXp / 100) + 3 × approved quest completions + 20 × bosses befriended`.
-  All three come only from teacher-approved activity.
-* **Region unlock** (AP): Verdant Valley 0 · Crystal Caverns 15 · Frostpeak Mountains 40 · Ember Kingdom 80 ·
-  Sky Islands 130 · Ancient Kingdom 200.
+* **Adventure points** (class): `AP = floor((Σ lifetimeXp / 25 + 2 × approved quest completions) / students) + 20 × bosses befriended`.
+  The class average, so a class of 12 and a class of 30 move through the world at the same pace. All three parts
+  come only from teacher-approved activity. A student who earns about 12 XP and completes one or two quests a
+  day adds about 3 to 4 points a day.
+* **Region unlock** (AP): Verdant Valley 0 · Crystal Caverns 10 · Frostpeak Mountains 30 · Ember Kingdom 60 ·
+  Sky Islands 100 · Ancient Kingdom 150. Roughly: the second region in the first week, the last one in about a
+  term. A region that has opened stays open (undo never closes it); only the teacher can close one.
 * **Suggested boss HP**: `students × perStudent` (easy 8, medium 14, hard 22, epic 32), minimum 30.
 * **Boss hit**: award XP (positive awards only); approved quest `max(5, reward XP)`.
 * **Region completion** (per student): average of quests completed in the region (distinct quests, capped
   at the region's quest count), treasures opened in the region (out of 4) and region creature forms the class
   has discovered.
-* **Location stage thresholds** (AP): Sanctuary 0/25/70 · Village 10/45/110 · Library 20/60/140 ·
-  Arena 30/80/160 · Castle 50/120/220.
+* **Location stage thresholds** (AP): Sanctuary 0/20/55 · Village 10/35/90 · Library 15/50/110 ·
+  Arena 25/65/130 · Castle 40/95/170.
+* **Class decorations** (approved quest completions, whole class): bunting 20 · lanterns 75 · fountain 150 ·
+  rainbow arch 300; plus a statue for every boss befriended.
 
 ## 5. Economy (sources)
 
