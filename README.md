@@ -109,15 +109,19 @@ This creates `release/Classroom Creatures-<version>-mac-arm64.dmg`. Open the `.d
 
 **Or download it:** grab the latest `.dmg` from this repository's **Releases** page. Every push to `main` also builds it (the *macOS app* workflow on the **Actions** tab, artifact `Classroom-Creatures-mac`), and a Release is published either by pushing a tag such as `v1.4.0` or from **Actions → Release → Run workflow** with the version number (the tag is created for you).
 
-**First launch of a downloaded copy:** the app is not notarised by Apple (that needs a paid Apple Developer account), so macOS warns you the first time. Right-click (or Control-click) the app in Applications → **Open** → **Open**. On recent macOS versions you may instead need to go to System Settings → Privacy & Security and click **Open Anyway**. If macOS says the app "is damaged", run this once in Terminal:
+**First launch of a downloaded copy:** the app is signed "ad hoc" but not notarised by Apple (that needs a paid Apple Developer account), so macOS asks once. Open it; if macOS says it cannot check the app, go to System Settings → Privacy & Security, scroll down and click **Open Anyway** (on older macOS, right-click the app → **Open** → **Open** also works). If macOS ever says the app "is damaged", run these once in Terminal, then open it normally:
 
 ```bash
 xattr -cr "/Applications/Classroom Creatures.app"
 ```
 
+```bash
+codesign --force --deep --sign - "/Applications/Classroom Creatures.app"
+```
+
 **Your data in the Mac app** is stored in `~/Library/Application Support/Classroom Creatures`, separately from any browser copy. To move a class from the browser version into the app, use Settings → Backup & Data → *Download backup file* in the browser, then *Restore from file* in the app.
 
-**No Mac to build on?** `npm run app:mac-zip` also works on Linux and Windows and makes `Classroom Creatures-<version>-mac-arm64.zip`. It keeps Electron's built-in ad-hoc signature, so it runs once opened with right-click → **Open** (or the `xattr` command above). Intel builds are no longer made: Intel apps on Apple Silicon need Rosetta, which macOS is retiring.
+**No Mac to build on?** `npm run app:mac-zip` also works on Linux and Windows and makes `Classroom Creatures-<version>-mac-arm64.zip`. Install [rcodesign](https://github.com/indygreg/apple-platform-rs) first (`cargo install apple-codesign`) so the build signs the app ad hoc, as `codesign` does on a Mac; without a sealed signature macOS reports a downloaded app as "damaged". The build prints a warning if rcodesign is missing. Intel builds are no longer made: Intel apps on Apple Silicon need Rosetta, which macOS is retiring.
 
 To try the desktop shell without packaging: `npm run app`. The same config also builds Windows (`npx electron-builder --win`) and Linux (`npx electron-builder --linux`) versions.
 
