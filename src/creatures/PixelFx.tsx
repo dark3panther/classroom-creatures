@@ -46,6 +46,24 @@ const FX = {
   'explosions/implosion': () => import('../vendor/pixelfx/fx/explosions/implosion.js'),
   'explosions/dirt-explosion': () => import('../vendor/pixelfx/fx/explosions/dirt-explosion.js'),
   'explosions/small-explosion': () => import('../vendor/pixelfx/fx/explosions/small-explosion.js'),
+  // Pixel mode: element auras and attacks (see pixelStage.ts)
+  'fire/spirit-flame': () => import('../vendor/pixelfx/fx/fire/spirit-flame.js'),
+  'fire/fire-breath': () => import('../vendor/pixelfx/fx/fire/fire-breath.js'),
+  'water/water-orb': () => import('../vendor/pixelfx/fx/water/water-orb.js'),
+  'water/water-jet': () => import('../vendor/pixelfx/fx/water/water-jet.js'),
+  'nature/leaf-storm': () => import('../vendor/pixelfx/fx/nature/leaf-storm.js'),
+  'nature/vine-whip': () => import('../vendor/pixelfx/fx/nature/vine-whip.js'),
+  'nature/earth-spike': () => import('../vendor/pixelfx/fx/nature/earth-spike.js'),
+  'nature/tornado': () => import('../vendor/pixelfx/fx/nature/tornado.js'),
+  'lightning/ball-lightning': () => import('../vendor/pixelfx/fx/lightning/ball-lightning.js'),
+  'lightning/chain-lightning': () => import('../vendor/pixelfx/fx/lightning/chain-lightning.js'),
+  'ice/ice-crystal': () => import('../vendor/pixelfx/fx/ice/ice-crystal.js'),
+  'ice/frost-breath': () => import('../vendor/pixelfx/fx/ice/frost-breath.js'),
+  'shadow/shadow-flames': () => import('../vendor/pixelfx/fx/shadow/shadow-flames.js'),
+  'shadow/shadow-tendrils': () => import('../vendor/pixelfx/fx/shadow/shadow-tendrils.js'),
+  'holy/smite': () => import('../vendor/pixelfx/fx/holy/smite.js'),
+  'arcane/rune-circle': () => import('../vendor/pixelfx/fx/arcane/rune-circle.js'),
+  'arcane/star-fall': () => import('../vendor/pixelfx/fx/arcane/star-fall.js'),
 } satisfies Record<string, () => Promise<FxModule>>;
 export type PixelFxId = keyof typeof FX;
 
@@ -85,6 +103,12 @@ export interface PixelFxProps {
   style?: CSSProperties;
   /** strength of the additive light layer (big effects can wash out a light page) */
   lightOpacity?: number;
+  /**
+   * Pixel mode: place the effect on the creature's own pixel grid instead. (x, y) is a point in sprite
+   * pixels, (w, h) the sprite size; the sprite is drawn centred in the box ("contain"). One effect pixel
+   * is one sprite pixel times `size`.
+   */
+  sprite?: { x: number; y: number; w: number; h: number };
 }
 
 // one shared animation clock for every effect on screen (cheap on classroom computers)
@@ -118,7 +142,7 @@ export function PixelFx(props: PixelFxProps) {
   return <FxCanvas {...props} mod={mod} />;
 }
 
-function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options, duration, onDone, fps = 30, className = '', style, lightOpacity = 1, mod }: PixelFxProps & { mod: FxModule }) {
+function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options, duration, onDone, fps = 30, className = '', style, lightOpacity = 1, sprite, mod }: PixelFxProps & { mod: FxModule }) {
   const box = useRef<HTMLDivElement>(null);
   const colorRef = useRef<HTMLCanvasElement>(null);
   const lightRef = useRef<HTMLCanvasElement>(null);
@@ -153,12 +177,24 @@ function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options
     // keep the canvases sized to the creature box
     const place = () => {
       const r = host.getBoundingClientRect();
-      const k = ((r.height * bodyFrac) / 38) * size;
+      // the box can be scaled by a parent transform: work in its own (unscaled) pixels
+      const bw = host.offsetWidth || r.width, bh = host.offsetHeight || r.height;
+      let k: number, ax: number, ay: number;
+      if (sprite) {
+        const fit = Math.min(bw / sprite.w, bh / sprite.h);
+        k = fit * size;
+        ax = (bw - sprite.w * fit) / 2 + sprite.x * fit;
+        ay = (bh - sprite.h * fit) / 2 + sprite.y * fit;
+      } else {
+        k = ((bh * bodyFrac) / 38) * size;
+        ax = anchor[0] * bw;
+        ay = anchor[1] * bh;
+      }
       for (const c of [cc, lc]) {
         c.style.width = `${W * k}px`;
         c.style.height = `${H * k}px`;
-        c.style.left = `${anchor[0] * r.width - OX * k}px`;
-        c.style.top = `${anchor[1] * r.height - OY * k}px`;
+        c.style.left = `${ax - OX * k}px`;
+        c.style.top = `${ay - OY * k}px`;
       }
     };
     place();
@@ -194,7 +230,7 @@ function FxCanvas({ id, anchor = [0.5, 0.93], bodyFrac = 0.62, size = 1, options
     });
     return () => { off(); ro.disconnect(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, duration, fps, size, bodyFrac, anchor[0], anchor[1], JSON.stringify(options ?? {})]);
+  }, [id, duration, fps, size, bodyFrac, anchor[0], anchor[1], JSON.stringify(options ?? {}), JSON.stringify(sprite ?? null)]);
 
   return (
     <div ref={box} className={`pointer-events-none absolute inset-0 ${className}`} style={style} aria-hidden>

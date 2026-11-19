@@ -47,6 +47,9 @@ The adventure is a pixel-art layer that lives inside the sky world, never instea
 - **Chests** say what is inside before they open; a ready chest wiggles now and then and takes a gilt ring; opening is a short shake and the open chest with the contents named.
 - **Gold** keeps its one meaning: the thing to do now (Collect reward, Open, the ready chest, the current tab).
 
+## Pixel mode (1.5.1)
+`html.pixel-mode` switches the same interface to pixel art (index.css): square corners, stepped ink frames with open corners and hard shadows, bevelled flat buttons, block progress bars, a banded sky with pixel copies of the painted layers (`public/sky-pixel/`), Jersey 10 and Tiny5 type sized by x-height. Creatures become 64 × 66 sprites made at run time from the painting and the outfit (`src/creatures/pixelSprite.ts`), bobbing a pixel at a time and blinking; plates show pixel places; elements get pixelfx auras and attacks (`src/creatures/pixelStage.ts`). Preview: `#/pixel-lab`.
+
 ## Motion
 - anime.js (`src/vendor/animejs`) through `lib/motion.ts` and `lib/interactions.ts`: springy presses, hover lifts, sparks, card tilt, page entrances, count-ups, award pops, modals, progress bars, sliding tab pills, grid re-sorting, and the sky world (cloud drift, island bob, sun, pollen, flyers, pointer parallax)
 - Idle loops: CSS only, 2–4 s, per-species style; large views add a 4.2 s breath

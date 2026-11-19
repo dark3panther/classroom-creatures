@@ -261,6 +261,7 @@ export const DEFAULT_SETTINGS: Settings = {
   disabledItems: [],
   itemPrices: {},
   shopWhileLocked: true,
+  pixelMode: false,
   adventureEnabled: true,
   classWorld: true,
   adventureWhileLocked: true,

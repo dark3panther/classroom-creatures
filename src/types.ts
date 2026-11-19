@@ -386,6 +386,8 @@ export interface Settings {
   itemPrices: Record<string, number>;
   /** students may buy and equip from the Presentation Mode spotlight while teacher controls are locked */
   shopWhileLocked: boolean;
+  /** Pixel mode: the whole app, creatures included, as pixel art (1.5.1) */
+  pixelMode?: boolean;
   /** World of Adventures on/off */
   adventureEnabled: boolean;
   /** the shared class world (Creature Sanctuary, Village, ...) on/off */

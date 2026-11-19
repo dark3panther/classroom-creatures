@@ -266,6 +266,8 @@ function ClassroomTab() {
     <div>
       <h2 className="font-display text-2xl font-bold">Classroom</h2>
       <div className="mt-2 divide-y divide-ink/10">
+        <Toggle label="Pixel mode" hint="Turns the whole app into pixel art: the creatures become pixel sprites that bob and blink, every element gets its own pixel aura and attack (fire breath, water jets, lightning, frost, vines and more), and the buttons, panels, text and sky go pixel too. Switch back at any time; nothing else changes."
+          checked={!!settings.pixelMode} onChange={(v) => updateSettings({ pixelMode: v })} />
         <Toggle label="Illustrated creature art" hint="Painted creature artwork. Turn off for the classic drawn style (blinks and changes expression, lighter on very old computers)."
           checked={(settings.artStyle ?? 'illustrated') === 'illustrated'} onChange={(v) => updateSettings({ artStyle: v ? 'illustrated' : 'classic' })} />
         <Toggle label="Sound effects" hint="Award chimes, evolution, shop and creature sounds. Turn off to mute everything." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />

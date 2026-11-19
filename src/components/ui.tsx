@@ -62,8 +62,8 @@ export function ProgressBar({ pct, color = '#2563b8', height = 12, className = '
     animate(el, { width: w, ease: settle });
   }, [w]);
   return (
-    <div className={`relative overflow-hidden rounded-full ${className}`} style={{ height, background: track }}>
-      <div ref={fill} className="absolute inset-y-0 left-0 rounded-full"
+    <div className={`cc-bar relative overflow-hidden rounded-full ${className}`} style={{ height, background: track }}>
+      <div ref={fill} className="cc-bar-fill absolute inset-y-0 left-0 rounded-full"
         style={{ width: w, background: `linear-gradient(180deg, color-mix(in srgb, ${color} 80%, white), ${color})`, boxShadow: glow ? `0 0 0 2px #fff, 0 0 14px ${color}` : 'inset 0 -1px 0 rgb(0 0 0 / .12)' }} />
     </div>
   );

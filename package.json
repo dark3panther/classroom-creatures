@@ -1,7 +1,7 @@
 {
   "name": "classroom-creatures",
   "private": true,
-  "version": "1.5.0",
+  "version": "1.5.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,8 @@
     "app:mac-zip": "npm run build && electron-builder --mac zip --arm64",
     "test:e2e": "node scripts/e2e.mjs",
     "art:adventure": "node scripts/pixel/build.mjs",
-    "test:e2e:adventure": "node scripts/e2e-adventure.mjs"
+    "test:e2e:adventure": "node scripts/e2e-adventure.mjs",
+    "test:e2e:pixel": "node scripts/e2e-pixel.mjs"
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",
@@ -91,7 +92,9 @@
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
-    "@fontsource-variable/bricolage-grotesque": "^5.3.0"
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource/jersey-10": "^5.3.0",
+    "@fontsource/tiny5": "^5.3.0"
   },
   "license": "MIT",
   "repository": {

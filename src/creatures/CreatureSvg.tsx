@@ -6,6 +6,7 @@ import type { Equipped, Expression, Species, Stage } from '../types';
 import { blob, bolt, cloud, crystal, darken, droplet, flame, leaf, lighten, luminance, star } from './shapes';
 import { Accessories, BackAccessories } from './accessories';
 import { IllustratedCreature, hasIllustration } from './Illustrated';
+import { PixelCreature } from './PixelCreature';
 import { useStore } from '../store/store';
 
 /**
@@ -661,10 +662,16 @@ export interface CreatureSvgProps {
   classic?: boolean;
   /** chosen final path for branching species ('b' = mythical) */
   branch?: 'a' | 'b';
+  /** draw as a pixel sprite (undefined: follow the Pixel mode setting) */
+  pixel?: boolean;
 }
 
 function CreatureSvgImpl(props: CreatureSvgProps) {
   const artStyle = useStore((s) => s.data.settings.artStyle ?? 'illustrated');
+  const pixelMode = useStore((s) => !!s.data.settings.pixelMode);
+  if ((props.pixel ?? pixelMode) && !props.classic && hasIllustration(props.species.id, props.stage)) {
+    return <PixelCreature species={props.species} stage={props.stage} equipped={props.equipped} branch={props.branch} expression={props.expression} effects={props.effects} className={props.className} title={props.title} />;
+  }
   if (artStyle === 'illustrated' && !props.classic && hasIllustration(props.species.id, props.stage)) {
     return <IllustratedCreature sp={props.species} stage={props.stage} equipped={props.equipped} noShadow={props.noShadow} effects={props.effects} className={props.className} title={props.title} branch={props.branch} expression={props.expression} />;
   }

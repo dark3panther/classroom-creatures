@@ -20,6 +20,8 @@ export function TopBar({ route }: { route: Route }) {
   const setLocked = useStore((s) => s.setLocked);
   const cls = useCurrentClass();
   const adventure = useStore((s) => s.data.settings.adventureEnabled);
+  const pixel = useStore((s) => !!s.data.settings.pixelMode);
+  const updateSettings = useStore((s) => s.updateSettings);
   const [saved, setSaved] = useState<number | null>(null);
   useEffect(() => { const off = onSaved((t) => setSaved(t)); return () => { off(); }; }, []);
   const active = classes.filter((c) => !c.archived);
@@ -75,6 +77,10 @@ export function TopBar({ route }: { route: Route }) {
           <span className="hidden items-center gap-1.5 text-[13px] font-semibold text-ink-soft lg:flex" title="Everything is saved on this computer automatically">
             <Icon name="check" size={15} strokeWidth={2.6} className="text-leaf" />{saved ? 'Saved' : 'Auto-save on'}
           </span>
+          <button className="btn btn-ghost !px-3" onClick={() => updateSettings({ pixelMode: !pixel })} aria-pressed={pixel}
+            title={pixel ? 'Pixel mode is on: switch back to the painted look' : 'Pixel mode: turn the whole app into pixel art'} aria-label="Pixel mode">
+            <Icon name="pixel" size={18} /><span className="max-lg:hidden">{pixel ? 'Painted' : 'Pixel'}</span>
+          </button>
           {hasPin && (
             <button className="btn btn-ghost !px-3" onClick={() => setLocked(true)} title="Lock teacher controls" aria-label="Lock teacher controls">
               <Icon name="lock" size={18} />

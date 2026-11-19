@@ -8,6 +8,10 @@ import { Burst, type BurstKind } from './Burst';
 import { CreatureSvg } from './CreatureSvg';
 import { ElementAmbient, EmotionFx } from './EmotionFx';
 import { PixelFx, type PixelFxId } from './PixelFx';
+import { usePixelSprite } from './PixelCreature';
+import { ELEMENT_STAGE, type StageFx } from './pixelStage';
+import { SPRITE_H, SPRITE_W, type PixelSprite } from './pixelSprite';
+import { useStore } from '../store/store';
 import { Trail } from './pixel';
 import type { Pulse } from '../store/store';
 
@@ -41,7 +45,22 @@ export interface CreatureProps {
   branch?: 'a' | 'b';
   /** play an ability's pixel animation (change `key` to cast again) */
   cast?: { key: number; fx: PixelFxId; anchor?: [number, number]; size?: number; palette?: string[]; duration?: number } | null;
+  /** draw as pixel art (undefined: follow the Pixel mode setting) */
+  pixel?: boolean;
 }
+
+/** Where a Pixel mode effect sits on the creature's sprite. */
+function spot(s: PixelSprite, f: StageFx) {
+  const b = s.box, k = f.size ?? 1;
+  let x = (b.left + b.right) / 2, y = b.bottom + 1;
+  if (f.at === 'mouth') { x = Math.min(s.mouth[0], b.right - 2); y = s.mouth[1]; }
+  else if (f.at === 'ahead') x = b.right;
+  else if (f.at === 'head') { x = s.eye[0]; y = b.top + 34 * k; }
+  else if (f.at === 'left') x = b.left;
+  else if (f.at === 'right') x = b.right;
+  return { x: Math.round(x + (f.dx ?? 0)), y: Math.round(y + (f.dy ?? 0)), w: SPRITE_W, h: SPRITE_H };
+}
+const stageOptions = (f: StageFx) => ({ ...(f.palette ? { palette: f.palette } : {}), ...(f.flip ? { flip: true } : {}) });
 
 interface FxPlay { key: string; id: PixelFxId; anchor?: [number, number]; size?: number; duration?: number; options?: Record<string, unknown>; bodyFrac?: number }
 
@@ -97,8 +116,12 @@ const CYCLE: CreatureAction[] = ['jump', 'wave', 'ability', 'happy'];
 const MOOD_FACE: Record<Mood, Expression> = { happy: 'happy', excited: 'excited', proud: 'happy', calm: 'happy', sad: 'sad', sleepy: 'sleepy' };
 
 /** The animated creature: idle loop, feelings, reactions, particles and play. */
-export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0, branch, cast }: CreatureProps) {
+export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0, branch, cast, pixel: pixelProp }: CreatureProps) {
   const sp = getSpecies(speciesId);
+  const pixelSetting = useStore((s) => !!s.data.settings.pixelMode);
+  const pixel = pixelProp ?? pixelSetting;
+  const sprite = usePixelSprite(pixel ? { species: sp, stage, equipped, branch } : null);
+  const [attacks, setAttacks] = useState<number[]>([]);
   const myth = stage === 5 && branch === 'b' ? BRANCHES[speciesId]?.b : undefined;
   const controls = useAnimationControls();
   const [expr, setExpr] = useState<Expression | null>(null);
@@ -114,6 +137,8 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
   }, [event, effects]);
   useEffect(() => {
     if (!cast || !effects) return;
+    // Pixel mode: using an ability performs the element attack
+    if (pixel) { void run('ability'); return; }
     setFx((list) => [...list.slice(-4), { key: `cast-${cast.key}`, id: cast.fx, anchor: cast.anchor, size: cast.size, duration: cast.duration ?? 2.6, options: cast.palette ? { palette: cast.palette } : undefined }]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cast?.key]);
@@ -127,6 +152,14 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
     setCurrent(a);
     clearTimeout(timer.current);
     setExpr(a === 'bonk' ? 'sad' : a === 'ability' ? 'wow' : 'excited');
+    // Pixel mode: the creature performs its element's attack (wind up, let go, recover)
+    if (a === 'ability' && pixel && effects) {
+      const k = Date.now();
+      setTimeout(() => setAttacks((list) => [...list.slice(-2), k]), 280);
+      await controls.start({ x: ['0%', '-5%', '7%', '7%', '0%'], scaleX: [1, 0.9, 1.1, 1.04, 1], scaleY: [1, 1.08, 0.92, 0.97, 1], transition: { duration: 1.3, times: [0, 0.2, 0.28, 0.75, 1], ease: 'linear' } });
+      timer.current = setTimeout(() => { setExpr(null); setCurrent(null); }, 300);
+      return;
+    }
     if (a === 'ability') setBurst({ kind: sp.element, key: Date.now() });
     if (a === 'celebrate') setBurst({ kind: 'sparkle', key: Date.now() });
     switch (a) {
@@ -199,7 +232,9 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
 
   const sadNow = current === 'bonk' || (!current && mood === 'sad');
   const shownMood: Mood = current === 'bonk' ? 'sad' : current ? 'excited' : mood;
-  const idle = !effects ? '' : sadNow ? 'idle-sad' : mood === 'excited' ? 'idle-excited' : mood === 'sleepy' ? 'idle-breathe' : `idle-${sp.idle}`;
+  // pixel sprites bob a whole pixel at a time by themselves (PixelCreature), so no smooth idle on top
+  const idle = !effects || pixel ? '' : sadNow ? 'idle-sad' : mood === 'excited' ? 'idle-excited' : mood === 'sleepy' ? 'idle-breathe' : `idle-${sp.idle}`;
+  const stageFx = pixel && sprite && effects ? ELEMENT_STAGE[sp.element] : null;
   const face: Expression = expr ?? MOOD_FACE[mood];
   const ambientCount = ambient === true ? 6 : typeof ambient === 'number' ? ambient : 0;
 
@@ -207,19 +242,21 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
     <div className={`relative select-none ${className}`} data-action={current ?? undefined}
       onPointerMove={onMove} onPointerLeave={() => { setTilt({ x: 0, y: 0 }); onUp(); }} onPointerDown={onDown} onPointerUp={onUp}>
       {effects && equipped?.trail && <Trail id={equipped.trail} compact={compact} />}
-      {effects && ambientCount > 0 && <ElementAmbient element={sp.element} count={ambientCount} />}
+      {effects && ambientCount > 0 && !pixel && <ElementAmbient element={sp.element} count={ambientCount} />}
+      {/* Pixel mode: the element's aura on the creature's own pixel grid (behind it, then in front) */}
+      {stageFx && !compact && stageFx.aura.filter((f) => f.back).map((f, i) => <PixelFx key={`aura-b${i}-${f.id}`} id={f.id} sprite={spot(sprite!, f)} size={f.size} options={stageOptions(f)} fps={24} lightOpacity={0.7} />)}
       <div className={`h-full w-full ${idle}`}>
         {/* large views also breathe, under whatever idle loop the species has */}
-        <div className={`h-full w-full ${!compact && effects && idle !== 'idle-breathe' ? 'cc-breath' : ''}`}>
+        <div className={`h-full w-full ${!compact && effects && !pixel && idle !== 'idle-breathe' ? 'cc-breath' : ''}`}>
         <motion.div animate={controls} className="h-full w-full" style={{ transformOrigin: '50% 90%' }}>
           <div className="h-full w-full transition-transform duration-200 ease-out"
             style={interactive ? { transform: `perspective(600px) rotateY(${tilt.x * 10}deg) rotateX(${-tilt.y * 6}deg) translateX(${tilt.x * 3}%)` } : undefined}>
             {interactive ? (
               <button type="button" onClick={onClick} className="block h-full w-full rounded-full" aria-label={`Play with ${sp.name} (tap to play, hold to pet)`}>
-                <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" branch={branch} />
+                <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" branch={branch} pixel={pixel} />
               </button>
             ) : (
-              <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" branch={branch} />
+              <CreatureSvg species={sp} stage={stage} equipped={equipped} expression={face} effects={effects} className="h-full w-full" branch={branch} pixel={pixel} />
             )}
           </div>
         </motion.div>
@@ -248,7 +285,14 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
         <PixelFx key={f.key} id={f.id} anchor={f.anchor} size={f.size} duration={f.duration} options={f.options} fps={compact ? 24 : 30}
           onDone={() => setFx((list) => list.filter((x) => x.key !== f.key))} />
       ))}
-      {burst && burst.kind === 'hearts' && <HeartBurst key={burst.key} />}
+      {stageFx && !compact && stageFx.aura.filter((f) => !f.back).map((f, i) => <PixelFx key={`aura-f${i}-${f.id}`} id={f.id} sprite={spot(sprite!, f)} size={f.size} options={stageOptions(f)} fps={24} lightOpacity={0.7} />)}
+      {stageFx && attacks.map((k) => (
+        <PixelFx key={`atk-${k}`} id={stageFx.attack.id} sprite={spot(sprite!, stageFx.attack)} size={stageFx.attack.size} duration={stageFx.attack.duration} options={stageOptions(stageFx.attack)} fps={30}
+          onDone={() => setAttacks((list) => list.filter((x) => x !== k))} />
+      ))}
+      {burst && burst.kind === 'hearts' && (pixel
+        ? <PixelFx key={burst.key} id="pickups/heart-pickup" anchor={[0.5, 0.45]} size={0.6} options={{ shadow: false }} duration={1.2} />
+        : <HeartBurst key={burst.key} />)}
       {burst && burst.kind !== 'hearts' && <Burst key={burst.key} kind={burst.kind} count={burst.kind === 'sparkle' ? 12 : 16} />}
     </div>
   );

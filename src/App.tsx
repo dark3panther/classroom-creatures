@@ -26,6 +26,7 @@ const Customize = lazy(() => import('./views/Customize').then((m) => ({ default:
 const CreatureProfile = lazy(() => import('./views/CreatureProfile').then((m) => ({ default: m.CreatureProfile })));
 const Rewards = lazy(() => import('./views/Rewards').then((m) => ({ default: m.Rewards })));
 const SettingsView = lazy(() => import('./views/Settings').then((m) => ({ default: m.SettingsView })));
+const PixelLab = lazy(() => import('./views/PixelLab').then((m) => ({ default: m.PixelLab })));
 const Adventure = lazy(() => import('./views/adventure/Adventure').then((m) => ({ default: m.Adventure })));
 
 export default function App() {
@@ -57,6 +58,9 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('reduce-motion', reduced);
   }, [reduced]);
+  // Pixel mode: the whole interface switches to its pixel-art theme (index.css, .pixel-mode)
+  const pixelMode = useStore((s) => !!s.data.settings.pixelMode);
+  useEffect(() => { document.documentElement.classList.toggle('pixel-mode', pixelMode); }, [pixelMode]);
   // springy buttons, hover lifts, sparks and tilting cards everywhere (anime.js)
   useEffect(() => installInteractions(), []);
   // each screen's sections rise into place when it opens, and [data-stagger] groups ripple in after them
@@ -141,6 +145,7 @@ export default function App() {
         {route.view === 'classroom' && <Dashboard />}
         {route.view === 'creatures' && <Creaturedex />}
         {route.view === 'rewards' && <Rewards />}
+        {route.view === 'pixel-lab' && <PixelLab />}
         {route.view === 'adventure' && <Adventure tab={route.tab} id={route.id} query={route.query} />}
         {route.view === 'settings' && <SettingsView tab={route.tab} />}
         {route.view === 'customize' && <Customize studentId={route.id} />}

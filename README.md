@@ -19,6 +19,22 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.5.1: Pixel mode
+
+<p align="center"><img src="docs/screenshots/pixel-fire-attack.gif" alt="Emberpup painted (left) and as pixel art (right): the pixel creature leans back, lunges and breathes a stream of pixel fire, with flames flickering at its feet" width="688"></p>
+
+- **One switch turns the whole app into pixel art.** Press **Pixel** in the top bar (or Settings → Classroom & PIN → *Pixel mode*). The creatures become pixel sprites, and the buttons, panels, progress bars, text, creature backgrounds and the sky all turn pixel too. Press **Painted** to switch back. Nothing else changes: same classes, points, coins and items.
+- **Every creature as a real pixel sprite**, made from its own painting and everything it is wearing (hats, glasses, wings and the rest). Each sprite has a hand-drawn style outline, bobs a whole pixel at a time and blinks every few seconds, each creature on its own rhythm.
+- **Element effects from the pixelfx library.** On the big views (profile, Presentation spotlight, student pop-up, dressing room) each element has a pixel aura: dancing flames for fire, a floating water orb, swirling leaves, a ball of lightning, ice crystals, a glowing gem for earth, shadow flames, a halo for light, a rune circle for cosmic creatures and a whirl of wind for air. When a creature uses its ability it **attacks**: it leans back, lunges and lets go of fire breath, a water jet, whipping vines, chain lightning, frost breath, earth spikes, shadow tendrils, a beam of light from the sky, falling stars or a tornado.
+- **Readable for young students.** The pixel fonts (Jersey 10 for headings, Tiny5 for text) were picked because their numbers are clear, and they are sized to match the painted look.
+- **See them all at once** on the preview page (`#/pixel-lab`): each element's creature painted and as pixel art, attacking every few seconds.
+
+<p align="center"><img src="docs/screenshots/painted-vs-pixel.jpg" alt="Three screens painted (left) and in Pixel mode (right): the classroom, a creature profile and the world map" width="900"></p>
+
+<details><summary>All ten element attacks</summary>
+<p align="center"><img src="docs/screenshots/pixel-elements.gif" alt="Ten creatures, one per element, each painted and as pixel art performing its element attack" width="780"></p>
+</details>
+
 ## What's new in 1.5: the World of Adventures
 
 <p align="center"><img src="docs/screenshots/adventure-map.jpg" alt="The World of Adventures map: six pixel-art islands on a sea, three open and three under fog with the adventure points they need, Glimmerjaw the crystal crab on Crystal Caverns" width="900"></p>
@@ -157,6 +173,7 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 | `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, quest, boss, treasure, region, journal, import, backup and storage code (Vitest) |
 | `npm run test:e2e` | End-to-end check in a real browser: the 1.3 to 1.4 upgrade, playing with a creature, abilities, buying an item, a teacher-approved evolution, the field guide, locked student mode, persistence after a restart, and phone width. Needs Playwright (`npm i -D playwright && npx playwright install chromium`); `E2E_SHOTS=out` also saves screenshots |
 | `npm run test:e2e:adventure` | End-to-end check of the World of Adventures: the 1.4 to 1.5 upgrade, creating a quest, a student handing it in from the locked kiosk, approval, collecting a reward exactly once, a boss battle, exploring and opening a chest, the journal, the Control Center, a restart, and phone width |
+| `npm run test:e2e:pixel` | End-to-end check of Pixel mode: switching it on from the top bar, pixel sprites with a blink frame, pixel type and backgrounds, element auras and attacks, the setting surviving a restart, phone width, and switching back |
 | `npm run art:adventure` | Rebuild the pixel art in `public/adventure/` from `scripts/pixel/*.px.js` (needs Node 22.18 or newer) |
 | `npm run typecheck` | TypeScript check |
 | `npm run build` | Type-check and build the production site into `dist/` |
@@ -204,6 +221,9 @@ src/
 │   ├── Burst.tsx            One-shot element/sparkle/confetti particles
 │   ├── Habitat.tsx          Element habitats, unlockable backgrounds and painted pixel scenes
 │   ├── PixelFx.tsx          Plays pixelfx effects on one shared animation clock, loading each on first use
+│   ├── pixelSprite.ts       Pixel mode: turns a creature and its outfit into a pixel sprite (open and blink frames)
+│   ├── PixelCreature.tsx    Pixel mode: the sprite on screen, bobbing a pixel at a time and blinking
+│   └── pixelStage.ts        Pixel mode: each element's aura and attack (pixelfx effects and where they sit)
 │   ├── pixel.tsx            Pixel sprites (snacks, toys, ability icons) and trail particles
 │   └── mythic.tsx           Colour grade and ornaments for the mythical final forms
 ├── (electron/main.cjs)     Desktop shell: serves dist/ from a private app:// origin, menus, full screen
@@ -218,7 +238,8 @@ src/
 │                            count-ups, staggered entrances, sliding tab pills) and interactions.ts (app-wide
 │                            button presses, hover lifts, sparks and card tilt)
 └── vendor/                  anime.js and pixelfx (both MIT, unmodified except where noted)
-scripts/pixel/               The adventure pixel art as code (claude-pxl): islands, regions, bosses, chests, places
+scripts/pixel/               The adventure pixel art as code (claude-pxl): islands, regions, bosses, chests, places, the pixel sun
+scripts/sky/pixelate.py      Pixel mode copies of the painted sky layers (public/sky-pixel/)
 public/adventure/            The built pixel art (68 small PNGs, about 280 KB)
 ```
 
@@ -302,7 +323,7 @@ All creatures, bosses, regions, names, artwork, animations and sounds are origin
 - [Visual reference analysis](docs/visual-reference-analysis.md)
 - [Design system](docs/design-system.md)
 - [World of Adventures design](docs/adventure-design.md) (rules, formulas, edge cases and tuning, in the game-design-document structure from Claude-Code-Game-Studios)
-- [1.5.0 release notes](docs/release-notes-1.5.0.md)
+- [1.5.0 release notes](docs/release-notes-1.5.0.md) · [1.5.1 release notes](docs/release-notes-1.5.1.md)
 - [Roadmap](ROADMAP.md)
 
 ## License

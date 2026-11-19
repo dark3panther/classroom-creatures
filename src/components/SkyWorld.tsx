@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { illustrationUrl } from '../creatures/Illustrated';
 import { animate, createAnimatable, createScope, utils } from '../vendor/animejs/index.js';
 import { useStore } from '../store/store';
+import { getSpecies } from '../data/species';
+import { pixelSprite } from '../creatures/pixelSprite';
 
 /**
  * The painted sky world behind every screen: a daytime sky, the sun, drifting clouds, far mountains,
@@ -11,6 +13,8 @@ import { useStore } from '../store/store';
  * With Reduce Motion, or "Animated background" off, it stays a still painting.
  */
 const SKY = `${import.meta.env.BASE_URL}sky/`;
+/** Pixel mode draws chunky pixel copies of the same layers (scripts/sky/pixelate.py) */
+const SKY_PIXEL = `${import.meta.env.BASE_URL}sky-pixel/`;
 
 // [image, top (vh), width (vw), min width (px), depth, start position (0-1 across the screen), seconds to cross]
 const CLOUDS: [string, number, number, number, number, number, number][] = [
@@ -34,6 +38,9 @@ export function SkyWorld() {
   const root = useRef<HTMLDivElement>(null);
   const motion = useStore((s) => s.data.settings.skyMotion ?? true);
   const reduced = useStore((s) => s.data.settings.reducedMotion);
+  const pixel = useStore((s) => !!s.data.settings.pixelMode);
+  const layer = (name: string) => (pixel ? `${SKY_PIXEL}${name}.png` : `${SKY}${name}.webp`);
+  const pix = pixel ? 'pixel' : undefined;
 
   useEffect(() => {
     const el = root.current;
@@ -41,20 +48,29 @@ export function SkyWorld() {
     const osReduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!el || !motion || reduced || osReduced) return;
     let flyerTimer = 0;
+    // Pixel mode moves things a whole pixel at a time (about 6 screen pixels), like a sprite game
+    const snapVw: { modifier?: (v: number) => number } = pixel ? { modifier: (v: number) => Math.round(v * 2.5) / 2.5 } : {};
+    const snapPx: { modifier?: (v: number) => number } = pixel ? { modifier: (v: number) => Math.round(v / 6) * 6 } : {};
+    const snap = (o: object, k: { modifier?: (v: number) => number }) => (k.modifier ? { ...o, modifier: k.modifier } : o) as Parameters<typeof animate>[1];
     const scope = createScope({ root: el }).add(() => {
       // clouds drift left to right and wrap around, each at its own speed and starting point
       el.querySelectorAll<HTMLElement>('[data-cloud]').forEach((c, i) => {
         const [, , , , , start, secs] = CLOUDS[i];
-        const a = animate(c, { x: ['-40vw', '115vw'], duration: secs * 1000, loop: true, ease: 'linear' });
+        const a = animate(c, snap({ x: ['-40vw', '115vw'], duration: secs * 1000, loop: true, ease: 'linear' }, snapVw));
         a.seek(start * secs * 1000);
       });
       // islands bob and sway
       el.querySelectorAll<HTMLElement>('[data-island]').forEach((isl, i) => {
-        animate(isl, { y: [-9, 9], rotate: [-1.4, 1.2], duration: ISLANDS[i][5] * 1000, loop: true, alternate: true, ease: 'inOutSine', delay: i * 600 });
+        animate(isl, pixel
+          ? snap({ y: [-9, 9], duration: ISLANDS[i][5] * 1000, loop: true, alternate: true, ease: 'inOutSine', delay: i * 600 }, snapPx)
+          : { y: [-9, 9], rotate: [-1.4, 1.2], duration: ISLANDS[i][5] * 1000, loop: true, alternate: true, ease: 'inOutSine', delay: i * 600 });
       });
-      // the sun breathes and its rays turn
-      animate('[data-sun-rays]', { rotate: 360, duration: 120000, loop: true, ease: 'linear' });
-      animate('[data-sun-glow]', { scale: [1, 1.1], opacity: [0.75, 1], duration: 3600, loop: true, alternate: true, ease: 'inOutSine' });
+      // the sun breathes and its rays turn (the pixel sun just pulses)
+      if (pixel) animate('[data-sun-pixel]', { scale: [1, 1.08], duration: 1800, loop: true, alternate: true, ease: 'steps(2)' });
+      else {
+        animate('[data-sun-rays]', { rotate: 360, duration: 120000, loop: true, ease: 'linear' });
+        animate('[data-sun-glow]', { scale: [1, 1.1], opacity: [0.75, 1], duration: 3600, loop: true, alternate: true, ease: 'inOutSine' });
+      }
       // pollen and sparkles float up through the light
       el.querySelectorAll<HTMLElement>('[data-pollen]').forEach((p, i) => {
         animate(p, {
@@ -78,13 +94,13 @@ export function SkyWorld() {
     addEventListener('pointermove', onMove, { passive: true });
 
     // now and then a little winged creature flies across the sky
-    const fly = () => {
+    const fly = async () => {
       const img = document.createElement('img');
       const id = FLYERS[Math.floor(Math.random() * FLYERS.length)];
       const [sp, st] = id.split('-');
-      img.src = illustrationUrl(sp, Number(st) as 1 | 2);
+      img.src = pixel ? (await pixelSprite({ species: getSpecies(sp), stage: Number(st) as 1 | 2 }).catch(() => null))?.openUrl ?? illustrationUrl(sp, Number(st) as 1 | 2) : illustrationUrl(sp, Number(st) as 1 | 2);
       img.alt = '';
-      img.className = 'sky-flyer';
+      img.className = pixel ? 'sky-flyer pixel' : 'sky-flyer';
       const rtl = Math.random() < 0.5;
       img.style.top = `${utils.random(9, 24)}vh`;
       if (rtl) img.style.transform = 'scaleX(-1)';
@@ -92,13 +108,13 @@ export function SkyWorld() {
       const secs = utils.random(16, 24);
       animate(img, {
         x: rtl ? ['110vw', '-14vw'] : ['-14vw', '110vw'],
-        duration: secs * 1000, ease: 'linear',
-        onComplete: () => { img.remove(); flyerTimer = window.setTimeout(fly, utils.random(9000, 22000)); },
+        duration: secs * 1000, ease: 'linear', ...(snapVw.modifier ? { modifier: snapVw.modifier } : {}),
+        onComplete: () => { img.remove(); flyerTimer = window.setTimeout(() => void fly(), utils.random(9000, 22000)); },
       });
-      animate(img, { y: [0, -34, 8, -26, 0], duration: secs * 1000, ease: 'inOutSine' });
-      animate(img, { rotate: rtl ? [4, -4] : [-4, 4], duration: 900, loop: true, alternate: true, ease: 'inOutSine' });
+      animate(img, snap({ y: [0, -34, 8, -26, 0], duration: secs * 1000, ease: 'inOutSine' }, snapPx));
+      if (!pixel) animate(img, { rotate: rtl ? [4, -4] : [-4, 4], duration: 900, loop: true, alternate: true, ease: 'inOutSine' });
     };
-    flyerTimer = window.setTimeout(fly, 4000);
+    flyerTimer = window.setTimeout(() => void fly(), 4000);
 
     return () => {
       scope.revert();
@@ -107,13 +123,17 @@ export function SkyWorld() {
       clearTimeout(flyerTimer);
       el.querySelectorAll('.sky-flyer').forEach((f) => f.remove());
     };
-  }, [motion, reduced]);
+  }, [motion, reduced, pixel]);
 
   return (
     <div ref={root} className="sky-world" aria-hidden>
       <div className="sky-gradient" />
       {/* the sun, top right */}
-      <div className="sky-sun" data-depth="0.15">
+      {pixel ? (
+        <div className="sky-sun" data-depth="0.15">
+          <img data-sun-pixel src={`${import.meta.env.BASE_URL}adventure/pixel-sun.png`} alt="" draggable={false} className="pixel sky-sun-pixel" />
+        </div>
+      ) : <div className="sky-sun" data-depth="0.15">
         <svg data-sun-rays viewBox="-100 -100 200 200" className="sky-sun-rays">
           {Array.from({ length: 16 }, (_, i) => (
             <path key={i} d="M -5 -36 L 0 -98 L 5 -36 Z" fill="#fff6c8" opacity={i % 2 ? 0.35 : 0.6} transform={`rotate(${i * 22.5})`} />
@@ -121,24 +141,24 @@ export function SkyWorld() {
         </svg>
         <div data-sun-glow className="sky-sun-glow" />
         <div className="sky-sun-disc" />
-      </div>
+      </div>}
       {/* far clouds */}
       <div className="sky-layer" data-depth="0.3">
         {CLOUDS.map(([img, top, w, minW], i) => (
-          <img key={i} data-cloud src={`${SKY}${img}.webp`} alt="" draggable={false}
+          <img key={i} data-cloud src={layer(img)} alt="" draggable={false} className={pix}
             style={{ top: `${top}vh`, width: `max(${w}vw, ${minW}px)`, transform: `translateX(${CLOUDS[i][5] * 100}vw)` }} />
         ))}
       </div>
-      <img className="sky-strip sky-mountains" data-depth="0.25" src={`${SKY}mountains.webp`} alt="" draggable={false} />
+      <img className={`sky-strip sky-mountains ${pix ?? ''}`} data-depth="0.25" src={layer('mountains')} alt="" draggable={false} />
       <div className="sky-layer" data-depth="0.6">
         {ISLANDS.map(([img, left, top, w, minW], i) => (
-          <img key={i} data-island src={`${SKY}${img}.webp`} alt="" draggable={false} style={{ left: `${left}vw`, top: `${top}vh`, width: `max(${w}vw, ${minW}px)` }} />
+          <img key={i} data-island src={layer(img)} alt="" draggable={false} className={pix} style={{ left: `${left}vw`, top: `${top}vh`, width: `max(${w}vw, ${minW}px)` }} />
         ))}
       </div>
       <div className="sky-layer" data-flyers data-depth="0.8" />
-      <img className="sky-strip sky-hills" data-depth="0.5" src={`${SKY}hills.webp`} alt="" draggable={false} />
+      <img className={`sky-strip sky-hills ${pix ?? ''}`} data-depth="0.5" src={layer('hills')} alt="" draggable={false} />
       <div className="sky-strip-wrap" data-depth="0.9">
-        <img className="sky-strip sky-meadow" data-meadow src={`${SKY}meadow.webp`} alt="" draggable={false} />
+        <img className={`sky-strip sky-meadow ${pix ?? ''}`} data-meadow src={layer('meadow')} alt="" draggable={false} />
       </div>
       <div className="sky-layer" data-depth="1">
         {Array.from({ length: 16 }, (_, i) => (

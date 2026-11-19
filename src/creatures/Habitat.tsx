@@ -3,6 +3,17 @@ import { SPECIES } from '../data/species';
 import { isPixelScene, pixelScene } from './pixelScenes';
 import { ADVENTURE_ART } from '../data/adventure';
 import type { ElementType } from '../types';
+import { useStore } from '../store/store';
+
+/** Pixel mode: every creature home and painted background has a pixel-art place instead */
+const PIXEL_HOME: Record<ElementType, string> = {
+  fire: 'region-ember', electric: 'region-ember', water: 'bg-pixel-beach', nature: 'region-verdant', earth: 'region-crystal',
+  shadow: 'region-crystal', ice: 'region-frostpeak', light: 'region-sky', air: 'region-sky', cosmic: 'region-ancient',
+};
+const PIXEL_BG: Record<string, string> = {
+  'bg-meadow': 'bg-pixel-meadow', 'bg-ocean': 'bg-pixel-beach', 'bg-night': 'region-frostpeak', 'bg-castle': 'region-sky',
+  'bg-aurora': 'region-frostpeak', 'bg-candy': 'bg-pixel-village', 'bg-space': 'region-ancient',
+};
 
 /**
  * The field-guide plate behind a creature: a painted watercolour wash in its element's colour.
@@ -22,7 +33,19 @@ function washVariant(element: ElementType, seed?: string): number {
 export function Habitat({ element, background, children, className = '', rounded = 'rounded-[10px]', seed }: {
   element: ElementType; background?: string; children?: ReactNode; className?: string; rounded?: string; seed?: string;
 }) {
+  const pixelMode = useStore((s) => !!s.data.settings.pixelMode);
   const bg = background && background !== 'bg-habitat' ? background : `home-${element}`;
+  if (pixelMode) {
+    const p = bg.startsWith('home-') ? PIXEL_HOME[element] : PIXEL_BG[bg] ?? bg;
+    const url = p.startsWith('region-') ? `${ADVENTURE_ART}${p}.png` : p.startsWith('bg-region-') ? `${ADVENTURE_ART}region-${p.slice('bg-region-'.length)}.png`
+      : p === 'bg-worldmap' ? `${ADVENTURE_ART}region-worldmap.png` : isPixelScene(p) ? pixelScene(p) : `${ADVENTURE_ART}${PIXEL_HOME[element]}.png`;
+    return (
+      <div className={`relative overflow-hidden ${className}`}>
+        <div className="absolute inset-0" style={{ background: `url(${url}) center / 100% 100% no-repeat`, imageRendering: 'pixelated' }} />
+        <div className="relative h-full w-full">{children}</div>
+      </div>
+    );
+  }
   const wash = `${import.meta.env.BASE_URL}plates/${element}-${washVariant(element, seed)}.webp`;
   const scenes: Record<string, { style: string; deco: ReactNode }> = {
     'bg-meadow': {

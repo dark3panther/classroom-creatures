@@ -9,7 +9,9 @@ export type Route =
   | { view: 'creature'; id: string; tab?: string }
   | { view: 'customize'; id: string }
   /** World of Adventures: tab = map | region | quests | boss | treasure | journal | world | control */
-  | { view: 'adventure'; tab: string; id?: string; query: Record<string, string> };
+  | { view: 'adventure'; tab: string; id?: string; query: Record<string, string> }
+  /** side-by-side preview of Pixel mode creatures and their element effects */
+  | { view: 'pixel-lab' };
 
 export function parseHash(hash: string): Route {
   const [path, qs = ''] = hash.replace(/^#/, '').split('?');
@@ -22,6 +24,7 @@ export function parseHash(hash: string): Route {
     case 'rewards': return { view: 'rewards' };
     case 'settings': return { view: 'settings', tab: arg };
     case 'present': return { view: 'present' };
+    case 'pixel-lab': return { view: 'pixel-lab' };
     case 'adventure': return { view: 'adventure', tab: arg || 'map', id: sub, query: Object.fromEntries(new URLSearchParams(qs)) };
     default: return { view: 'classroom' };
   }
