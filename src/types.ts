@@ -55,6 +55,8 @@ export interface Species {
   idle: IdleStyle;
   palette: Palette;
   sound: CreatureSound;
+  /** a Pixel Pal (1.5.2): drawn as animated pixel art in every look (public/creatures-pixel/) */
+  pixelArt?: boolean;
 }
 
 export type ItemSlot = 'hat' | 'glasses' | 'wings' | 'magic' | 'background' | 'decoration' | 'outfit' | 'armor' | 'trail';

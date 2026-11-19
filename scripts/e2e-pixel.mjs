@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * End-to-end checks for Pixel mode (1.5.1) in a real browser against the dev server: switching it on from
- * the top bar, creatures becoming pixel sprites (with a blink frame), pixel backgrounds and type, element
- * auras and attacks, the setting surviving a restart, switching back, and phone width.
+ * the top bar, creatures becoming pixel sprites that breathe and blink, pixel backgrounds and type, element
+ * auras and attacks, the Pixel Pals (native pixel species with their own animations), the setting surviving
+ * a restart, switching back, and phone width.
  *
  *   npm run test:e2e:pixel
  *   E2E_SHOTS=out npm run test:e2e:pixel   (also saves screenshots into ./out)
@@ -46,14 +47,25 @@ const demo = p.getByRole('button', { name: 'Explore the demo first' }); if (awai
 
 // ---------- 1. off by default: the painted look ----------
 ok(!(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode'))), 'Pixel mode is off by default');
-ok(await p.locator('main .pc').count() === 0, 'creatures are painted while Pixel mode is off');
+ok(await p.locator('main .pc:not([data-pal])').count() === 0, 'creatures are painted while Pixel mode is off (only Pixel Pals are pixel art)');
 
 // ---------- 2. switch it on from the top bar ----------
 await p.getByRole('button', { name: 'Pixel mode' }).click(); await wait(2500);
 ok(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode')), 'the top bar switch turns Pixel mode on');
-const sprites = await p.evaluate(() => [...document.querySelectorAll('main .pc img.pc-frame')].map((i) => [i.naturalWidth, i.naturalHeight]));
-ok(sprites.length >= 16 && sprites.every(([w, h]) => w === 64 && h === 66), `every creature card shows a 64 × 66 pixel sprite (${sprites.length} frames)`);
-ok(await p.locator('main .pc .pc-shut').count() >= 16, 'each sprite has a blink frame');
+const sprites = await p.evaluate(() => [...document.querySelectorAll('main .pc canvas.pc-frame')].map((c) => [c.width, c.height]));
+ok(sprites.length >= 16 && sprites.every(([w, h]) => w === 64 && h === 66), `every creature card shows a 64 × 66 pixel sprite (${sprites.length} sprites)`);
+// the sprites move: sample one painted creature's canvas over two seconds and count the distinct frames it shows
+const frames = await p.evaluate(async () => {
+  const c = [...document.querySelectorAll('main .pc canvas.pc-frame')].find((x) => x.width === 64);
+  const seen = new Set();
+  for (let i = 0; i < 40; i++) {
+    const d = c.getContext('2d').getImageData(0, 0, 64, 66).data;
+    let h = 0; for (let j = 0; j < d.length; j += 7) h = (h * 31 + d[j]) >>> 0;
+    seen.add(h); await new Promise((r) => setTimeout(r, 55));
+  }
+  return seen.size;
+});
+ok(frames >= 2, `the sprites breathe and blink (${frames} distinct frames in 2 s)`);
 ok(await p.evaluate(() => getComputedStyle(document.body).fontFamily.includes('Tiny5')), 'text uses the pixel typeface');
 ok(await p.evaluate(() => [...document.querySelectorAll('main div[style*="adventure/region-"], main div[style*="data:image/png"]')].length >= 16), 'creature cards stand in pixel-art places');
 ok(await p.evaluate(() => getComputedStyle(document.querySelector('main .btn')).borderTopLeftRadius === '0px'), 'buttons are square');
@@ -79,13 +91,57 @@ ok(await p.locator('main .pc').count() >= 1, 'the profile shows the creature as 
 ok(await canvases() >= 1, 'the profile creature has its element aura');
 await shot(p, 'pixel-profile.png');
 
-// ---------- 5. the setting survives a restart ----------
+// ---------- 5. the Pixel Pals: native pixel species with their own animations ----------
+await go('#/pixel-lab', 2400);
+ok(await p.locator('.paper', { hasText: 'Blazard' }).count() === 1 && await p.locator('.paper', { hasText: 'Cumulamb' }).count() === 1, 'the Pixel Lab shows the Pixel Pals');
+const pal = await p.evaluate(() => {
+  const st = window.__cc.getState();
+  const kid = st.data.students[0];
+  st.assignSpecies(kid.id, 'blazard');
+  return kid.id;
+});
+await go(`#/creature/${pal}`, 2600);
+const palFrames = await p.evaluate(async () => {
+  const c = document.querySelector('main .pc[data-pal] canvas.pc-frame');
+  if (!c) return 0;
+  const seen = new Set();
+  for (let i = 0; i < 30; i++) {
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let h = 0; for (let j = 0; j < d.length; j += 5) h = (h * 31 + d[j]) >>> 0;
+    seen.add(h); await new Promise((r) => setTimeout(r, 60));
+  }
+  return seen.size;
+});
+ok(palFrames >= 4, `a Pixel Pal plays its idle animation on its profile (${palFrames} distinct frames in 1.8 s)`);
+// the top of Blazard's head end (it faces right; its tail flame on the left reaches higher than its head),
+// lowest over a second of breathing, so a one-pixel bob is not mistaken for a hat
+const spriteTop = () => p.evaluate(async () => {
+  let best = 0;
+  for (let i = 0; i < 10; i++) {
+    const c = document.querySelector('main .pc[data-pal] canvas.pc-frame');
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let top = c.height;
+    for (let k = 3; k < d.length; k += 4) if (d[k] > 0 && (k >> 2) % c.width >= 34) { top = Math.floor((k >> 2) / c.width); break; }
+    best = Math.max(best, top); await new Promise((r) => setTimeout(r, 100));
+  }
+  return best;
+});
+const bare = await spriteTop();
+await p.evaluate((id) => { const st = window.__cc.getState(); st.updateStudent(id, { equipped: { ...st.data.students.find((x) => x.id === id).equipped, hat: 'hat-wizard' } }); }, pal);
+await wait(1500);
+const hatted = await spriteTop();
+ok(hatted <= bare - 4, `its hat is drawn on the sprite, on top of its head (top row ${bare} → ${hatted})`);
+await shot(p, 'pixel-pal-profile.png');
+const dex = await p.evaluate(async () => { location.hash = '#/creatures'; await new Promise((r) => setTimeout(r, 1800)); return document.querySelectorAll('main .pc canvas.pc-frame').length; });
+ok(dex >= 10, `the field guide lists the Pixel Pals (${dex} pixel sprites)`);
+
+// ---------- 6. the setting survives a restart ----------
 await p.close();
 p = await ctx.newPage(); watch(p);
 await p.goto(U); await p.waitForTimeout(2200);
 ok(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode') && window.__cc.getState().data.settings.pixelMode === true), 'Pixel mode stays on after a restart');
 
-// ---------- 6. phone width ----------
+// ---------- 7. phone width ----------
 const m = await ctx.newPage(); watch(m);
 await m.setViewportSize({ width: 390, height: 844 });
 for (const [hash, name] of [['#/', 'pixel-m-classroom'], ['#/adventure', 'pixel-m-map'], [`#/creature/${fire}`, 'pixel-m-profile']]) {
@@ -96,9 +152,9 @@ for (const [hash, name] of [['#/', 'pixel-m-classroom'], ['#/adventure', 'pixel-
 }
 await m.close();
 
-// ---------- 7. switch back ----------
+// ---------- 8. switch back ----------
 await p.getByRole('button', { name: 'Pixel mode' }).click(); await p.waitForTimeout(1500);
-ok(!(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode'))) && await p.locator('main .pc').count() === 0, 'switching back restores the painted look');
+ok(!(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode'))) && await p.locator('main .pc:not([data-pal])').count() === 0, 'switching back restores the painted look');
 ok(errs.length === 0, `no page errors${errs.length ? ': ' + errs.slice(0, 4).join(' | ') : ''}`);
 } catch (e) {
   console.error(e); fails++;

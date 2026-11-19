@@ -9,6 +9,9 @@ export const PERSONALITY_OF: Record<string, PersonalityType> = {
   magmole: 'sleepy', bloomfawn: 'sleepy', snowmoth: 'sleepy', puffwhirl: 'sleepy',
   zipzap: 'energetic', burrowby: 'energetic', nebulynx: 'energetic', breezel: 'energetic',
   glacikit: 'mischievous', duskit: 'mischievous', gloomwing: 'mischievous',
+  // Pixel Pals
+  blazard: 'brave', solcub: 'brave', otterpop: 'playful', boltbat: 'energetic', mossling: 'shy', icicub: 'sleepy',
+  rumbadillo: 'curious', wispurr: 'mischievous', nebuloop: 'curious', cumulamb: 'sleepy',
 };
 
 export type Snack = 'berry' | 'fish' | 'cookie';

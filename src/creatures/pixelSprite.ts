@@ -1,5 +1,6 @@
 import { createElement } from 'react';
 import ART from '../data/creatureArt.json';
+import PALS from '../data/pixelPals.json';
 import type { Equipped, Species, Stage } from '../types';
 
 /**
@@ -19,6 +20,9 @@ const IMG_X = -8, IMG_Y = -16, IMG_S = 216;
 export interface PixelSprite {
   open: HTMLCanvasElement;
   shut: HTMLCanvasElement;
+  /** the same two frames breathing in: everything above the chest one pixel up, the chest one row taller */
+  openIn?: HTMLCanvasElement;
+  shutIn?: HTMLCanvasElement;
   openUrl: string;
   shutUrl: string;
   /** opaque bounds in sprite pixels */
@@ -26,6 +30,8 @@ export interface PixelSprite {
   /** eye centre and mouth (where breath attacks start), in sprite pixels */
   eye: [number, number];
   mouth: [number, number];
+  /** the top of the head above the eyes (a Pixel Pal's tail or crest can reach higher than its head) */
+  headTop?: number;
 }
 
 export interface SpriteRequest { species: Species; stage: Stage; equipped?: Equipped; branch?: 'a' | 'b' }
@@ -37,6 +43,7 @@ export const spriteKey = (r: SpriteRequest) => `${r.species.id}|${r.stage}|${r.s
 
 /** Get (or start making) the pixel sprite for a creature in its outfit. */
 export function pixelSprite(r: SpriteRequest): Promise<PixelSprite> {
+  if (r.species.pixelArt) return Promise.resolve(palSprite(r));
   const key = spriteKey(r);
   let p = cache.get(key);
   if (!p) {
@@ -50,7 +57,54 @@ export function pixelSprite(r: SpriteRequest): Promise<PixelSprite> {
 }
 /** A sprite already made (for synchronous first paint), or undefined. */
 const ready = new Map<string, PixelSprite>();
-export const readySprite = (r: SpriteRequest) => ready.get(spriteKey(r));
+export const readySprite = (r: SpriteRequest) => (r.species.pixelArt ? palSprite(r) : ready.get(spriteKey(r)));
+
+/** A Pixel Pal is pixel art already: its geometry comes straight from the measured sheet. */
+type PalForm = { box: number[]; eyes: number[][]; mouth: number[]; anchor: { top: number } };
+const palCache = new Map<string, PixelSprite>();
+function palSprite(r: SpriteRequest): PixelSprite {
+  const k = `${r.species.id}-${r.stage}`;
+  let s = palCache.get(k);
+  if (!s) {
+    const f = (PALS.forms as unknown as Record<string, PalForm>)[k];
+    const blank = typeof document !== 'undefined' ? document.createElement('canvas') : (null as unknown as HTMLCanvasElement);
+    const [l, t, rr, b] = f?.box ?? [16, 20, 48, 62];
+    const eye = f ? [Math.round((f.eyes[0][0] + f.eyes[1][0]) / 2), Math.round((f.eyes[0][1] + f.eyes[1][1]) / 2)] : [32, 40];
+    s = { open: blank, shut: blank, openUrl: '', shutUrl: '', box: { left: l, top: t, right: rr, bottom: b }, eye: eye as [number, number], mouth: (f ? [Math.round(f.mouth[0]), Math.round(f.mouth[1])] : [40, 46]) as [number, number],
+      // anchor.top is in the 512 px illustration frame (see scripts/pixel/pack-creatures.py)
+      headTop: f ? Math.round(((f.anchor.top * 216) / 512 + 6) * SPRITE_H / 222) : t };
+    palCache.set(k, s);
+  }
+  return s;
+}
+
+/** What a Pixel Pal wears, as two pixel layers: behind it (wings, capes) and in front (null: nothing drawn). */
+export interface Outfit { back: HTMLCanvasElement | null; front: HTMLCanvasElement | null }
+const outfits = new Map<string, Promise<Outfit | null>>();
+export function outfitSprite(r: SpriteRequest): Promise<Outfit | null> {
+  const worn = Object.fromEntries(Object.entries(r.equipped ?? {}).filter(([slot, v]) => v && slot !== 'background' && slot !== 'trail'));
+  if (!Object.keys(worn).length) return Promise.resolve(null);
+  const key = `${r.species.id}|${r.stage}|${JSON.stringify(worn)}`;
+  let p = outfits.get(key);
+  if (!p) {
+    p = (async () => {
+      const [{ renderToStaticMarkup }, { IllustratedCreature }] = await Promise.all([import('react-dom/server'), import('./Illustrated')]);
+      const layer = async (bare: 'back' | 'front') => {
+        const svg = renderToStaticMarkup(createElement(IllustratedCreature, { sp: r.species, stage: r.stage, equipped: worn, noShadow: true, effects: false, bare }))
+          .replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="${SPRITE_W * SUPER}" height="${SPRITE_H * SUPER}" `);
+        const d = downsample(await rasterise(svg));
+        if (!d.cover.some((c) => c >= 0.3)) return null;
+        // a Pixel Pal's head is only a dozen pixels wide, so worn things keep their thin lines (glasses frames)
+        return canvasOf(toPixels(d.rgb, d.cover, null, 0.3).px);
+      };
+      const [back, front] = await Promise.all([layer('back'), layer('front')]);
+      return back || front ? { back, front } : null;
+    })();
+    outfits.set(key, p);
+    p.catch(() => outfits.delete(key));
+  }
+  return p;
+}
 
 function inline(url: string): Promise<string> {
   let p = dataUrls.get(url);
@@ -153,10 +207,11 @@ function nearest(p: RGB[], c: RGB): RGB {
 }
 
 /** Build the final pixels: palette, hard edges and a selective outline. Returns RGBA bytes. */
-function toPixels(rgb: Float32Array, cover: Float32Array, palette: RGB[] | null): { px: Uint8ClampedArray; palette: RGB[] } {
+/** `keep`: how much of a sprite pixel must be covered to draw it (lower keeps thin lines, like glasses frames) */
+function toPixels(rgb: Float32Array, cover: Float32Array, palette: RGB[] | null, keep = 0.5): { px: Uint8ClampedArray; palette: RGB[] } {
   const W = SPRITE_W, H = SPRITE_H, N = W * H;
   const solid = new Uint8Array(N);
-  for (let k = 0; k < N; k++) solid[k] = cover[k] >= 0.5 ? 1 : 0;
+  for (let k = 0; k < N; k++) solid[k] = cover[k] >= keep ? 1 : 0;
   // drop lonely pixels (anti-aliasing dust)
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const k = y * W + x;
@@ -188,6 +243,13 @@ function toPixels(rgb: Float32Array, cover: Float32Array, palette: RGB[] | null)
   return { px: out, palette: pal };
 }
 
+/** Breathing in, the way sprites are animated by hand: rows above the chest rise a pixel, the chest row repeats. */
+function inhale(px: Uint8ClampedArray, chest: number): Uint8ClampedArray {
+  const W = SPRITE_W, out = px.slice();
+  for (let y = 0; y < chest; y++) out.set(px.subarray((y + 1) * W * 4, (y + 2) * W * 4), y * W * 4);
+  return out;
+}
+
 function canvasOf(px: Uint8ClampedArray): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = SPRITE_W; c.height = SPRITE_H;
@@ -215,8 +277,11 @@ async function make(r: SpriteRequest): Promise<PixelSprite> {
   const ex = toSprite((eyes[0][0] + eyes[1][0]) / 2, true), ey = toSprite((eyes[0][1] + eyes[1][1]) / 2, false);
   const gap = Math.abs(toSprite(eyes[1][0], true) - toSprite(eyes[0][0], true));
   const open = canvasOf(a.px), shut = canvasOf(b.px);
+  // the chest: a little below the middle of eyes-to-feet
+  const chest = Math.max(top + 2, Math.min(bottom - 3, Math.round(ey + (bottom - ey) * 0.45)));
   const sprite: PixelSprite = {
     open, shut, openUrl: open.toDataURL(), shutUrl: shut.toDataURL(),
+    openIn: canvasOf(inhale(a.px, chest)), shutIn: canvasOf(inhale(b.px, chest)),
     box: { left, right, top, bottom },
     eye: [Math.round(ex), Math.round(ey)],
     mouth: [Math.round(ex + gap * 0.9), Math.round(ey + gap * 0.7)],

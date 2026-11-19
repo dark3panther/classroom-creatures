@@ -1,7 +1,7 @@
 import type { Species } from '../types';
 
 /**
- * The original creature roster: 30 species, three per element.
+ * The creature roster: 30 painted species (three per element) and, since 1.5.2, ten Pixel Pals (one per element).
  * Appearance is fully described by these parameters and drawn by `CreatureSvg`,
  * so adding a creature is just adding an entry here (see README → "Adding creatures").
  */
@@ -149,6 +149,54 @@ const RAW: S[] = [
     palette: { main: '#9db8d9', shade: '#7896bd', belly: '#eef5ff', accent: '#ffd36b', eye: '#141f30' } },
 ];
 
+/**
+ * The Pixel Pals (1.5.2): ten more creatures, one per element, drawn as pixel art from the start by
+ * scripts/pixel/creatures.px.js, with frame-by-frame animation (see src/creatures/PixelPal.tsx). The shape
+ * fields only matter for the classic drawn style's fallback; the palette matches the pixel art.
+ */
+const PALS: S[] = [
+  { id: 'blazard', name: 'Blazard', legendTitle: 'Wyrm of Embers', element: 'fire', rarity: 'rare', pixelArt: true,
+    personality: 'Bold and warm-hearted. Its tail flame flickers brighter when it is proud of you.', ability: 'Ember Breath',
+    body: 'round', ears: 'none', tail: 'flame', wings: 'none', face: 'snout', pattern: 'belly', idle: 'sway',
+    palette: { main: '#e8603a', shade: '#b8382e', belly: '#ffd08a', accent: '#ffae2e', eye: '#140c26' } },
+  { id: 'otterpop', name: 'Otterpop', legendTitle: 'Rider of the Waves', element: 'water', rarity: 'common', pixelArt: true,
+    personality: 'Playful and slippery. Can turn any lesson into a splash of fun.', ability: 'Splash Spin',
+    body: 'round', ears: 'round', tail: 'fish', wings: 'none', face: 'whisker', pattern: 'belly', idle: 'wiggle',
+    palette: { main: '#3f96c8', shade: '#2a6f9e', belly: '#e6f4ff', accent: '#5fd0e8', eye: '#140c26' } },
+  { id: 'mossling', name: 'Mossling', legendTitle: 'Keeper of the Glade', element: 'nature', rarity: 'common', pixelArt: true,
+    personality: 'Gentle and patient. Curls into a ball when shy, then blooms again.', ability: 'Petal Roll',
+    body: 'round', ears: 'leaf', tail: 'none', wings: 'none', face: 'snout', pattern: 'none', idle: 'breathe',
+    palette: { main: '#5fa845', shade: '#3c7a34', belly: '#f0d9a8', accent: '#ff8fb1', eye: '#140c26' } },
+  { id: 'boltbat', name: 'Boltbat', legendTitle: 'Storm Glider', element: 'electric', rarity: 'uncommon', pixelArt: true,
+    personality: 'Zippy and cheerful. Its ears crackle when it has a good idea.', ability: 'Static Flutter',
+    body: 'round', ears: 'antenna', tail: 'bolt', wings: 'bat', face: 'plain', pattern: 'belly', idle: 'hop',
+    palette: { main: '#f5c83a', shade: '#d39a1a', belly: '#fff4cc', accent: '#6a6ad8', eye: '#140c26' } },
+  { id: 'icicub', name: 'Icicub', legendTitle: 'Glacier King', element: 'ice', rarity: 'uncommon', pixelArt: true,
+    personality: 'Calm and cuddly. Loves snow days and quiet reading time.', ability: 'Frost Hug',
+    body: 'round', ears: 'round', tail: 'none', wings: 'none', face: 'snout', pattern: 'none', idle: 'breathe',
+    palette: { main: '#e4f0fb', shade: '#a9c4e0', belly: '#c8dcf0', accent: '#8fd0f5', eye: '#140c26' } },
+  { id: 'rumbadillo', name: 'Rumbadillo', legendTitle: 'Gemshell Titan', element: 'earth', rarity: 'rare', pixelArt: true,
+    personality: 'Steady and loyal. Rolls up for a nap, rolls out for an adventure.', ability: 'Boulder Roll',
+    body: 'round', ears: 'round', tail: 'none', wings: 'none', face: 'snout', pattern: 'cracks', idle: 'sway',
+    palette: { main: '#b48a5e', shade: '#8a6a4a', belly: '#f0d6b0', accent: '#7fe0c8', eye: '#140c26' } },
+  { id: 'wispurr', name: 'Wispurr', legendTitle: 'the Violet Phantom', element: 'shadow', rarity: 'epic', pixelArt: true,
+    personality: 'Mysterious and sweet. Floats along behind its friends, purring softly.', ability: 'Shade Pounce',
+    body: 'wisp', ears: 'cat', tail: 'wisp', wings: 'none', face: 'whisker', pattern: 'none', idle: 'float',
+    palette: { main: '#6c5ab8', shade: '#4a3a8a', belly: '#c8bdf0', accent: '#b06cff', eye: '#140c26' } },
+  { id: 'solcub', name: 'Solcub', legendTitle: 'Lion of the Noon Sun', element: 'light', rarity: 'legendary', pixelArt: true,
+    personality: 'Brave and sunny. Its mane glows brighter every time someone is kind.', ability: 'Sunburst Roar',
+    body: 'round', ears: 'round', tail: 'curl', wings: 'none', face: 'snout', pattern: 'belly', idle: 'hop',
+    palette: { main: '#f5c46a', shade: '#d89a3a', belly: '#fff2d6', accent: '#ffb02e', eye: '#140c26' } },
+  { id: 'nebuloop', name: 'Nebuloop', legendTitle: 'Drifter of the Milky Way', element: 'cosmic', rarity: 'epic', pixelArt: true,
+    personality: 'Dreamy and curious. Drifts toward anything that twinkles.', ability: 'Comet Swirl',
+    body: 'wisp', ears: 'none', tail: 'wisp', wings: 'none', face: 'plain', pattern: 'stars', idle: 'float',
+    palette: { main: '#8a5ad8', shade: '#5a3aa8', belly: '#e8dcff', accent: '#ff8fd0', eye: '#140c26' } },
+  { id: 'cumulamb', name: 'Cumulamb', legendTitle: 'Shepherd of the Clouds', element: 'air', rarity: 'common', pixelArt: true,
+    personality: 'Soft and easygoing. Bounces on breezes and never stays grumpy for long.', ability: 'Fluff Gust',
+    body: 'round', ears: 'droop', tail: 'cloud', wings: 'none', face: 'plain', pattern: 'none', idle: 'float',
+    palette: { main: '#eef5ff', shade: '#b8cce4', belly: '#dce8f8', accent: '#8fb0d8', eye: '#140c26' } },
+];
+
 const WAVES: OscillatorType[] = ['sine', 'triangle', 'square', 'sawtooth'];
 const ELEMENT_BASE: Record<string, number> = {
   fire: 392, water: 523, nature: 440, electric: 659, ice: 784, earth: 262, shadow: 330, light: 587, cosmic: 698, air: 494,
@@ -165,7 +213,7 @@ function soundFor(s: S, i: number): Species['sound'] {
   };
 }
 
-export const SPECIES: Species[] = RAW.map((s, i) => ({ ...s, sound: s.sound ?? soundFor(s, i) }));
+export const SPECIES: Species[] = [...RAW, ...PALS].map((s, i) => ({ ...s, sound: s.sound ?? soundFor(s, i) }));
 
 export const SPECIES_BY_ID: Record<string, Species> = Object.fromEntries(SPECIES.map((s) => [s.id, s]));
 

@@ -287,16 +287,10 @@ main .text-ink-soft:not(:is(.panel, .paper, .glass, .azure, .azure-deep, [role='
 @keyframes adv-wiggle { 0%, 70%, 100% { transform: rotate(0); } 76% { transform: rotate(-6deg); } 82% { transform: rotate(5deg); } 88% { transform: rotate(-3deg); } 94% { transform: rotate(2deg); } }
 .reduce-motion .adv-chest.ready { animation: none; }
 
-/* ───────────── Pixel mode: creature sprites (PixelCreature) ───────────── */
+/* ───────────── Pixel mode: creature sprites (PixelCreature, PixelPal) ───────────── */
+/* the frames are drawn on a canvas, a whole sprite pixel at a time; CSS only scales them up crisply */
 .pc { position: relative; display: block; }
 .pc-frame { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; image-rendering: crisp-edges; pointer-events: none; user-select: none; }
-.pc-shut { opacity: 0; }
-/* a whole pixel up, a whole pixel down; a blink every few seconds (each creature on its own rhythm) */
-.pc-live .pc-frame { animation: pc-bob var(--pc-bob, 1.2s) steps(1, end) var(--pc-d, 0s) infinite; }
-.pc-live .pc-shut { animation: pc-bob var(--pc-bob, 1.2s) steps(1, end) var(--pc-d, 0s) infinite, pc-blink var(--pc-blink, 4s) steps(1, end) infinite; }
-@keyframes pc-bob { 0% { transform: translateY(0); } 50% { transform: translateY(-1.5%); } }
-@keyframes pc-blink { 0%, 100% { opacity: 0; } 95% { opacity: 1; } 98% { opacity: 0; } }
-.reduce-motion .pc-live .pc-frame { animation: none; }
 
 /* ═════════════ Pixel mode: the whole interface as pixel art (Settings → Classroom & PIN) ═════════════
    One pixel unit (--px) drawn in ink: square corners, stepped borders (the corners stay open, like hand-drawn

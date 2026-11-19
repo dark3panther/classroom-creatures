@@ -5,11 +5,36 @@ import { ELEMENTS } from '../data/elements';
 import { SPECIES } from '../data/species';
 import { Icon } from '../components/Icon';
 import { useStore } from '../store/store';
-import type { ElementType, Stage } from '../types';
+import type { ElementType, Mood, Stage } from '../types';
 
 /** One creature of each element at a big stage, painted and as pixel art, with its element attack. */
 const PICKS: [ElementType, string, Stage][] = (['fire', 'water', 'nature', 'electric', 'ice', 'earth', 'shadow', 'light', 'cosmic', 'air'] as ElementType[])
-  .map((e) => [e, SPECIES.find((s) => s.element === e)!.id, 3]);
+  .map((e) => [e, SPECIES.find((s) => s.element === e && !s.pixelArt)!.id, 3]);
+const PALS = SPECIES.filter((s) => s.pixelArt);
+
+/** One Pixel Pal with buttons for each of its animations. */
+function PalCard({ id, stage }: { id: string; stage: Stage }) {
+  const sp = SPECIES.find((s) => s.id === id)!;
+  const [act, setAct] = useState<{ type: CreatureAction; key: number } | null>(null);
+  const [mood, setMood] = useState<Mood>('calm');
+  const play = (type: CreatureAction) => { setMood('calm'); setAct({ type, key: Date.now() }); };
+  return (
+    <div className="paper p-3">
+      <div className="mb-1 flex items-center justify-between px-1">
+        <span className="font-display text-lg font-bold">{sp.name} <span className="text-sm font-semibold text-ink-soft">· {ELEMENTS[sp.element].name}</span></span>
+      </div>
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#1d1a2f]">
+        <div className="flex h-full items-end justify-start pb-[3%] pl-[8%]"><Creature speciesId={id} stage={stage} action={act} mood={mood} className="h-[92%] w-[66%]" sound={false} /></div>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1">
+        <button className="btn btn-light !px-2.5 !py-1 !text-xs" onClick={() => play('celebrate')}>Hop</button>
+        <button className="btn btn-light !px-2.5 !py-1 !text-xs" onClick={() => play('ability')}>Attack</button>
+        <button className="btn btn-light !px-2.5 !py-1 !text-xs" onClick={() => play('bonk')}>Hurt</button>
+        <button className="btn btn-light !px-2.5 !py-1 !text-xs" onClick={() => setMood(mood === 'sleepy' ? 'calm' : 'sleepy')}>{mood === 'sleepy' ? 'Wake' : 'Sleep'}</button>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Pixel mode preview (#/pixel-lab): compare the painted creatures with their pixel-art versions and watch
@@ -41,7 +66,12 @@ export function PixelLab() {
           <button className="btn btn-primary" onClick={() => update({ pixelMode: !pixelMode })}><Icon name="sparkle" size={18} />{pixelMode ? 'Turn Pixel mode off' : 'Turn Pixel mode on for the whole app'}</button>
         </div>
       </div>
-      <div className="mt-5 grid gap-4 lg:grid-cols-2" data-stagger>
+      <h2 className="on-sky mt-6 font-display text-2xl font-extrabold">The Pixel Pals <span className="text-base font-semibold text-ink-soft">· ten new creatures drawn as pixel art, animated frame by frame</span></h2>
+      <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-5" data-stagger>
+        {PALS.map((sp) => <PalCard key={`${sp.id}-${stage}`} id={sp.id} stage={stage} />)}
+      </div>
+      <h2 className="on-sky mt-8 font-display text-2xl font-extrabold">Painted creatures in Pixel mode</h2>
+      <div className="mt-3 grid gap-4 lg:grid-cols-2" data-stagger>
         {PICKS.map(([el, id], i) => {
           const sp = SPECIES.find((s) => s.id === id)!;
           const act = { type: 'ability' as CreatureAction, key: tick * 100 + i };

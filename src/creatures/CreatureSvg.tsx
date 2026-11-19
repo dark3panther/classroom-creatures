@@ -7,6 +7,7 @@ import { blob, bolt, cloud, crystal, darken, droplet, flame, leaf, lighten, lumi
 import { Accessories, BackAccessories } from './accessories';
 import { IllustratedCreature, hasIllustration } from './Illustrated';
 import { PixelCreature } from './PixelCreature';
+import { PixelPal } from './PixelPal';
 import { useStore } from '../store/store';
 
 /**
@@ -669,6 +670,10 @@ export interface CreatureSvgProps {
 function CreatureSvgImpl(props: CreatureSvgProps) {
   const artStyle = useStore((s) => s.data.settings.artStyle ?? 'illustrated');
   const pixelMode = useStore((s) => !!s.data.settings.pixelMode);
+  // the Pixel Pals are pixel art in every look (classic drawings stay available through `classic`)
+  if (props.species.pixelArt && !props.classic) {
+    return <PixelPal species={props.species} stage={props.stage} equipped={props.equipped} expression={props.expression} effects={props.effects} className={props.className} title={props.title} />;
+  }
   if ((props.pixel ?? pixelMode) && !props.classic && hasIllustration(props.species.id, props.stage)) {
     return <PixelCreature species={props.species} stage={props.stage} equipped={props.equipped} branch={props.branch} expression={props.expression} effects={props.effects} className={props.className} title={props.title} />;
   }

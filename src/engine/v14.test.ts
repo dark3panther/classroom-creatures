@@ -181,7 +181,7 @@ describe('class encyclopedia', () => {
     const { data } = classWith(['A', 'B', 'C']);
     const st = collectionStats(data.classes[0]);
     expect(st.total).toBe(TOTAL_FORMS);
-    expect(TOTAL_FORMS).toBe(30 * 5 + Object.keys(BRANCHES).length);
+    expect(TOTAL_FORMS).toBe(40 * 5 + Object.keys(BRANCHES).length); // 30 painted + 10 Pixel Pals, 5 stages each, plus mythical paths
     expect(st.discovered).toBe(3); // three baby forms
     expect(st.species).toBe(3);
   });

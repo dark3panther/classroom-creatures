@@ -54,8 +54,10 @@ describe('progression', () => {
 });
 
 describe('creature assignment', () => {
-  it('ships at least 30 species across all 10 elements and 5 rarities', () => {
-    expect(SPECIES.length).toBeGreaterThanOrEqual(30);
+  it('ships 40 species (30 painted, 10 Pixel Pals) across all 10 elements and 5 rarities', () => {
+    expect(SPECIES.length).toBe(40);
+    expect(SPECIES.filter((s) => s.pixelArt).length).toBe(10);
+    expect(new Set(SPECIES.filter((s) => s.pixelArt).map((s) => s.element)).size).toBe(10);
     expect(new Set(SPECIES.map((s) => s.element)).size).toBe(10);
     expect(new Set(SPECIES.map((s) => s.rarity)).size).toBe(5);
     expect(new Set(SPECIES.map((s) => s.id)).size).toBe(SPECIES.length);
@@ -66,7 +68,7 @@ describe('creature assignment', () => {
     expect(new Set(data.students.map((s) => s.speciesId)).size).toBe(30);
   });
   it('spreads duplicates evenly once all species are used', () => {
-    const { data } = classWith(Array.from({ length: 35 }, (_, i) => `Kid ${i}`));
+    const { data } = classWith(Array.from({ length: SPECIES.length + 5 }, (_, i) => `Kid ${i}`));
     const counts = new Map<string, number>();
     data.students.forEach((s) => counts.set(s.speciesId, (counts.get(s.speciesId) ?? 0) + 1));
     expect(Math.max(...counts.values())).toBe(2);

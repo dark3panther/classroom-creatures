@@ -55,7 +55,7 @@ function spot(s: PixelSprite, f: StageFx) {
   let x = (b.left + b.right) / 2, y = b.bottom + 1;
   if (f.at === 'mouth') { x = Math.min(s.mouth[0], b.right - 2); y = s.mouth[1]; }
   else if (f.at === 'ahead') x = b.right;
-  else if (f.at === 'head') { x = s.eye[0]; y = b.top + 34 * k; }
+  else if (f.at === 'head') { x = s.eye[0]; y = (s.headTop ?? b.top) + 34 * k; }
   else if (f.at === 'left') x = b.left;
   else if (f.at === 'right') x = b.right;
   return { x: Math.round(x + (f.dx ?? 0)), y: Math.round(y + (f.dy ?? 0)), w: SPRITE_W, h: SPRITE_H };
@@ -119,7 +119,8 @@ const MOOD_FACE: Record<Mood, Expression> = { happy: 'happy', excited: 'excited'
 export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind = 'good', interactive, action, mood = 'calm', ambient, effects = true, compact, className = '', sound = true, event, treats = 0, branch, cast, pixel: pixelProp }: CreatureProps) {
   const sp = getSpecies(speciesId);
   const pixelSetting = useStore((s) => !!s.data.settings.pixelMode);
-  const pixel = pixelProp ?? pixelSetting;
+  // the Pixel Pals always get their pixel aura and attack; painted creatures only in Pixel mode
+  const pixel = pixelProp ?? (pixelSetting || !!sp.pixelArt);
   const sprite = usePixelSprite(pixel ? { species: sp, stage, equipped, branch } : null);
   const [attacks, setAttacks] = useState<number[]>([]);
   const myth = stage === 5 && branch === 'b' ? BRANCHES[speciesId]?.b : undefined;
@@ -155,8 +156,10 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
     // Pixel mode: the creature performs its element's attack (wind up, let go, recover)
     if (a === 'ability' && pixel && effects) {
       const k = Date.now();
-      setTimeout(() => setAttacks((list) => [...list.slice(-2), k]), 280);
-      await controls.start({ x: ['0%', '-5%', '7%', '7%', '0%'], scaleX: [1, 0.9, 1.1, 1.04, 1], scaleY: [1, 1.08, 0.92, 0.97, 1], transition: { duration: 1.3, times: [0, 0.2, 0.28, 0.75, 1], ease: 'linear' } });
+      setTimeout(() => setAttacks((list) => [...list.slice(-2), k]), sp.pixelArt ? 360 : 280);
+      // a Pixel Pal acts the attack out in its own frames (wind-up, lunge, recover); painted sprites are moved
+      if (sp.pixelArt) await new Promise((res) => setTimeout(res, 1050));
+      else await controls.start({ x: ['0%', '-5%', '7%', '7%', '0%'], scaleX: [1, 0.9, 1.1, 1.04, 1], scaleY: [1, 1.08, 0.92, 0.97, 1], transition: { duration: 1.3, times: [0, 0.2, 0.28, 0.75, 1], ease: 'linear' } });
       timer.current = setTimeout(() => { setExpr(null); setCurrent(null); }, 300);
       return;
     }
@@ -272,6 +275,8 @@ export function Creature({ speciesId, stage, equipped, celebrateKey, reactKind =
       {effects && myth && !compact && !equipped?.trail && MYTH_AURA[myth.motif] && <Trail key={`myth-${myth.motif}`} id={MYTH_AURA[myth.motif]!} />}
       {effects && !current && !myth && MOOD_FX[mood] && (compact
         ? <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={20} />
+        // pixel sprites: over the head on the sprite's own pixel grid
+        : pixel && sprite && mood !== 'excited' ? <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={30} sprite={spot(sprite, { id: MOOD_FX[mood]!, at: 'head', size: 0.7 })} size={0.7} />
         // large views: a smaller stand-in with its head where the creature's head is, so the pixels stay fine
         : mood === 'excited' ? <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={30} />
         : <PixelFx key={`mood-${mood}`} id={MOOD_FX[mood]!} fps={30} bodyFrac={0.34} anchor={[0.5, 0.65]} />)}

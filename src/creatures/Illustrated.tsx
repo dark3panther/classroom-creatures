@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import ART from '../data/creatureArt.json';
+import PALS from '../data/pixelPals.json';
 import { ELEMENTS, RARITIES } from '../data/elements';
 import type { Equipped, Expression, Species, Stage } from '../types';
 import { registerBlink } from './blink';
@@ -16,8 +17,9 @@ import { star } from './shapes';
  */
 /** An eyelid measured on the image (512px coordinates): covers one eye, shaded from the skin above to the skin below. */
 interface Lid { cx: number; cy: number; rx: number; ry: number; top: string; bottom: string; lash: string }
-interface Anchor { top: number; bottom: number; left: number; right: number; cx: number; headW: number; eyes: [number, number][]; lids?: Lid[] }
-const ANCHORS = ART as unknown as Record<string, Anchor>;
+interface Anchor { top: number; bottom: number; left: number; right: number; cx: number; headW: number; eyes: [number, number][]; lids?: Lid[]; /** Pixel Pals: the middle of the body, where clothes go */ body?: [number, number] }
+// the Pixel Pals carry the same kind of anchors, measured on their pixel art (scripts/pixel/pack-creatures.py)
+const ANCHORS = { ...(ART as unknown as Record<string, Anchor>), ...Object.fromEntries(Object.entries(PALS.forms).map(([k, v]) => [k, v.anchor as unknown as Anchor])) } as Record<string, Anchor>;
 
 export function hasIllustration(id: string, stage: Stage): boolean {
   return `${id}-${stage}` in ANCHORS;
@@ -32,12 +34,13 @@ const IMG_X = -8, IMG_Y = -16, IMG_S = 216;
 const map = (p: number) => (p * IMG_S) / 512;
 
 /** Geometry for accessories, expressed in the vector creature's unscaled frame (eye gap ≈ 40). */
-function geoFor(a: Anchor): { g: Geo; k: number; ox: number; oy: number } {
+function geoFor(a: Anchor, pal = false): { g: Geo; k: number; ox: number; oy: number } {
   const [[lx, ly], [rx, ry]] = a.eyes;
   const ex = IMG_X + map((lx + rx) / 2), ey = IMG_Y + map((ly + ry) / 2);
   const eyeDxSvg = map(Math.abs(rx - lx)) / 2;
   // wings or manes can make the widest row much wider than the head: keep it near the eyes
-  const headHalf = Math.min(Math.max(map(a.headW) / 2, eyeDxSvg * 1.8), eyeDxSvg * 2.6);
+  // (Pixel Pals look three-quarter on, so their eyes sit closer together for the size of the head)
+  const headHalf = Math.min(Math.max(map(a.headW) / 2, eyeDxSvg * 1.8), eyeDxSvg * (pal ? 3.1 : 2.6));
   const k = Math.max(0.3, (headHalf / 50) * 0.82);  // accessory size follows the head, not the eyes
   const u = (d: number) => d / k;                    // svg distance → unscaled frame
   const headRx = u(headHalf);
@@ -54,8 +57,11 @@ function geoFor(a: Anchor): { g: Geo; k: number; ox: number; oy: number } {
   return { g, k, ox: ex, oy: ey };
 }
 
-export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effects = true, className, title, branch, expression }: {
+export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effects = true, className, title, branch, expression, bare }: {
   sp: Species; stage: Stage; equipped?: Equipped; noShadow?: boolean; effects?: boolean; className?: string; title?: string; branch?: 'a' | 'b'; expression?: Expression;
+  /** only what the creature wears, no painting (used to dress the Pixel Pals): 'back' = what is worn behind
+   *  it (wings, capes), 'front' = everything else */
+  bare?: boolean | 'back' | 'front';
 }) {
   const uid = useId().replace(/:/g, '');
   // the mythical path: bespoke art when it exists, otherwise the Legendary art with a colour grade and ornaments
@@ -63,7 +69,7 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
   const bespoke = !!myth && `${sp.id}-5b` in ANCHORS;
   const a = ANCHORS[bespoke ? `${sp.id}-5b` : `${sp.id}-${stage}`];
   const el = ELEMENTS[sp.element];
-  const { g, k, ox, oy } = geoFor(a);
+  const { g, k, ox, oy } = geoFor(a, !!sp.pixelArt);
   const line = '#2b2140';
   const auraGrad = `cc-ill-aura-${uid}`;
   const shadowW = map(a.right - a.left) * 0.42;
@@ -72,6 +78,14 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
   const sparkleColor = myth ? myth.colors[1] : sp.rarity === 'legendary' ? '#ffd23f' : sp.rarity === 'epic' ? '#e9b6ff' : '#ffffff';
   // accessories live in the vector frame, centred on the eyes and scaled to this head
   const frame = `translate(${ox} ${oy}) scale(${k})`;
+  // a side-on Pixel Pal's body is behind its head, so what is worn on the body is centred on the body
+  const bodyFrame = a.body ? `translate(${IMG_X + map(a.body[0])} ${IMG_Y + map(a.body[1]) - g.chestY * k}) scale(${k})` : frame;
+  // wings and capes hang from the shoulders: over the body, at the height of the head
+  // (on a side-on pal they rise from its back, a little above its eyes)
+  const sideOn = !!a.body && Math.abs(IMG_X + map(a.body[0]) - ox) > g.headRx * k * 0.5;
+  const backFrame = a.body ? `translate(${IMG_X + map(a.body[0])} ${oy - (sideOn ? g.headRx * k * 2 : 0)}) scale(${k})` : frame;
+  const onBody = (e: Equipped): Equipped => ({ outfit: e.outfit, armor: e.armor });
+  const onHead = (e: Equipped): Equipped => (a.body ? { ...e, outfit: undefined, armor: undefined } : e);
   // the same anchors in plain svg coordinates, for effects that are placed around the whole creature
   const gAbs: Geo = { ...g, cx: ox, headCx: ox, headTop: oy + g.headTop * k, headCy: oy + g.headCy * k, headRx: g.headRx * k, headRy: g.headRy * k };
   const hasBack = !!(equipped.wings || equipped.decoration === 'deco-cape');
@@ -99,12 +113,12 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
       {effects && (sp.rarity === 'epic' || sp.rarity === 'legendary') && (
         <circle cx={100} cy={112} r={94} fill="none" stroke={sp.rarity === 'legendary' ? '#ffd23f' : '#d6a6ff'} strokeWidth={2.5} strokeDasharray="4 10" opacity={0.55} className="cc-spin-slow" style={{ transformOrigin: '100px 112px' }} />
       )}
-      {equipped.magic === 'magic-rainbow' && <BackAccessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
-      {hasBack && <g transform={frame}><BackAccessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>}
+      {bare !== 'front' && equipped.magic === 'magic-rainbow' && <BackAccessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
+      {bare !== 'front' && hasBack && <g transform={backFrame}><BackAccessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>}
       {/* painted mythical art carries its own motif; the drawn ornaments are for the graded fallback */}
       {myth && !bespoke && <MythicBack path={myth} b={box} />}
-      <image href={illustrationUrl(sp.id, stage, bespoke ? 'b' : '')} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} />
-      {lids && (blinking || asleep) && (
+      {!bare && <image href={illustrationUrl(sp.id, stage, bespoke ? 'b' : '')} x={IMG_X} y={IMG_Y} width={IMG_S} height={IMG_S} preserveAspectRatio="xMidYMid meet" style={{ imageRendering: 'auto' }} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} />}
+      {lids && !bare && (blinking || asleep) && (
         <g ref={lidsRef} className="cc-lids" data-closed={asleep ? '' : undefined} filter={myth && !bespoke ? `url(#${gradeId})` : undefined} aria-hidden>
           {/* a feathered rim, so the lid melts into the painting's shading instead of reading as a patch */}
           <radialGradient id={`${gradeId}-lidfade`}><stop offset="0.72" stopColor="#fff" /><stop offset="1" stopColor="#fff" stopOpacity={0} /></radialGradient>
@@ -126,8 +140,9 @@ export function IllustratedCreature({ sp, stage, equipped = {}, noShadow, effect
         </g>
       )}
       {myth && !bespoke && <MythicFront path={myth} b={box} still={!effects} />}
-      <g transform={frame}><Accessories equipped={{ ...equipped, magic: undefined }} g={g} line={line} /></g>
-      {equipped.magic && <Accessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
+      {bare !== 'back' && a.body && <g transform={bodyFrame}><Accessories equipped={onBody(equipped)} g={g} line={line} /></g>}
+      {bare !== 'back' && <g transform={frame}><Accessories equipped={{ ...onHead(equipped), magic: undefined }} g={g} line={line} /></g>}
+      {bare !== 'back' && equipped.magic && <Accessories equipped={{ magic: equipped.magic }} g={gAbs} line={line} />}
       {effects && sparkles.map(([x, y], i) => (
         <polygon key={i} className="cc-twinkle" style={{ animationDelay: `${i * 0.45}s` }} points={star(x, y, 7, 4, 0.32)} fill={sparkleColor} stroke={sp.rarity === 'legendary' ? '#d08a00' : 'none'} strokeWidth={1} />
       ))}

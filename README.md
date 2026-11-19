@@ -19,6 +19,17 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.5.2: the Pixel Pals
+
+<p align="center"><img src="docs/screenshots/pixel-pals.gif" alt="The ten Pixel Pals breathing and blinking, then each using its element attack (fire breath, a water jet, vines, chain lightning, frost breath, an earth spike, shadow tendrils, a beam of light, falling stars and a tornado), then hopping, flinching and falling asleep" width="900"></p>
+
+- **Ten new creatures, drawn as pixel art from the start**, one for each element: Blazard (fire), Otterpop (water), Mossling (nature), Boltbat (electric), Icicub (ice), Rumbadillo (earth), Wispurr (shadow), Solcub (light), Nebuloop (cosmic) and Cumulamb (air). Each has five forms that grow and change like every other creature, so the class has 40 creatures and 210 forms to find in the field guide. New students can be given a Pixel Pal; nobody's existing creature changes.
+- **Animated frame by frame, like a real pixel game.** Every form has six hand-timed animations: breathing while it stands (tail, ears and wings moving too), blinking, a happy hop, an attack (wind up, lunge, recoil), flinching when it loses points, and sleeping with its eyes shut. The app picks the animation from what is happening, and each creature keeps its own rhythm so a class never moves in step.
+- **Their element attacks come out of the right place.** Breath attacks start at the pal's mouth and the auras sit around its own body, frame by frame.
+- **They dress up.** Hats and glasses follow the head through every frame of every animation (a hat bobs, hops and lunges with it). Clothes and armour sit on the body, and wings and capes rise from the back, behind the pal.
+- **Pixel Pals are pixel art in both looks.** In the painted look they stand among the painted creatures as pixel sprites; in Pixel mode they fit right in.
+- **The painted creatures breathe in Pixel mode too.** Their pixel sprites now breathe the way hand-animated sprites do (the upper body rises a pixel, the chest grows a row) and blink at random moments.
+
 ## What's new in 1.5.1: Pixel mode
 
 <p align="center"><img src="docs/screenshots/pixel-fire-attack.gif" alt="Emberpup painted (left) and as pixel art (right): the pixel creature leans back, lunges and breathes a stream of pixel fire, with flames flickering at its feet" width="688"></p>
@@ -173,8 +184,9 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 | `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, quest, boss, treasure, region, journal, import, backup and storage code (Vitest) |
 | `npm run test:e2e` | End-to-end check in a real browser: the 1.3 to 1.4 upgrade, playing with a creature, abilities, buying an item, a teacher-approved evolution, the field guide, locked student mode, persistence after a restart, and phone width. Needs Playwright (`npm i -D playwright && npx playwright install chromium`); `E2E_SHOTS=out` also saves screenshots |
 | `npm run test:e2e:adventure` | End-to-end check of the World of Adventures: the 1.4 to 1.5 upgrade, creating a quest, a student handing it in from the locked kiosk, approval, collecting a reward exactly once, a boss battle, exploring and opening a chest, the journal, the Control Center, a restart, and phone width |
-| `npm run test:e2e:pixel` | End-to-end check of Pixel mode: switching it on from the top bar, pixel sprites with a blink frame, pixel type and backgrounds, element auras and attacks, the setting surviving a restart, phone width, and switching back |
+| `npm run test:e2e:pixel` | End-to-end check of Pixel mode: switching it on from the top bar, pixel sprites that breathe and blink, pixel type and backgrounds, element auras and attacks, a Pixel Pal's animation and hat on its profile, the Pixel Pals in the field guide, the setting surviving a restart, phone width, and switching back |
 | `npm run art:adventure` | Rebuild the pixel art in `public/adventure/` from `scripts/pixel/*.px.js` (needs Node 22.18 or newer) |
+| `npm run art:creatures` | Rebuild the Pixel Pals' sprite sheets in `public/creatures-pixel/` and their animation data in `src/data/pixelPals.json` from `scripts/pixel/creatures.px.js` (needs Node 22.18 or newer and Python with Pillow) |
 | `npm run typecheck` | TypeScript check |
 | `npm run build` | Type-check and build the production site into `dist/` |
 
@@ -257,6 +269,12 @@ Every creature has illustrated artwork for all five stages (150 images in `publi
 - `scripts/creature-anchors.py` measures where each creature's head and eyes are and writes `src/data/creatureArt.json`, which is how hats, glasses and other accessories line up on the illustrations.
 - **Mythical forms**: Frostflame Warden, Stormtide Herald and Nebula Prince are painted, generated with Google Gemini (Nano Banana Pro) from each species' own Legendary art, so the creature, pose and style carry over. The other seven are still drawn from the Legendary art with a colour grade and ornaments (`src/creatures/mythic.tsx`). To add a painting, put `public/creatures/<id>-5b.webp` (512×512, transparent, same height and floor line as `<id>-5.webp`) in place and run `scripts/creature-anchors.py`; the app picks it up automatically. If the measurement misreads an image, correct it in `scripts/creature-anchor-overrides.json`.
 - The original vector drawings are still in the app. Teachers can switch to them in **Settings → Classroom & PIN → Illustrated creature art**, and any species without an illustration automatically uses them. Open `?sheet` in development to see the vector set, or `?sheet&art` for the illustrations.
+
+### The Pixel Pals
+
+The ten Pixel Pals are drawn in code, not painted: `scripts/pixel/creatures.px.js` describes each one with [claude-pxl](https://github.com/dark3panther/claude-pxl) shapes (body, head, ears, tail, wings, face) and a shared pose function that moves those parts for every frame of the six animations. `npm run art:creatures` draws all 50 forms × 6 animations (outlined, 64×66 px a frame), packs each form into one sheet (`public/creatures-pixel/<id>-<stage>.png`, 8 columns, one row per animation) and measures where the eyes, mouth, head and body are in every frame (`src/data/pixelPals.json`). `src/creatures/PixelPal.tsx` plays the sheet on the app's shared animation clock and draws worn items on the head offset measured for that frame. `src/data/pixelPals.test.ts` checks the sheets and measurements.
+
+To add a Pixel Pal: add a `draw(c, h, p, stage)` entry to `SPECIES` in `creatures.px.js` (copy the closest one), run `npm run art:creatures`, and add it to `PALS` in `src/data/species.ts` with `pixelArt: true`.
 
 ## Adding new creatures
 

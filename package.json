@@ -1,7 +1,7 @@
 {
   "name": "classroom-creatures",
   "private": true,
-  "version": "1.5.1",
+  "version": "1.5.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,8 @@
     "test:e2e": "node scripts/e2e.mjs",
     "art:adventure": "node scripts/pixel/build.mjs",
     "test:e2e:adventure": "node scripts/e2e-adventure.mjs",
-    "test:e2e:pixel": "node scripts/e2e-pixel.mjs"
+    "test:e2e:pixel": "node scripts/e2e-pixel.mjs",
+    "art:creatures": "node scripts/pixel/build-creatures.mjs"
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",
