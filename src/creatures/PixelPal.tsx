@@ -76,7 +76,9 @@ export function PixelPal({ species, stage, expression, equipped, effects = true,
       void outfitSprite({ species, stage, equipped }).then(() => { if (live) setTimeout(paint, 0); });
       return () => { live = false; };
     }
-    if (!sheet.complete) sheet.addEventListener('load', redraw, { once: true });
+    // the first frame as soon as the sheet is there, not on the next tick of the animation clock
+    const first = () => { redraw(); draw(anim, 0); };
+    if (sheet.complete) first(); else sheet.addEventListener('load', first, { once: true });
     const off = subscribe((dt) => {
       t += dt;
       const m = META.anims[anim];

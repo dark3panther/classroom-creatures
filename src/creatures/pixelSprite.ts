@@ -125,19 +125,65 @@ async function svgMarkup(r: SpriteRequest, shut: boolean): Promise<string> {
   return svg.replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" `);
 }
 
-function rasterise(svg: string): Promise<ImageData> {
+function loadSvg(svg: string): Promise<HTMLImageElement> {
   return new Promise((res, rej) => {
     const img = new Image();
-    img.onload = () => {
-      const c = document.createElement('canvas');
-      c.width = SPRITE_W * SUPER; c.height = SPRITE_H * SUPER;
-      const x = c.getContext('2d', { willReadFrequently: true })!;
-      x.imageSmoothingQuality = 'high';
-      x.drawImage(img, 0, 0, c.width, c.height);
-      res(x.getImageData(0, 0, c.width, c.height));
-    };
+    img.onload = () => { void img.decode().catch(() => undefined).then(() => res(img)); };
     img.onerror = () => rej(new Error('could not draw the creature'));
     img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  });
+}
+
+/** Share of a drawing that is solid (sampled), to tell a drawn creature from an empty frame. */
+function solidShare(d: ImageData): number {
+  let n = 0, all = 0;
+  for (let k = 3; k < d.data.length; k += 4 * 7) { all++; if (d.data[k] > 128) n++; }
+  return all ? n / all : 0;
+}
+const MIN_SOLID = 0.02;
+
+/** Tests can make the first draws of every creature come out empty (as some Macs do), to check the retries. */
+const fault = () => (import.meta.env.DEV ? Number((globalThis as { __ccPixelFault?: number }).__ccPixelFault ?? 0) : 0);
+
+// a few creatures at a time: drawing a whole class at once can leave the painting decoder behind
+let active = 0;
+const waiting: (() => void)[] = [];
+async function inTurn<T>(fn: () => Promise<T>): Promise<T> {
+  if (active >= 4) await new Promise<void>((r) => waiting.push(r));
+  active++;
+  try { return await fn(); } finally { active--; waiting.shift()?.(); }
+}
+
+/**
+ * Draw the creature's SVG (its painting embedded as a data URL) at 4× sprite size. `painted`: the drawing must
+ * contain the painting. On some computers (macOS with GPU drawing) the painting inside an SVG image is decoded a
+ * moment after the image loads, and the first draw comes out empty: then we wait, draw again, and in the end
+ * load the image afresh. Still empty after that: the sprite fails and the painted creature is shown instead.
+ */
+async function rasterise(svg: string, painted = false): Promise<ImageData> {
+  const c = document.createElement('canvas');
+  c.width = SPRITE_W * SUPER; c.height = SPRITE_H * SUPER;
+  const x = c.getContext('2d', { willReadFrequently: true })!;
+  x.imageSmoothingQuality = 'high';
+  let drawsLeftEmpty = painted ? fault() : 0;
+  const draw = (img: HTMLImageElement) => {
+    x.clearRect(0, 0, c.width, c.height);
+    if (drawsLeftEmpty-- <= 0) x.drawImage(img, 0, 0, c.width, c.height);
+    return x.getImageData(0, 0, c.width, c.height);
+  };
+  if (!painted) return draw(await loadSvg(svg));
+  return inTurn(async () => {
+    let img = await loadSvg(svg);
+    let data = draw(img);
+    const pause = (ms: number) => new Promise<void>((r) => setTimeout(() => requestAnimationFrame(() => r()), ms));
+    for (const [ms, fresh] of [[30, false], [120, false], [250, true], [500, false]] as const) {
+      if (solidShare(data) >= MIN_SOLID) return data;
+      await pause(ms);
+      if (fresh) img = await loadSvg(svg);
+      data = draw(img);
+    }
+    if (solidShare(data) < MIN_SOLID) throw new Error('the creature painting did not draw');
+    return data;
   });
 }
 
@@ -264,9 +310,21 @@ const toSprite = (p512: number, isX: boolean) => {
   return ((svg - (isX ? VIEW_X : VIEW_Y)) * SPRITE_W) / VIEW_W;
 };
 
+// a computer where no painting ever draws (after several creatures in a row) stops trying: painted creatures stand in
+let drawn = 0, failedInRow = 0;
 async function make(r: SpriteRequest): Promise<PixelSprite> {
+  if (!drawn && failedInRow >= 3) throw new Error('pixel sprites cannot be drawn on this computer');
   const [openSvg, shutSvg] = await Promise.all([svgMarkup(r, false), svgMarkup(r, true)]);
-  const [openBig, shutBig] = await Promise.all([rasterise(openSvg), rasterise(shutSvg)]);
+  let openBig: ImageData, shutBig: ImageData;
+  try {
+    // the open frame first: if it cannot be drawn there is no point drawing the blink frame
+    openBig = await rasterise(openSvg, true);
+    shutBig = await rasterise(shutSvg, true);
+  } catch (e) {
+    failedInRow++;
+    throw e;
+  }
+  drawn++; failedInRow = 0;
   const o = downsample(openBig), s = downsample(shutBig);
   const a = toPixels(o.rgb, o.cover, null);
   const b = toPixels(s.rgb, s.cover, a.palette);

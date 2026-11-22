@@ -163,9 +163,9 @@ export const BOSSES: BossDef[] = [
     element: 'earth', strike: { fx: 'ice/ice-spikes', verb: 'pinched by a crystal claw', palette: ['#1d0f40', '#4a2a9c', '#8a6ad8', '#b9a3ff', '#7fe0ff', '#ffffff'] },
   },
   {
-    id: 'gloomwing', name: 'Gloomwing', regionId: 'crystal', theme: 'A moody cave moth', wandering: true,
-    description: 'Gloomwing is scared of the dark, so it has gathered every glowing crystal in the caverns and will not share.',
-    friendly: 'Gloomwing finds out the class will keep it company, and lets the crystals glow for everyone.',
+    id: 'murkmoth', name: 'Murkmoth', regionId: 'crystal', theme: 'A moody cave moth', wandering: true,
+    description: 'Murkmoth is scared of the dark, so it has gathered every glowing crystal in the caverns and will not share.',
+    friendly: 'Murkmoth finds out the class will keep it company, and lets the crystals glow for everyone.',
     difficulty: 'medium', durationMs: 5 * DAY, reward: { xp: 7, coins: 18 }, colors: ['#9b7bff', '#4fd6c8'],
     element: 'shadow', strike: { fx: 'shadow/curse', verb: 'covered in sleepy moth dust' },
   },
@@ -226,7 +226,9 @@ export const BOSSES: BossDef[] = [
     element: 'light', strike: { fx: 'nature/tornado', verb: 'covered in a swirl of sand', palette: SAND },
   },
 ];
-export const BOSSES_BY_ID = Object.fromEntries(BOSSES.map((b) => [b.id, b])) as Record<string, BossDef>;
+/** Bosses renamed after a release: old ids in saved battles still find their boss. */
+export const BOSS_ALIASES: Record<string, string> = { gloomwing: 'murkmoth' };
+export const BOSSES_BY_ID = Object.fromEntries([...BOSSES.map((b) => [b.id, b]), ...Object.entries(BOSS_ALIASES).map(([old, id]) => [old, BOSSES.find((b) => b.id === id)!])]) as Record<string, BossDef>;
 
 /** Suggested HP for a class of `students`. */
 export function suggestedHp(difficulty: Difficulty, students: number): number {

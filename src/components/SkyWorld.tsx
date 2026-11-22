@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { illustrationUrl } from '../creatures/Illustrated';
-import { animate, createAnimatable, createScope, utils } from '../vendor/animejs/index.js';
+import { animate, createAnimatable, createScope, steps, utils } from '../vendor/animejs/index.js';
 import { useStore } from '../store/store';
 import { getSpecies } from '../data/species';
 import { pixelSprite } from '../creatures/pixelSprite';
@@ -66,7 +66,7 @@ export function SkyWorld() {
           : { y: [-9, 9], rotate: [-1.4, 1.2], duration: ISLANDS[i][5] * 1000, loop: true, alternate: true, ease: 'inOutSine', delay: i * 600 });
       });
       // the sun breathes and its rays turn (the pixel sun just pulses)
-      if (pixel) animate('[data-sun-pixel]', { scale: [1, 1.08], duration: 1800, loop: true, alternate: true, ease: 'steps(2)' });
+      if (pixel) animate('[data-sun-pixel]', { scale: [1, 1.08], duration: 1800, loop: true, alternate: true, ease: steps(2) });
       else {
         animate('[data-sun-rays]', { rotate: 360, duration: 120000, loop: true, ease: 'linear' });
         animate('[data-sun-glow]', { scale: [1, 1.1], opacity: [0.75, 1], duration: 3600, loop: true, alternate: true, ease: 'inOutSine' });

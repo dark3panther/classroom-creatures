@@ -247,7 +247,7 @@ const glimmerjaw: Draw = (p, mood) => {
   );
 };
 
-const gloomwing: Draw = (p, mood) => {
+const murkmoth: Draw = (p, mood) => {
   const happy = mood === 'happy';
   const fur = p.ball('gw-fur', '#a98ae6', { light: 0.45 }), wingA = p.ball('gw-wing', '#7f5be0'), wingB = p.ball('gw-wing2', '#5a3fb0'), teal = p.ball('gw-teal', '#4fd6c8', { light: 0.45 });
   const glow = happy ? '#c6fff6' : '#7fe0ff';
@@ -521,14 +521,16 @@ const riddlepaw: Draw = (p, mood) => {
   );
 };
 
-const DRAW: Record<string, Draw> = { grumblethorn, mudsnout, glimmerjaw, gloomwing, snowsulk, puffington, magmaw, zapcrackle, whirlwing, snorecap, colossus, riddlepaw };
+/** a boss renamed after a release (BOSS_ALIASES in data/adventure.ts) */
+const ALIAS: Record<string, string> = { gloomwing: 'murkmoth' };
+const DRAW: Record<string, Draw> = { grumblethorn, mudsnout, glimmerjaw, murkmoth, snowsulk, puffington, magmaw, zapcrackle, whirlwing, snorecap, colossus, riddlepaw };
 
 /** Where a creature's attack lands, where the boss's strike starts and where its head is (fractions of the box). */
 export const BOSS_POINTS: Record<string, { hit: [number, number]; from: [number, number]; head: [number, number] }> = {
   grumblethorn: { hit: [0.5, 0.52], from: [0.3, 0.6], head: [0.45, 0.2] },
   mudsnout: { hit: [0.55, 0.6], from: [0.24, 0.66], head: [0.38, 0.28] },
   glimmerjaw: { hit: [0.5, 0.62], from: [0.18, 0.6], head: [0.48, 0.22] },
-  gloomwing: { hit: [0.48, 0.6], from: [0.36, 0.72], head: [0.48, 0.3] },
+  murkmoth: { hit: [0.48, 0.6], from: [0.36, 0.72], head: [0.48, 0.3] },
   snowsulk: { hit: [0.5, 0.66], from: [0.3, 0.52], head: [0.49, 0.2] },
   puffington: { hit: [0.5, 0.55], from: [0.34, 0.66], head: [0.45, 0.16] },
   magmaw: { hit: [0.5, 0.72], from: [0.42, 0.62], head: [0.5, 0.3] },
@@ -542,7 +544,7 @@ export const BOSS_POINTS: Record<string, { hit: [number, number]; from: [number,
 /** A boss drawn in its painted style. `still`: no blinking (thumbnails, pictures for Pixel mode). */
 export const BossArt = memo(function BossArt({ id, mood = 'grumpy', className = '', title, still }: { id: string; mood?: BossMood; className?: string; title?: string; still?: boolean }) {
   const u = `bb${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-  const draw = DRAW[id];
+  const draw = DRAW[id] ?? DRAW[ALIAS[id]];
   if (!draw) return null;
   const p = painter(u);
   const body = draw(p, mood);
@@ -557,4 +559,4 @@ export const BossArt = memo(function BossArt({ id, mood = 'grumpy', className = 
   );
 });
 
-export const hasBossArt = (id: string) => id in DRAW;
+export const hasBossArt = (id: string) => id in DRAW || id in ALIAS;

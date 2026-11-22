@@ -52,8 +52,15 @@ ok(await p.locator('main .pc:not([data-pal])').count() === 0, 'creatures are pai
 // ---------- 2. switch it on from the top bar ----------
 await p.getByRole('button', { name: 'Pixel mode' }).click(); await wait(2500);
 ok(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode')), 'the top bar switch turns Pixel mode on');
-const sprites = await p.evaluate(() => [...document.querySelectorAll('main .pc canvas.pc-frame')].map((c) => [c.width, c.height]));
-ok(sprites.length >= 16 && sprites.every(([w, h]) => w === 64 && h === 66), `every creature card shows a 64 × 66 pixel sprite (${sprites.length} sprites)`);
+// every creature is really on screen: a box of real size with the creature drawn in it (not just a canvas)
+const visible = () => p.evaluate(() => [...document.querySelectorAll('main .pc canvas.pc-frame')].map((c) => {
+  const r = c.getBoundingClientRect(); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k] > 128) n++;
+  return { w: c.width, h: c.height, shown: r.width > 20 && r.height > 20, drawn: n };
+}));
+const sprites = await visible();
+ok(sprites.length >= 16 && sprites.every((x) => x.w === 64 && x.h === 66), `every creature card shows a 64 × 66 pixel sprite (${sprites.length} sprites)`);
+ok(sprites.every((x) => x.shown && x.drawn > 80), `every sprite is on screen and drawn (${sprites.filter((x) => x.shown && x.drawn > 80).length}/${sprites.length})`);
 // the sprites move: sample one painted creature's canvas over two seconds and count the distinct frames it shows
 const frames = await p.evaluate(async () => {
   const c = [...document.querySelectorAll('main .pc canvas.pc-frame')].find((x) => x.width === 64);
@@ -134,6 +141,32 @@ ok(hatted <= bare - 4, `its hat is drawn on the sprite, on top of its head (top 
 await shot(p, 'pixel-pal-profile.png');
 const dex = await p.evaluate(async () => { location.hash = '#/creatures'; await new Promise((r) => setTimeout(r, 1800)); return document.querySelectorAll('main .pc canvas.pc-frame').length; });
 ok(dex >= 10, `the field guide lists the Pixel Pals (${dex} pixel sprites)`);
+
+// ---------- 5b. a computer that draws the painting late (as some Macs do) ----------
+{
+  // the first two draws of every creature come out empty: the sprites must still appear
+  const late = await ctx.newPage(); watch(late);
+  await late.addInitScript(() => { globalThis.__ccPixelFault = 2; });
+  await late.goto(U); await late.waitForTimeout(6000);
+  const r = await late.evaluate(() => [...document.querySelectorAll('main .pc canvas.pc-frame')].map((c) => { const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k] > 128) n++; return n; }));
+  ok(r.length >= 16 && r.every((n) => n > 80), `when the first draws come out empty, every creature is still drawn (${r.filter((n) => n > 80).length}/${r.length})`);
+  await late.close();
+  // never drawn at all: the painted creature stands in, nothing is left empty
+  const never = await ctx.newPage(); watch(never);
+  await never.addInitScript(() => { globalThis.__ccPixelFault = 99; });
+  await never.goto(U); await never.waitForTimeout(6000);
+  const r2 = await never.evaluate(() => {
+    const st = window.__cc.getState();
+    const kids = st.data.students.filter((s) => s.classId === st.data.settings.currentClassId);
+    const pals = new Set(['blazard', 'otterpop', 'mossling', 'boltbat', 'icicub', 'rumbadillo', 'wispurr', 'solcub', 'nebuloop', 'cumulamb']);
+    const paintedKids = kids.filter((s) => !pals.has(s.speciesId)).length;
+    const painted = [...document.querySelectorAll('main svg image')].filter((i) => (i.getAttribute('href') ?? '').includes('/creatures/')).length;
+    const emptyBoxes = [...document.querySelectorAll('main .pc:not([data-pal])')].length;
+    return { paintedKids, painted, emptyBoxes };
+  });
+  ok(r2.emptyBoxes === 0 && r2.painted >= r2.paintedKids, `when a sprite cannot be made, the painted creature is shown instead (${r2.painted} painted for ${r2.paintedKids}, ${r2.emptyBoxes} empty)`);
+  await never.close();
+}
 
 // ---------- 6. the setting survives a restart ----------
 await p.close();

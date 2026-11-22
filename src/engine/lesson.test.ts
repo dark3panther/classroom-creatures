@@ -45,7 +45,7 @@ describe('World of Adventures 1.6: regions and bosses', () => {
   it('has twelve bosses; wandering bosses live in an open-early region and have no region chest', () => {
     expect(BOSSES).toHaveLength(12);
     const wandering = BOSSES.filter((b) => b.wandering);
-    expect(wandering.map((b) => b.id).sort()).toEqual(['gloomwing', 'mudsnout', 'zapcrackle']);
+    expect(wandering.map((b) => b.id).sort()).toEqual(['mudsnout', 'murkmoth', 'zapcrackle']);
     for (const b of wandering) expect(TREASURES.some((t) => t.rule.kind === 'boss' && t.rule.bossId === b.id)).toBe(false);
     for (const b of BOSSES) expect(b.strike.verb.length).toBeGreaterThan(3);
   });

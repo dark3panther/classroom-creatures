@@ -144,7 +144,7 @@ track". The teacher can switch strikes off per battle.
 Coral Lagoon (water, 20 AP, Captain Puffington), Mushroom Hollow (nature and shadow, 80 AP, Snorecap) and
 Sunstone Desert (earth, fire and light, 200 AP, Riddlepaw), each with a relic, a coin chest, a background
 chest and a gift chest (Captain's Hat, Glow Spore Trail, Sunstone Circlet). Three **wandering bosses** live
-in regions without guarding them (no chest of their own): Mudsnout (Verdant Valley), Gloomwing (Crystal
+in regions without guarding them (no chest of their own): Mudsnout (Verdant Valley), Murkmoth (Crystal
 Caverns) and Zapcrackle (Ember Kingdom), so a class has two bosses to battle from the first day. Every boss
 is drawn as a painted illustration in code (`src/creatures/bosses/BossArt.tsx`) with four faces (grumpy,
 hurt, attacking, happy), a blink, an element, an aura and a strike; in Pixel mode it is made into pixel art.

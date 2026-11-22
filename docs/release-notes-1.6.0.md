@@ -30,7 +30,7 @@ no migration.
   relics (Singing Shell, Firefly Lantern, Sunstone Scarab), coin chests, region backgrounds and boss gifts
   (Captain's Hat, Glow Spore Trail, Sunstone Circlet). The world map now has nine islands.
 - **Six new bosses**: Captain Puffington, Snorecap and Riddlepaw guard the new regions; Mudsnout (Verdant Valley),
-  Gloomwing (Crystal Caverns) and Zapcrackle (Ember Kingdom) are wandering bosses, so there are two bosses to
+  Murkmoth (Crystal Caverns) and Zapcrackle (Ember Kingdom) are wandering bosses, so there are two bosses to
   battle from the first day.
 - **Painted bosses**: all twelve bosses are painted illustrations with four faces (grumpy, hurt, attacking,
   befriended), blinking eyes and an aura from their element. In Pixel mode they are made into pixel art.

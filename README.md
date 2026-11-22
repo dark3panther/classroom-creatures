@@ -21,6 +21,9 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 ## What's new in 1.6: lesson battles
 
+> **1.6.1** fixes creatures disappearing in Pixel mode on some Macs, and renames the Crystal Caverns' wandering boss to Murkmoth ([release notes](docs/release-notes-1.6.1.md)).
+
+
 <p align="center"><img src="docs/screenshots/lesson-battle.gif" alt="A lesson battle against Grumblethorn: a fire creature's fireball and an earth creature's orb hit the boss, Grumblethorn strikes back and tangles one creature in brambles, the whole class makes a team attack, the mission is completed and Grumblethorn bursts into flowers as the class's friend" width="760"></p>
 
 A boss battle that fits one or two lessons, played on the projector. **Every point you give is a creature's attack, and every point you take makes the boss strike back.**
@@ -37,7 +40,7 @@ A boss battle that fits one or two lessons, played on the projector. **Every poi
 |---|---|---|
 | <img src="docs/screenshots/battle-attack.jpg" alt="Hana's fire creature sends a fireball across the arena at Grumblethorn" width="300"> | <img src="docs/screenshots/battle-strike.jpg" alt="Grumblethorn strikes back: Kai's Coralyn is tangled up in brambles and the boss gets 2 HP back" width="300"> | <img src="docs/screenshots/battle-pixel.jpg" alt="The arena in Pixel mode with Mudsnout the muddy hippo as pixel art" width="300"> |
 
-**More world, more bosses.** Three new regions: **Coral Lagoon**, **Mushroom Hollow** and **Sunstone Desert**, each with a relic, chests, a background and a boss gift. Six new bosses: **Captain Puffington**, **Snorecap** and **Riddlepaw** guard the new regions, and **Mudsnout**, **Gloomwing** and **Zapcrackle** wander older ones, so a class has two bosses to battle from day one. Every boss is now a **painted** illustration with four faces (grumpy, hurt, attacking, befriended), blinking eyes, an aura from its element and its own strike. The 1.5 boss gifts (Bramble Crown, Crystal, Lava and Cloud trails, Star Temple Crown, Snow Goggles) now actually show on the creature.
+**More world, more bosses.** Three new regions: **Coral Lagoon**, **Mushroom Hollow** and **Sunstone Desert**, each with a relic, chests, a background and a boss gift. Six new bosses: **Captain Puffington**, **Snorecap** and **Riddlepaw** guard the new regions, and **Mudsnout**, **Murkmoth** and **Zapcrackle** wander older ones, so a class has two bosses to battle from day one. Every boss is now a **painted** illustration with four faces (grumpy, hurt, attacking, befriended), blinking eyes, an aura from its element and its own strike. The 1.5 boss gifts (Bramble Crown, Crystal, Lava and Cloud trails, Star Temple Crown, Snow Goggles) now actually show on the creature.
 
 <p align="center"><img src="docs/screenshots/world-map-nine.jpg" alt="The world map with nine islands joined by a winding route: Verdant Valley, Crystal Caverns and Coral Lagoon along the bottom, Frostpeak Mountains, Ember Kingdom and Mushroom Hollow in the middle, Sky Islands, Ancient Kingdom and Sunstone Desert at the top" width="760"></p>
 

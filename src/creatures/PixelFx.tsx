@@ -132,7 +132,8 @@ let raf = 0, last = 0;
 function loop(now: number) {
   const dt = last ? Math.min(0.1, (now - last) / 1000) : 1 / 60;
   last = now;
-  ticks.forEach((t) => t(dt));
+  // one broken effect must never stop every other animation on the page
+  ticks.forEach((t) => { try { t(dt); } catch (e) { ticks.delete(t); console.warn('pixel animation stopped:', e); } });
   raf = ticks.size ? requestAnimationFrame(loop) : 0;
   if (!raf) last = 0;
 }
