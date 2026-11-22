@@ -1,4 +1,6 @@
+import { BossPortrait } from '../../creatures/bosses/BossPortrait';
 import { BOSSES_BY_ID, REGIONS_BY_ID, TREASURES } from '../../data/adventure';
+import { BOSSES } from '../../data/adventure';
 import { ITEMS_BY_ID as ITEMS_LOOKUP } from '../../data/defaults';
 import { SPECIES } from '../../data/species';
 import { CreatureSvg } from '../../creatures/CreatureSvg';
@@ -83,7 +85,7 @@ export function RegionView({ classId, regionId, student }: { classId: string; re
         <div className="paper p-5">
           <h3 className="mb-3 font-display text-xl font-bold">The boss of {region.name}</h3>
           <div className="flex items-center gap-4">
-            <Px name={`boss-${boss.id}${befriended ? '-friend' : ''}`} alt={boss.name} className="w-28 shrink-0 idle-bob" />
+            <span className="w-28 shrink-0 idle-bob"><BossPortrait id={boss.id} friend={!!befriended} title={boss.name} /></span>
             <div className="min-w-0">
               <div className="font-display text-2xl font-bold">{boss.name}</div>
               <div className="text-sm font-bold text-ink-soft">{boss.theme}</div>
@@ -95,6 +97,16 @@ export function RegionView({ classId, regionId, student }: { classId: string; re
               </div>
             </div>
           </div>
+          {BOSSES.filter((b) => b.regionId === regionId && b.wandering).map((w) => (
+            <div key={w.id} className="mt-4 flex items-center gap-3 border-t border-rule pt-3">
+              <span className="w-16 shrink-0"><BossPortrait id={w.id} still title={w.name} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold">Also wandering here: {w.name}</div>
+                <p className="text-[13px] text-ink-soft">{w.description}</p>
+              </div>
+              {!live && teacher && st.open && <button className="btn btn-light !py-1.5 !text-sm" onClick={() => go(`/adventure/boss?start=${w.id}`)}>Battle</button>}
+            </div>
+          ))}
         </div>
 
         <div className="paper p-5">

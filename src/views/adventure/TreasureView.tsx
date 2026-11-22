@@ -18,10 +18,10 @@ const RULE_TEXT = (def: TreasureDef): string => {
     case 'visit': return `Explore ${REGIONS.find((x) => x.id === r.regionId)?.name}`;
     case 'regionQuests': return `Complete ${r.count} quests in ${REGIONS.find((x) => x.id === r.regionId)?.name}`;
     case 'boss': return 'Help the class befriend this region\'s boss';
-    case 'visitAll': return 'Explore all six regions';
+    case 'visitAll': return 'Explore every region';
     case 'quests': return `Complete ${r.count} quests`;
     case 'level': return `Reach level ${r.level}`;
-    case 'relics': return 'Find all six relics';
+    case 'relics': return "Find every region's relic";
   }
 };
 

@@ -50,6 +50,9 @@ export const SPRITES: Record<string, Sprite> = {
   cookie: { rows: ['..aaaa..', '.abbbba.', 'abcbbcba', 'abbbbbba', 'abbcbbba', '.abbbca.', '..aaaa..'], pal: { a: '#7a4b2a', b: '#e0a35a', c: '#5a341c' } },
   ball: { rows: ['..aaaa..', '.abbbba.', 'abwwbbca', 'abccbbca', 'acbbbcca', 'abbbbbba', '.abbbba.', '..aaaa..'], pal: { a: O, b: '#ff5d5d', c: '#ffe066', w: '#ffffff' } },
   yarn: { rows: ['..aaaa..', '.abcbca.', 'abcbcbca', 'acbcbcba', 'abcbcbca', '.acbcba.', '..aaaa.d', '.......d'], pal: { a: O, b: '#a78bfa', c: '#c9b6ff', d: '#a78bfa' } },
+  lava: { rows: ['..aaa..', '.abbba.', 'abccbba', 'abcbbba', 'abbbbba', '.abbba.', '..aaa..'], pal: { a: '#a8302a', b: '#f39a3b', c: '#ffe26b' } },
+  puff: { rows: ['...aa....', '.aawwa...', 'awwwwwaa.', 'awwwwwwwa', '.aaaaaaa.'], pal: { a: '#9db6d6', w: '#ffffff' } },
+  spore: { rows: ['..a..', '.aba.', 'abwba', '.aba.', '..a..'], pal: { a: '#c25ac0', b: '#ff8fd0', w: '#ffe1f3' } },
   wand: { rows: ['......a.', '.....aba', '......a.', '.....c..', '....c...', '...c....', '..c.....', '.c......'], pal: { a: '#e8a21e', b: '#fff6c4', c: '#7a4b2a' } },
 };
 
@@ -64,10 +67,16 @@ const TRAILS: Record<string, TrailStyle> = {
   'trail-star': { sprites: ['star', 'spark'], rate: 4, life: 2, vy: -12, vx: 0, wobble: 6, from: 'body', fade: true },
   'trail-heart': { sprites: ['heart'], rate: 3, life: 2.2, vy: -18, vx: 0, wobble: 8, from: 'feet', fade: true },
   'trail-rainbow': { sprites: ['spark', 'heart', 'star'], rate: 7, life: 1.8, vy: -14, vx: 0, wobble: 12, from: 'feet', fade: true },
+  // World of Adventures boss gifts
+  'trail-crystal': { sprites: ['crystal', 'spark'], rate: 4, life: 2, vy: -8, vx: 0, wobble: 8, from: 'body', fade: true },
+  'trail-lava': { sprites: ['lava', 'ember'], rate: 5, life: 2, vy: -18, vx: 0, wobble: 6, from: 'feet', fade: true },
+  'trail-cloud': { sprites: ['puff'], rate: 2.5, life: 3, vy: -6, vx: 6, wobble: 10, from: 'feet', fade: true },
+  'trail-spore': { sprites: ['spore', 'spark'], rate: 4, life: 2.6, vy: -10, vx: 2, wobble: 12, from: 'feet', fade: true },
 };
 
 export const TRAIL_ICON: Record<string, string> = {
   'trail-sparkle': 'spark', 'trail-ember': 'ember', 'trail-bubble': 'bubble', 'trail-leaf': 'leaf', 'trail-snow': 'snow', 'trail-star': 'star', 'trail-heart': 'heart', 'trail-rainbow': 'rainbow',
+  'trail-crystal': 'crystal', 'trail-lava': 'lava', 'trail-cloud': 'puff', 'trail-spore': 'spore',
 };
 export const EFFECT_ICON: Record<string, string> = { 'fx-shield': 'shield', 'fx-orbs': 'orb', 'fx-crystals': 'crystal', 'fx-gems': 'gem', 'fx-beam': 'beam' };
 

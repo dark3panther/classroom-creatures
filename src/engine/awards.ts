@@ -32,7 +32,8 @@ export function achievementMet(def: AchievementDef, s: Student, settings: Prog, 
     case 'evoMaster': return displayStage(s, settings) >= 5 && Object.values(s.skills ?? {}).filter((v) => v > 0).length >= 4;
     case 'collection': return !!cls && collectionStats(cls).pct >= r.pct;
     case 'treasures': return (s.adventure?.treasures.length ?? 0) >= r.min;
-    case 'bosses': return (s.adventure?.bosses.length ?? 0) >= r.min;
+    // different bosses: befriending the same boss again in a lesson battle does not count twice
+    case 'bosses': return new Set((s.adventure?.bosses ?? []).map((b) => b.bossId)).size >= r.min;
     case 'regions': return (s.adventure?.visited.length ?? 0) >= r.min;
   }
 }

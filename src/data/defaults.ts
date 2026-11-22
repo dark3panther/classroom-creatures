@@ -220,12 +220,18 @@ export const ITEMS: Item[] = [
   { id: 'bg-region-ember', name: 'Ember Kingdom', slot: 'background', unlock: { type: 'treasure', id: 'ember-cosmetic' }, description: 'Volcanoes, lava rivers and storm clouds.' },
   { id: 'bg-region-sky', name: 'Sky Islands', slot: 'background', unlock: { type: 'treasure', id: 'sky-cosmetic' }, description: 'Floating islands and rainbow bridges.' },
   { id: 'bg-region-ancient', name: 'Ancient Kingdom', slot: 'background', unlock: { type: 'treasure', id: 'ancient-cosmetic' }, description: 'Starlit ruins of an old kingdom.' },
+  { id: 'bg-region-lagoon', name: 'Coral Lagoon', slot: 'background', unlock: { type: 'treasure', id: 'lagoon-cosmetic' }, description: 'A sandy beach, coral and a sleepy shipwreck.' },
+  { id: 'bg-region-hollow', name: 'Mushroom Hollow', slot: 'background', unlock: { type: 'treasure', id: 'hollow-cosmetic' }, description: 'Glowing mushrooms under the evening stars.' },
+  { id: 'bg-region-dunes', name: 'Sunstone Desert', slot: 'background', unlock: { type: 'treasure', id: 'dunes-cosmetic' }, description: 'Golden dunes and a pyramid at sunset.' },
   { id: 'bg-worldmap', name: 'World Map', slot: 'background', unlock: { type: 'treasure', id: 'hero-chest' }, rare: true, description: 'The whole world of adventures.' },
   { id: 'hat-bramble', name: 'Bramble Crown', slot: 'hat', unlock: { type: 'treasure', id: 'verdant-boss' }, description: 'A thank-you from Grumblethorn, in full flower.' },
   { id: 'trail-crystal', name: 'Crystal Trail', slot: 'trail', unlock: { type: 'treasure', id: 'crystal-boss' }, description: 'Glimmerjaw’s gems sparkle behind you.' },
   { id: 'glasses-snow', name: 'Snow Goggles', slot: 'glasses', unlock: { type: 'treasure', id: 'frostpeak-boss' }, description: 'Sir Snowsulk’s own pair.' },
   { id: 'trail-lava', name: 'Lava Trail', slot: 'trail', unlock: { type: 'treasure', id: 'ember-boss' }, description: 'Warm little bubbles from Magmaw.' },
   { id: 'trail-cloud', name: 'Cloud Trail', slot: 'trail', unlock: { type: 'treasure', id: 'sky-boss' }, description: 'Puffs of cloud from Whirlwing.' },
+  { id: 'hat-captain', name: "Captain's Hat", slot: 'hat', unlock: { type: 'treasure', id: 'lagoon-boss' }, description: 'Captain Puffington’s spare hat, with a gold anchor.' },
+  { id: 'trail-spore', name: 'Glow Spore Trail', slot: 'trail', unlock: { type: 'treasure', id: 'hollow-boss' }, description: 'Snorecap’s friendly glowing spores drift behind you.' },
+  { id: 'hat-sunstone', name: 'Sunstone Circlet', slot: 'hat', unlock: { type: 'treasure', id: 'dunes-boss' }, rare: true, description: 'Riddlepaw’s gift: a gold circlet with a warm sunstone.' },
   { id: 'hat-relic', name: 'Star Temple Crown', slot: 'hat', unlock: { type: 'treasure', id: 'ancient-boss' }, rare: true, description: 'A gift from the Clockwork Colossus.' },
 ];
 

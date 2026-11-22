@@ -6,14 +6,15 @@ import { currentBattle, regionCompletion, regionStates } from '../../engine/adve
 import { animate, reducedMotion } from '../../lib/motion';
 import { useStore } from '../../store/store';
 import type { RegionId } from '../../types';
+import { BossPortrait } from '../../creatures/bosses/BossPortrait';
 import { Px, advPath, go } from './common';
 
 // island picture size (pixels) for the height of each island box
-const ART: Record<RegionId, [number, number]> = { verdant: [90, 64], crystal: [80, 58], frostpeak: [86, 62], ember: [90, 64], sky: [86, 62], ancient: [76, 56] };
+const ART: Record<RegionId, [number, number]> = { verdant: [90, 64], crystal: [80, 58], lagoon: [88, 60], frostpeak: [86, 62], ember: [90, 64], hollow: [84, 62], sky: [86, 62], ancient: [76, 56], dunes: [90, 60] };
 const MAP_RATIO = 10 / 16;
 
 /**
- * The world map: six islands on a pixel sea, joined by the route the class travels. Open islands bob and
+ * The world map: nine islands on a pixel sea, joined by the route the class travels. Open islands bob and
  * lift under the pointer; locked ones sit under fog with what they need. Click an island to visit it.
  */
 export function WorldMap({ classId, student }: { classId: string; student: string | null }) {
@@ -76,7 +77,7 @@ export function WorldMap({ classId, student }: { classId: string; student: strin
               )}
               {bossRegion === r.id && battle && (
                 <span className="absolute -right-[4%] -top-[14%] w-[34%] idle-bob" title={`${BOSSES_BY_ID[battle.bossId].name} is here!`}>
-                  <Px name={`boss-${battle.bossId}`} className="w-full drop-shadow-[0_3px_0_rgb(14_42_82/.35)]" />
+                  <BossPortrait id={battle.bossId} still className="drop-shadow-[0_3px_0_rgb(14_42_82/.35)]" />
                   <span className="absolute -left-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-brick text-[12px] font-extrabold text-white">!</span>
                 </span>
               )}

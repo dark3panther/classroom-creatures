@@ -149,9 +149,9 @@ export interface Student {
   adventure?: StudentAdventure;
 }
 
-/* ───────────────────────────── World of Adventures (1.5, data version 4) ───────────────────────────── */
+/* ───────────────────────────── World of Adventures (1.5, data version 4; lesson battles and three regions 1.6) ───────────────────────────── */
 
-export type RegionId = 'verdant' | 'crystal' | 'frostpeak' | 'ember' | 'sky' | 'ancient';
+export type RegionId = 'verdant' | 'crystal' | 'frostpeak' | 'ember' | 'sky' | 'ancient' | 'lagoon' | 'hollow' | 'dunes';
 export type LocationId = 'sanctuary' | 'village' | 'library' | 'arena' | 'castle';
 
 export interface StudentAdventure {
@@ -225,9 +225,14 @@ export type BossStatus = 'active' | 'paused' | 'won' | 'ended';
 export interface BossContribution {
   id: string;
   studentId?: string;
+  /** positive: a hit on the boss; zero or negative (setback): the boss struck back and recovered this much */
   amount: number;
   at: number;
-  source: 'award' | 'quest' | 'class';
+  /** award / quest / class activity hit the boss; mission = the lesson battle's team finisher;
+   *  setback = a deduction during a lesson battle (the boss strikes back at that creature) */
+  source: 'award' | 'quest' | 'class' | 'mission' | 'setback';
+  /** a lesson battle's power-up behaviour: this hit counted double */
+  super?: boolean;
   /** award batch id or quest record id */
   ref?: string;
   label: string;
@@ -248,11 +253,31 @@ export interface BossBattle {
   endedAt?: number;
   reward: QuestReward;
   contributions: BossContribution[];
+  /** set for a lesson battle (1.6): a battle sized for one or two lessons around a class mission */
+  lesson?: LessonBattle;
+}
+
+/**
+ * A lesson battle (1.6). Every award is that creature's attack, a deduction makes the boss strike back at
+ * that creature, and finishing the class mission is the team finisher. Rules: docs/adventure-design.md 3.6.
+ */
+export interface LessonBattle {
+  /** the class mission for the lesson (the daily task), shown on the arena */
+  mission: string;
+  /** awards in this category are super effective (count double) */
+  focusTag?: CategoryTag;
+  /** a deduction makes the boss strike back at that creature and recover the points lost (capped) */
+  strikeBack: boolean;
+  /** one lesson's length; the battle clock starts with `lessons` of them */
+  lessonMs: number;
+  lessons: number;
+  /** when the teacher marked the mission complete (it can be done once) */
+  missionDoneAt?: number;
 }
 
 export type AdventureLogKind =
   | 'quest-submitted' | 'quest-approved' | 'quest-rejected' | 'quest-collected'
-  | 'boss-started' | 'boss-paused' | 'boss-resumed' | 'boss-won' | 'boss-ended'
+  | 'boss-started' | 'boss-paused' | 'boss-resumed' | 'boss-won' | 'boss-ended' | 'boss-mission'
   | 'treasure' | 'region-visited' | 'region-unlocked' | 'region-locked' | 'location-upgraded' | 'milestone';
 
 /** Append-only history of the adventure: the journal and the teacher's history are views of it. */

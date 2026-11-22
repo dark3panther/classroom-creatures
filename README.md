@@ -19,6 +19,30 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.6: lesson battles
+
+<p align="center"><img src="docs/screenshots/lesson-battle.gif" alt="A lesson battle against Grumblethorn: a fire creature's fireball and an earth creature's orb hit the boss, Grumblethorn strikes back and tangles one creature in brambles, the whole class makes a team attack, the mission is completed and Grumblethorn bursts into flowers as the class's friend" width="760"></p>
+
+A boss battle that fits one or two lessons, played on the projector. **Every point you give is a creature's attack, and every point you take makes the boss strike back.**
+
+- **Start it in about ten seconds.** Adventure → Boss Battle → *Start battle* on a boss → *Lesson battle*. Pick today's **class mission** (nine ready-made ones, like "Everyone joins in the lesson" or "Finish today's work", or write your own), what is **super effective** today, one or two lessons, and how tough the boss is. The boss's HP is worked out from your class size and your award values.
+- **Points are attacks.** Give points as usual, in the arena (tap a creature), on the classroom page or anywhere else. That creature hops and its element flies at the boss: fireballs, water orbs, ice lances, ball lightning, earth orbs, shadow orbs, tornadoes. The boss flinches and its HP goes down. Points for today's super-effective behaviour count **double**, and an award to the whole class is a **team attack**.
+- **Losing points: the boss strikes back.** Take points from Ahmed and the boss strikes back at Ahmed's creature, in its own silly way (Grumblethorn tangles it in brambles, Mudsnout splatters mud, Sir Snowsulk throws a snowball). The creature is dazed for a few seconds and the boss gets the lost points back, at most a fifth of its HP in a whole battle. Ahmed loses only the points you took. Nobody is ever knocked out. You can switch strikes off for a battle.
+- **Finish the mission together for the team finisher.** Press *Mission complete* and every creature attacks at once, for a quarter of the boss's HP. A typical lesson of awards plus the mission befriends the boss.
+- **Two lessons? It waits.** When the time is up the battle pauses with its HP kept. Press *Start the next lesson* next time.
+- **Befriended.** The boss bursts into a happy face in the arena, and everyone gets a small reward (2 XP and 5 coins by default).
+- Made for the projector: big names, a big HP bar and banners, and a full-screen button. In Pixel mode the arena, the boss and the effects are all pixel art.
+
+| A creature attacks | The boss strikes back | Pixel mode |
+|---|---|---|
+| <img src="docs/screenshots/battle-attack.jpg" alt="Hana's fire creature sends a fireball across the arena at Grumblethorn" width="300"> | <img src="docs/screenshots/battle-strike.jpg" alt="Grumblethorn strikes back: Kai's Coralyn is tangled up in brambles and the boss gets 2 HP back" width="300"> | <img src="docs/screenshots/battle-pixel.jpg" alt="The arena in Pixel mode with Mudsnout the muddy hippo as pixel art" width="300"> |
+
+**More world, more bosses.** Three new regions: **Coral Lagoon**, **Mushroom Hollow** and **Sunstone Desert**, each with a relic, chests, a background and a boss gift. Six new bosses: **Captain Puffington**, **Snorecap** and **Riddlepaw** guard the new regions, and **Mudsnout**, **Gloomwing** and **Zapcrackle** wander older ones, so a class has two bosses to battle from day one. Every boss is now a **painted** illustration with four faces (grumpy, hurt, attacking, befriended), blinking eyes, an aura from its element and its own strike. The 1.5 boss gifts (Bramble Crown, Crystal, Lava and Cloud trails, Star Temple Crown, Snow Goggles) now actually show on the creature.
+
+<p align="center"><img src="docs/screenshots/world-map-nine.jpg" alt="The world map with nine islands joined by a winding route: Verdant Valley, Crystal Caverns and Coral Lagoon along the bottom, Frostpeak Mountains, Ember Kingdom and Mushroom Hollow in the middle, Sky Islands, Ancient Kingdom and Sunstone Desert at the top" width="760"></p>
+
+The rules, numbers and reasons are in [docs/adventure-design.md](docs/adventure-design.md) (section 3.6).
+
 ## What's new in 1.5.2: the Pixel Pals
 
 <p align="center"><img src="docs/screenshots/pixel-pals.gif" alt="The ten Pixel Pals breathing and blinking, then each using its element attack (fire breath, a water jet, vines, chain lightning, frost breath, an earth spike, shadow tendrils, a beam of light, falling stars and a tornado), then hopping, flinching and falling asleep" width="900"></p>
@@ -181,11 +205,12 @@ To try the desktop shell without packaging: `npm run app`. The same config also 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Development server with hot reload |
-| `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, quest, boss, treasure, region, journal, import, backup and storage code (Vitest) |
+| `npm test` | Unit tests for the XP, evolution, shop, ability, achievement, quest, boss, lesson battle, treasure, region, journal, import, backup and storage code (Vitest) |
 | `npm run test:e2e` | End-to-end check in a real browser: the 1.3 to 1.4 upgrade, playing with a creature, abilities, buying an item, a teacher-approved evolution, the field guide, locked student mode, persistence after a restart, and phone width. Needs Playwright (`npm i -D playwright && npx playwright install chromium`); `E2E_SHOTS=out` also saves screenshots |
 | `npm run test:e2e:adventure` | End-to-end check of the World of Adventures: the 1.4 to 1.5 upgrade, creating a quest, a student handing it in from the locked kiosk, approval, collecting a reward exactly once, a boss battle, exploring and opening a chest, the journal, the Control Center, a restart, and phone width |
 | `npm run test:e2e:pixel` | End-to-end check of Pixel mode: switching it on from the top bar, pixel sprites that breathe and blink, pixel type and backgrounds, element auras and attacks, a Pixel Pal's animation and hat on its profile, the Pixel Pals in the field guide, the setting surviving a restart, phone width, and switching back |
-| `npm run art:adventure` | Rebuild the pixel art in `public/adventure/` from `scripts/pixel/*.px.js` (needs Node 22.18 or newer) |
+| `npm run test:e2e:battle` | End-to-end check of lesson battles: the nine regions and twelve painted bosses, starting a lesson battle, giving points from the arena (an attack, a super-effective award), a deduction (the boss strikes back, the creature is dazed and recovers), pause, the classroom's battle strip, the mission's team attack, befriending the boss, Pixel mode and phone width |
+| `npm run art:adventure` | Rebuild the pixel art in `public/adventure/` (islands, region places, relics, chests, the class world) from `scripts/pixel/*.px.js` (needs Node 22.18 or newer) |
 | `npm run art:creatures` | Rebuild the Pixel Pals' sprite sheets in `public/creatures-pixel/` and their animation data in `src/data/pixelPals.json` from `scripts/pixel/creatures.px.js` (needs Node 22.18 or newer and Python with Pillow) |
 | `npm run typecheck` | TypeScript check |
 | `npm run build` | Type-check and build the production site into `dist/` |

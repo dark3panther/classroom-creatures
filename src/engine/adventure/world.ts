@@ -12,7 +12,8 @@ export function adventurePoints(data: AppData, classId: string): { total: number
   const ids = new Set(students.map((s) => s.id));
   const quests = data.questRecords.filter((r) => ids.has(r.studentId) && isDone(r.status)).length;
   const xp = students.reduce((n, s) => n + Math.max(0, s.lifetimeXp ?? s.xp), 0);
-  const bosses = data.bosses.filter((b) => b.classId === classId && b.status === 'won').length;
+  // every boss counts once, however many times the class befriends it again in lesson battles
+  const bosses = new Set(data.bosses.filter((b) => b.classId === classId && b.status === 'won').map((b) => b.bossId)).size;
   const n = Math.max(1, students.length);
   const total = Math.floor((xp / AP.xpPerPoint + AP.perQuest * quests) / n) + AP.perBoss * bosses;
   return { total, xp, quests, bosses, students: students.length };

@@ -64,6 +64,20 @@ const FX = {
   'holy/smite': () => import('../vendor/pixelfx/fx/holy/smite.js'),
   'arcane/rune-circle': () => import('../vendor/pixelfx/fx/arcane/rune-circle.js'),
   'arcane/star-fall': () => import('../vendor/pixelfx/fx/arcane/star-fall.js'),
+  // lesson battles: creature shots, impacts on the boss, and the bosses' strikes back (see views/adventure/Arena.tsx)
+  'fire/fireball': () => import('../vendor/pixelfx/fx/fire/fireball.js'),
+  'water/splash': () => import('../vendor/pixelfx/fx/water/splash.js'),
+  'ice/ice-lance': () => import('../vendor/pixelfx/fx/ice/ice-lance.js'),
+  'ice/freeze': () => import('../vendor/pixelfx/fx/ice/freeze.js'),
+  'ice/ice-spikes': () => import('../vendor/pixelfx/fx/ice/ice-spikes.js'),
+  'arcane/arcane-orb': () => import('../vendor/pixelfx/fx/arcane/arcane-orb.js'),
+  'arcane/arcane-missiles': () => import('../vendor/pixelfx/fx/arcane/arcane-missiles.js'),
+  'lightning/zap-hit': () => import('../vendor/pixelfx/fx/lightning/zap-hit.js'),
+  'nature/root-snare': () => import('../vendor/pixelfx/fx/nature/root-snare.js'),
+  'nature/spore-burst': () => import('../vendor/pixelfx/fx/nature/spore-burst.js'),
+  'shadow/void-orb': () => import('../vendor/pixelfx/fx/shadow/void-orb.js'),
+  'shadow/curse': () => import('../vendor/pixelfx/fx/shadow/curse.js'),
+  'explosions/smoke-bomb': () => import('../vendor/pixelfx/fx/explosions/smoke-bomb.js'),
 } satisfies Record<string, () => Promise<FxModule>>;
 export type PixelFxId = keyof typeof FX;
 

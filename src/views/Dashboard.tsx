@@ -19,6 +19,9 @@ import { parseNames } from '../engine/roster';
 import { firstName, timeAgo } from '../engine/util';
 import { useClassStudents } from '../lib/stats';
 import { navigate } from '../lib/router';
+import { BOSSES_BY_ID } from '../data/adventure';
+import { battleTotal, currentBattle } from '../engine/adventure';
+import { BossPortrait } from '../creatures/bosses/BossPortrait';
 import { useCurrentClass, useStore } from '../store/store';
 import type { Category, ElementType, Stage } from '../types';
 import { StudentProfile } from './StudentProfile';
@@ -139,6 +142,8 @@ export function Dashboard() {
           )}
         </div>
       </div>
+
+      <BattleStrip classId={cls.id} />
 
       {/* toolbar */}
       <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -414,5 +419,23 @@ export function AddStudentsModal({ open, onClose, classId }: { open: boolean; on
         </div>
       </div>
     </Modal>
+  );
+}
+
+/** A lesson battle is on: how the boss is doing, and the way to the arena. Awards given here still attack. */
+function BattleStrip({ classId }: { classId: string }) {
+  const battle = useStore((s) => currentBattle(s.data, classId));
+  if (!battle?.lesson) return null;
+  const def = BOSSES_BY_ID[battle.bossId];
+  const left = Math.max(0, battle.hp - battleTotal(battle));
+  return (
+    <div className="glass mt-5 flex flex-wrap items-center gap-3 rounded-2xl px-4 py-2.5 shadow-[var(--shadow-card)] ring-1 ring-white/80" data-battle-strip>
+      <span className="h-14 w-14 shrink-0"><BossPortrait id={def.id} still /></span>
+      <div className="min-w-0 flex-1">
+        <div className="font-display text-lg font-bold leading-tight">Lesson battle: {def.name} <span className="text-[15px] font-semibold text-ink-soft">· {left} of {battle.hp} HP left{battle.status === 'paused' ? ' · paused' : ''}</span></div>
+        <div className="truncate text-[14px] text-ink-soft">Mission: {battle.lesson.mission}. Points you give here are attacks too.</div>
+      </div>
+      <button className="btn btn-primary" onClick={() => navigate('/adventure/boss')}><Icon name="swords" size={18} />Open the arena</button>
+    </div>
   );
 }

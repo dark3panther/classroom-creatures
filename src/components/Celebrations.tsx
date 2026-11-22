@@ -1,3 +1,4 @@
+import { BossPortrait } from '../creatures/bosses/BossPortrait';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { playAchievement, playBefriend, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone, playQuest, playRegion } from '../audio/sfx';
@@ -30,8 +31,13 @@ export function CelebrationHost() {
   const classes = useStore((s) => s.data.classes);
   const sound = useStore((s) => s.data.settings.soundEnabled);
   const reduced = useStore((s) => s.data.settings.reducedMotion);
+  const hold = useStore((s) => s.celebrationHoldUntil);
+  // the battle arena asks to wait until its final attack has played
+  const [, wake] = useState(0);
+  const wait = hold - Date.now();
+  useEffect(() => { if (wait > 0) { const t = setTimeout(() => wake((n) => n + 1), wait + 20); return () => clearTimeout(t); } }, [wait]);
   const current = queue[0];
-  if (!current) return null;
+  if (!current || wait > 0) return null;
   const student = 'studentId' in current ? students.find((s) => s.id === current.studentId) : undefined;
   const close = () => dismiss(current.id);
   if ('studentId' in current && !student) { queueMicrotask(close); return null; }
@@ -91,14 +97,18 @@ function AdventureBanner({ title, sub, art, onDone, sound }: { title: string; su
 function BossFriendOverlay({ c, onDone, sound }: { c: Extract<Celebration, { type: 'bossWon' }>; onDone: () => void; sound: boolean }) {
   const boss = BOSSES_BY_ID[c.bossId];
   const battle = useStore((s) => s.data.bosses.find((b) => b.id === c.battleId));
+  // the first time a boss is befriended it leaves a statue; later lesson battles make it a friend again
+  const again = useStore((s) => s.data.bosses.some((b) => b.id !== c.battleId && b.bossId === c.bossId && b.classId === battle?.classId && b.status === 'won' && (b.endedAt ?? 0) < (battle?.endedAt ?? Infinity)));
   useEffect(() => { if (sound) playBefriend(); }, [sound]);
   return (
     <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Burst kind="confetti" count={40} spread={420} size={18} duration={2.4} />
-      <motion.img src={advImg(`boss-${c.bossId}-friend`)} alt={boss?.name} className="pixel relative w-[min(46vw,300px)]" initial={{ scale: 0.3, y: 60, opacity: 0 }} animate={{ scale: 1, y: [0, -18, 0], opacity: 1 }} transition={{ scale: { type: 'spring', stiffness: 140, damping: 11 }, y: { repeat: Infinity, duration: 1.2, delay: 0.6 } }} />
-      <motion.h2 className="gilt-text relative mt-6 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-6xl" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>{boss?.name} is your friend!</motion.h2>
+      <motion.div className="relative w-[min(46vw,320px)]" initial={{ scale: 0.3, y: 60, opacity: 0 }} animate={{ scale: 1, y: [0, -18, 0], opacity: 1 }} transition={{ scale: { type: 'spring', stiffness: 140, damping: 11 }, y: { repeat: Infinity, duration: 1.2, delay: 0.6 } }}>
+        <BossPortrait id={c.bossId} friend title={boss?.name} />
+      </motion.div>
+      <motion.h2 className="gilt-text relative mt-6 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-6xl" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>{boss?.name} is your friend{again ? ' again' : ''}!</motion.h2>
       <p className="relative mt-3 max-w-2xl text-xl font-bold text-white">{boss?.friendly}</p>
-      {battle && (battle.reward.xp > 0 || battle.reward.coins > 0) && <p className="relative mt-2 text-lg font-bold text-[#ffd166]">Everyone gets {[battle.reward.xp ? `${battle.reward.xp} XP` : '', battle.reward.coins ? `${battle.reward.coins} coins` : ''].filter(Boolean).join(' and ')}. A statue joins the Creature Sanctuary.</p>}
+      {battle && (battle.reward.xp > 0 || battle.reward.coins > 0) && <p className="relative mt-2 text-lg font-bold text-[#ffd166]">Everyone gets {[battle.reward.xp ? `${battle.reward.xp} XP` : '', battle.reward.coins ? `${battle.reward.coins} coins` : ''].filter(Boolean).join(' and ')}.{again ? '' : ' A statue joins the Creature Sanctuary.'}</p>}
       <button className="btn btn-primary relative mt-8 px-10 py-4 text-xl" onClick={onDone} autoFocus>Hooray!</button>
     </motion.div>
   );

@@ -32,6 +32,8 @@ export type AdventureNote =
   | { type: 'quest-collected'; studentId: string; questId: string; xp: number; coins: number; itemId?: string }
   | { type: 'boss-won'; classId: string; battleId: string; bossId: string }
   | { type: 'boss-ended'; classId: string; battleId: string; bossId: string }
+  /** a lesson battle's clock ran out: it is paused until the next lesson */
+  | { type: 'boss-timeup'; classId: string; battleId: string; bossId: string }
   | { type: 'region-opened'; classId: string; regionId: RegionId }
   | { type: 'decoration'; classId: string; id: string; name: string }
   | { type: 'treasure'; studentId: string; treasureId: string; coins: number; itemId?: string }

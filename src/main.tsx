@@ -6,6 +6,7 @@ import { SkyWorld } from './components/SkyWorld';
 import { Icon } from './dev/Icon';
 import { Lineup } from './dev/Lineup';
 import { Sheet } from './dev/Sheet';
+import { BossSheet } from './dev/BossSheet';
 
 // desktop app on macOS: leave room for the window buttons and let the top bar drag the window
 if (/Electron/.test(navigator.userAgent) && /Mac/.test(navigator.platform)) document.documentElement.classList.add('desktop-mac');
@@ -13,9 +14,10 @@ if (/Electron/.test(navigator.userAgent) && /Mac/.test(navigator.platform)) docu
 const qs = new URLSearchParams(location.search);
 const isSheet = import.meta.env.DEV && qs.has('sheet');
 const isIcon = import.meta.env.DEV && qs.has('icon');
+const isBosses = import.meta.env.DEV && qs.has('bosses');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>{import.meta.env.DEV && qs.get('lineup') ? <Lineup id={qs.get('lineup')!} /> : isIcon ? <Icon /> : isSheet ? <Sheet /> : (
+  <React.StrictMode>{import.meta.env.DEV && qs.get('lineup') ? <Lineup id={qs.get('lineup')!} /> : isIcon ? <Icon /> : isBosses ? <BossSheet /> : isSheet ? <Sheet /> : (
     <>
       <SkyWorld />
       <div className="app-layer"><App /></div>

@@ -1,4 +1,4 @@
-# World of Adventures (1.5) — design
+# World of Adventures (1.5, lesson battles 1.6) — design
 
 Structured with the game-design-document and economy-model templates from
 [Claude-Code-Game-Studios](https://github.com/dark3panther/Claude-Code-Game-Studios) (Overview, Player
@@ -7,7 +7,8 @@ numbers live in `src/data/adventure.ts`; rules live in `src/engine/adventure/`.
 
 ## 1. Overview
 
-An adventure layer on top of the 1.4 creature game. The class explores a fantasy world of six regions,
+An adventure layer on top of the 1.4 creature game. The class explores a fantasy world of nine regions (six
+in 1.5, three more in 1.6),
 completes quests, befriends bosses together, opens treasure chests and grows a shared world. Nothing here
 creates a second XP, coin or item system: every reward goes through the existing award pipeline
 (`applyReward` in `engine/awards.ts`), so levels, evolutions, achievements, milestone treats, undo and the
@@ -95,17 +96,76 @@ shared world (Creature Sanctuary, Fantasy Village, Magical Library, Training Are
 three stages; when the class has enough points the teacher presses Build / Upgrade. Decorations come from
 befriended bosses (statues) and class quest milestones. The shared world can be switched off in Settings.
 
+### 3.6 Lesson battles (1.6)
+
+A short battle made for the projector, sized for **one or two lessons** around a **class mission** (the
+daily task). It turns the teacher's normal point-giving into a visible fight the whole class follows.
+
+**Setup (about ten seconds).** On the Boss Battle page the teacher picks a boss of an open region and
+*Lesson battle*, then:
+
+| Setting | Default | Notes |
+|---|---|---|
+| Class mission | "Everyone joins in the lesson" | nine presets or the teacher's own words (80 characters) |
+| Super effective today | the mission's behaviour | awards of that category count double (×2); or nothing extra |
+| How long | one lesson of 45 minutes | one or two lessons; 30 to 60 minutes each |
+| Boss strength | Normal | Gentle / Normal / Tough set the HP (below); the teacher can type any HP |
+| The boss strikes back | on | off: deductions do not touch the battle. Unavailable when deductions are off |
+| Reward for everyone | 2 XP, 5 coins | small, because lesson battles can happen every day |
+
+**During the lesson** the arena shows the class's creatures on the left and the boss on the right, the
+mission, the boss's HP and the lesson clock. Points can be given from the arena (tap a creature, or
+*Whole class*), from the classroom, or anywhere else: the arena plays every one.
+
+1. **A point award is that creature's attack.** The creature hops, its element flies at the boss (fireball,
+   water orb, ice lance, ball lightning...), the boss flinches and loses HP equal to the award's XP; a
+   *super effective* award counts double and says so. An award to several students at once is a **team
+   attack**. Approved quests and class activities hit the boss as before.
+2. **A deduction makes the boss strike back** at that student's creature, in its own way (Grumblethorn tangles
+   it in brambles, Mudsnout splatters mud, Snowsulk throws a snowball...). The creature is dazed for five
+   seconds; the boss **recovers the points lost**, at most 20% of its HP over the whole battle, and never past
+   full. The strike happens even if the student had no XP left to lose. The student's only cost is the
+   deduction itself: no coins, no lost progress, nobody is ever out.
+3. **Mission complete** (teacher, once per battle) is the **team finisher**: every creature attacks together
+   for 25% of the boss's HP.
+4. **Time's up**: the battle pauses with its HP kept (it does not end, unlike a long battle). Resuming starts
+   a fresh lesson on the clock, so a two-lesson battle simply carries on next time. Pause and End work as for
+   long battles; ending costs nobody anything.
+5. **Befriended** at 0 HP: the boss turns happy in the arena, then the usual celebration; everyone gets the
+   reward once. A boss befriended before becomes a friend *again* (no second statue).
+
+**Why it stays kind.** The boss never targets anyone the teacher did not deduct; the strike is cartoon play
+(splats, puffs, tangles), names the creature and the first name only, and the class's shared consequence is
+small and capped. The rules screen under the arena says it in the children's words: "keep each other on
+track". The teacher can switch strikes off per battle.
+
+### 3.7 Regions and bosses added in 1.6
+
+Coral Lagoon (water, 20 AP, Captain Puffington), Mushroom Hollow (nature and shadow, 80 AP, Snorecap) and
+Sunstone Desert (earth, fire and light, 200 AP, Riddlepaw), each with a relic, a coin chest, a background
+chest and a gift chest (Captain's Hat, Glow Spore Trail, Sunstone Circlet). Three **wandering bosses** live
+in regions without guarding them (no chest of their own): Mudsnout (Verdant Valley), Gloomwing (Crystal
+Caverns) and Zapcrackle (Ember Kingdom), so a class has two bosses to battle from the first day. Every boss
+is drawn as a painted illustration in code (`src/creatures/bosses/BossArt.tsx`) with four faces (grumpy,
+hurt, attacking, happy), a blink, an element, an aura and a strike; in Pixel mode it is made into pixel art.
+
 ## 4. Formulas
 
-* **Adventure points** (class): `AP = floor((Σ lifetimeXp / 25 + 2 × approved quest completions) / students) + 20 × bosses befriended`.
+* **Adventure points** (class): `AP = floor((Σ lifetimeXp / 25 + 2 × approved quest completions) / students) + 20 × different bosses befriended`
+  (1.6: each boss counts once, so befriending it again in lesson battles does not race the class through the map).
   The class average, so a class of 12 and a class of 30 move through the world at the same pace. All three parts
   come only from teacher-approved activity. A student who earns about 12 XP and completes one or two quests a
   day adds about 3 to 4 points a day.
-* **Region unlock** (AP): Verdant Valley 0 · Crystal Caverns 10 · Frostpeak Mountains 30 · Ember Kingdom 60 ·
-  Sky Islands 100 · Ancient Kingdom 150. Roughly: the second region in the first week, the last one in about a
-  term. A region that has opened stays open (undo never closes it); only the teacher can close one.
+* **Region unlock** (AP): Verdant Valley 0 · Crystal Caverns 10 · Coral Lagoon 20 · Frostpeak Mountains 30 ·
+  Ember Kingdom 60 · Mushroom Hollow 80 · Sky Islands 100 · Ancient Kingdom 150 · Sunstone Desert 200. Roughly:
+  the second region in the first week, Ancient Kingdom in about a term, Sunstone Desert for the end of the year. A region that has opened stays open (undo never closes it); only the teacher can close one.
 * **Suggested boss HP**: `students × perStudent` (easy 8, medium 14, hard 22, epic 32), minimum 30.
 * **Boss hit**: award XP (positive awards only); approved quest `max(5, reward XP)`.
+* **Lesson battle HP**: `round5(students × 2.5 awards × average positive award XP × lessons × level)`, level
+  Gentle 0.75 · Normal 1 · Tough 1.35, minimum 20. E.g. 24 students, awards averaging 4 XP, one lesson: 240 HP.
+  The class's awards bring it most of the way; the mission's 25% finishes it.
+* **Super effective**: the award's XP × 2. **Strike back**: the boss recovers the XP lost, while
+  `recovered ≤ floor(0.2 × HP)` and never below a full meter. **Team finisher**: `ceil(0.25 × HP)`.
 * **Region completion** (per student): average of quests completed in the region (distinct quests, capped
   at the region's quest count), treasures opened in the region (out of 4) and region creature forms the class
   has discovered.
@@ -122,6 +182,7 @@ befriended bosses (statues) and class quest milestones. The shared world can be 
 | Weekly quest | 10–15 | 15–20 | per week | 4 default weekly quests |
 | Custom quest | teacher | teacher | once | optional item reward |
 | Boss befriended | 5–15 | 15–40 | per battle | every student, plus a statue |
+| Lesson battle befriended | 2 | 5 | up to daily | every student (defaults; the teacher can change them) |
 | Coin chest | 0 | 20–50 | once each | per region + specials |
 | Cosmetic / boss chest | 0 | fallback 30–40 | once each | item, or coins if owned |
 
@@ -166,3 +227,7 @@ per battle in the Adventure Control Center; Settings has *Adventure* on/off, *Sh
    value when the item is already owned.
 8. The journal lists every quest, region, boss, treasure and milestone in time order, with filters.
 9. All of it survives a restart, a backup and restore, and an upgrade from 1.4 data.
+10. (1.6) A lesson battle: an award hits for its XP (double when super effective); a deduction makes the boss
+    strike back at that creature and recover at most 20% of its HP in total; Mission complete hits for 25% once;
+    time's up pauses with HP kept and Resume adds a lesson; undo takes back attacks and strikes. Each boss counts
+    once for adventure points. (`src/engine/lesson.test.ts`, `scripts/e2e-battle.mjs`)

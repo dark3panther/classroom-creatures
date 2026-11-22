@@ -1,14 +1,16 @@
 import { ACHIEVEMENTS_BY_ID } from '../../data/defaults';
 import type { AppData, AwardEvent, Equipped } from '../../types';
 import { achievementMet, undoBatch, type AwardResult } from '../awards';
-import { hitBoss, expireBattles } from './bosses';
+import { LESSON } from '../../data/adventure';
+import { hitBoss, expireBattles, strikeBack } from './bosses';
 import { type AdventureResult, ctxOf, result } from './core';
 import { questProgress, questWindow, syncTrackedQuests } from './quests';
 import { syncWorld } from './world';
 
 /**
- * What an award changes in the adventure: positive awards hit the class's boss, tracked quests complete,
- * and new regions or decorations may open. Corrections and adventure rewards are not activity.
+ * What an award changes in the adventure: positive awards hit the class's boss (a lesson battle's power-up
+ * behaviour twice), a deduction in a lesson battle makes the boss strike back, tracked quests complete, and
+ * new regions or decorations may open. Corrections and adventure rewards are not activity.
  */
 export function afterAward(award: AwardResult, now = Date.now()): AdventureResult {
   const c = ctxOf(award.data, now);
@@ -17,7 +19,16 @@ export function afterAward(award: AwardResult, now = Date.now()): AdventureResul
   const classIds = [...new Set(events.map((e) => e.classId))];
   expireBattles(c, classIds);
   for (const e of events) {
-    if (e.xp > 0 && !e.adjust && !e.reward) hitBoss(c, e.classId, { studentId: e.studentId, amount: e.xp, source: 'award', ref: award.batchId, label: e.categoryName });
+    if (e.adjust || e.reward) continue;
+    const battle = c.data.bosses.find((b) => b.classId === e.classId && b.status === 'active');
+    if (e.xp > 0) {
+      // a lesson battle's power-up behaviour is super effective: it counts double
+      const sup = !!battle?.lesson?.focusTag && e.tag === battle.lesson.focusTag;
+      hitBoss(c, e.classId, { studentId: e.studentId, amount: e.xp * (sup ? LESSON.superMultiplier : 1), source: 'award', ref: award.batchId, label: e.categoryName, ...(sup ? { super: true } : {}) });
+    } else if (battle?.lesson && (c.data.categories.find((x) => x.id === e.categoryId)?.xp ?? e.xp) < 0) {
+      // a deduction in a lesson battle: the boss strikes back at this creature (even when no XP was left to lose)
+      strikeBack(c, e.classId, { studentId: e.studentId, lost: -e.xp, ref: award.batchId, label: e.categoryName });
+    }
   }
   syncTrackedQuests(c, events.map((e) => e.studentId), award.batchId);
   for (const id of classIds) syncWorld(c, id);
@@ -70,7 +81,7 @@ export function undoAdventure(data: AppData, batchId: string, now = Date.now()):
   d = undoBatch(d, batchId);
   // the award's boss hits come off battles that are still running
   d = { ...d, bosses: d.bosses.map((b) => (b.status === 'active' || b.status === 'paused'
-    ? { ...b, contributions: b.contributions.filter((x) => !(x.source === 'award' && x.ref === batchId)) } : b)) };
+    ? { ...b, contributions: b.contributions.filter((x) => !((x.source === 'award' || x.source === 'setback') && x.ref === batchId)) } : b)) };
   // tracked quests this award completed are taken back when the target is no longer met and nothing was collected
   const removed = d.questRecords.filter((r) => r.sourceBatchId === batchId && (r.status === 'submitted' || r.status === 'approved'));
   const gone = new Set<string>();

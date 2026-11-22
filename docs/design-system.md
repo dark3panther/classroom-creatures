@@ -52,6 +52,9 @@ The adventure is a pixel-art layer that lives inside the sky world, never instea
 
 **Pixel Pals (1.5.2):** ten native pixel species (`scripts/pixel/creatures.px.js` → `public/creatures-pixel/`, `src/data/pixelPals.json`), played frame by frame by `src/creatures/PixelPal.tsx` (idle, blink, happy, attack, sleep, hurt), pixel sprites in both looks.
 
+## Bosses and the arena (1.6)
+Bosses: `src/creatures/bosses/BossArt.tsx` (painted in code, moods grumpy / hurt / attack / happy, blink), shown with `BossPortrait` (pixelated in Pixel mode, statues carved from the drawing). The lesson battle arena: `src/views/adventure/Arena.tsx` with `.arena*` styles in `index.css` and painted places in `ArenaBackdrop.tsx`. Dev sheet: `?bosses`.
+
 ## Motion
 - anime.js (`src/vendor/animejs`) through `lib/motion.ts` and `lib/interactions.ts`: springy presses, hover lifts, sparks, card tilt, page entrances, count-ups, award pops, modals, progress bars, sliding tab pills, grid re-sorting, and the sky world (cloud drift, island bob, sun, pollen, flyers, pointer parallax)
 - Idle loops: CSS only, 2–4 s, per-species style; large views add a 4.2 s breath

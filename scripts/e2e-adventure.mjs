@@ -76,7 +76,7 @@ const kidName = (await st(kid)).name;
 // ---------- 2. the world map ----------
 await go('#/adventure');
 ok(await p.getByRole('heading', { name: 'World of Adventures' }).count() === 1, 'Adventure section opens from the top bar route');
-ok(await p.locator('.adv-isle').count() === 6, 'the map shows six regions');
+ok(await p.locator('.adv-isle').count() === 9, 'the map shows nine regions');
 ok(await p.locator('.adv-isle.locked').count() >= 1, 'locked regions are shown with their requirement');
 await shot(p, 'woa-map.png', true);
 

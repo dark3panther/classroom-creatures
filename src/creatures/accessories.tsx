@@ -103,6 +103,14 @@ export function Accessories({ equipped, g, line }: { equipped: Equipped; g: Geo;
         </g>
       )}
 
+      {equipped.glasses === 'glasses-snow' && (
+        <g>
+          <path d={`M ${ex[0] - er * 2.4} ${g.eyeY} L ${ex[1] + er * 2.4} ${g.eyeY}`} stroke="#2f6fd0" strokeWidth={5} strokeLinecap="round" />
+          <rect x={ex[0] - er * 1.9} y={g.eyeY - er * 1.3} width={ex[1] - ex[0] + er * 3.8} height={er * 2.6} rx={er * 1.2} fill="#cfe9ff" stroke="#1f3a6a" strokeWidth={3} />
+          {ex.map((x) => <ellipse key={x} cx={x} cy={g.eyeY} rx={er * 1.25} ry={er * 1} fill="#7fd0ff" opacity={0.75} stroke="#1f3a6a" strokeWidth={2} />)}
+          {ex.map((x) => <path key={`s${x}`} d={`M ${x - er * 0.7} ${g.eyeY - er * 0.3} l ${er * 0.6} ${-er * 0.45}`} stroke="#fff" strokeWidth={2.5} strokeLinecap="round" />)}
+        </g>
+      )}
       {equipped.glasses === 'glasses-heart' && (
         <g stroke="#2b2140" strokeWidth={2.5} strokeLinejoin="round">
           {ex.map((x) => <path key={x} d={`M ${x} ${g.eyeY + er * 1.3} C ${x - er * 2.4} ${g.eyeY - er * 0.2} ${x - er * 1.2} ${g.eyeY - er * 2} ${x} ${g.eyeY - er * 0.7} C ${x + er * 1.2} ${g.eyeY - er * 2} ${x + er * 2.4} ${g.eyeY - er * 0.2} ${x} ${g.eyeY + er * 1.3} Z`} fill="#ff5fa2" fillOpacity={0.6} />)}
@@ -217,6 +225,42 @@ export function Accessories({ equipped, g, line }: { equipped: Equipped; g: Geo;
         <g className="cc-shine">
           <polygon points={`${hx - 28},${top + 10} ${hx - 32},${top - 22} ${hx - 14},${top - 6} ${hx},${top - 30} ${hx + 14},${top - 6} ${hx + 32},${top - 22} ${hx + 28},${top + 10}`} fill="#ffd23f" stroke={line} strokeWidth={3} strokeLinejoin="round" />
           <circle cx={hx} cy={top} r={4.5} fill="#e5484d" /><circle cx={hx - 17} cy={top + 2} r={3.5} fill="#4f8cff" /><circle cx={hx + 17} cy={top + 2} r={3.5} fill="#24b47e" />
+        </g>
+      )}
+
+      {/* World of Adventures boss gifts */}
+      {equipped.hat === 'hat-bramble' && (
+        <g>
+          <path d={`M ${hx - 36} ${top + 8} Q ${hx} ${top - 6} ${hx + 36} ${top + 8}`} stroke="#3f7f33" strokeWidth={9} fill="none" strokeLinecap="round" />
+          <path d={`M ${hx - 36} ${top + 8} Q ${hx} ${top - 6} ${hx + 36} ${top + 8}`} stroke="#6fbf4a" strokeWidth={3.5} fill="none" strokeLinecap="round" />
+          {[-30, -12, 8, 26].map((dx, i) => <path key={i} d={`M ${hx + dx} ${top + 2 + Math.abs(dx) * 0.15} l 3 -10 l 3 10 Z`} fill="#a8743a" stroke={line} strokeWidth={1.5} strokeLinejoin="round" />)}
+          {[-22, 0, 20].map((dx, i) => <g key={`f${i}`}>{[0, 72, 144, 216, 288].map((a) => <circle key={a} cx={hx + dx + Math.cos((a * Math.PI) / 180) * 4.5} cy={top - 1 + Math.abs(dx) * 0.12 + Math.sin((a * Math.PI) / 180) * 4.5} r={4} fill={i === 1 ? '#ffb3d1' : '#ff8fb1'} stroke={line} strokeWidth={1.3} />)}<circle cx={hx + dx} cy={top - 1 + Math.abs(dx) * 0.12} r={2.8} fill="#ffd23f" /></g>)}
+        </g>
+      )}
+      {equipped.hat === 'hat-relic' && (
+        <g className="cc-shine">
+          <path d={`M ${hx - 30} ${top + 10} L ${hx - 30} ${top - 10} L ${hx - 15} ${top} L ${hx} ${top - 20} L ${hx + 15} ${top} L ${hx + 30} ${top - 10} L ${hx + 30} ${top + 10} Z`} fill="#e3c98f" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          <rect x={hx - 30} y={top + 2} width={60} height={8} fill="#c9a25a" stroke={line} strokeWidth={2.5} />
+          <polygon points={star(hx, top - 24, 8)} fill="#ffd23f" stroke={line} strokeWidth={2} />
+          <circle cx={hx - 18} cy={top + 6} r={3} fill="#9b7bff" /><circle cx={hx + 18} cy={top + 6} r={3} fill="#9b7bff" />
+        </g>
+      )}
+      {equipped.hat === 'hat-captain' && (
+        <g>
+          <path d={`M ${hx - 30} ${top + 4} Q ${hx - 28} ${top - 26} ${hx} ${top - 26} Q ${hx + 28} ${top - 26} ${hx + 30} ${top + 4} Z`} fill="#22335e" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          <path d={`M ${hx - 36} ${top + 8} Q ${hx} ${top - 2} ${hx + 36} ${top + 8} Q ${hx} ${top + 16} ${hx - 36} ${top + 8} Z`} fill="#1a2648" stroke={line} strokeWidth={3} strokeLinejoin="round" />
+          <path d={`M ${hx - 28} ${top - 2} Q ${hx} ${top - 8} ${hx + 28} ${top - 2}`} stroke="#ffd23f" strokeWidth={3.5} fill="none" strokeLinecap="round" />
+          <circle cx={hx} cy={top - 15} r={6} fill="#ffd23f" stroke={line} strokeWidth={2} />
+          <path d={`M ${hx} ${top - 19} v 8 m -3.5 -3 q 3.5 4 7 0`} stroke={line} strokeWidth={1.6} fill="none" strokeLinecap="round" />
+        </g>
+      )}
+      {equipped.hat === 'hat-sunstone' && (
+        <g>
+          <path d={`M ${hx - 34} ${top + 10} Q ${hx} ${top - 6} ${hx + 34} ${top + 10}`} stroke="#c8902e" strokeWidth={8} fill="none" strokeLinecap="round" />
+          <path d={`M ${hx - 34} ${top + 10} Q ${hx} ${top - 6} ${hx + 34} ${top + 10}`} stroke="#ffd23f" strokeWidth={3.5} fill="none" strokeLinecap="round" />
+          {[-1, 1].map((s) => <path key={s} d={`M ${hx + s * 12} ${top + 1} l ${s * 8} -8 l ${s * 4} 10 Z`} fill="#2f6fd0" stroke={line} strokeWidth={1.6} strokeLinejoin="round" />)}
+          <circle cx={hx} cy={top - 4} r={9} fill="#ff8a2b" stroke={line} strokeWidth={2.5} className="cc-pulse" />
+          <circle cx={hx - 3} cy={top - 7} r={2.8} fill="#fff1c4" />
         </g>
       )}
 

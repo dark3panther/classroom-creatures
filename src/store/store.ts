@@ -42,6 +42,10 @@ interface UiState {
   locked: boolean;
   /** the final-path chooser is open for this student */
   branchPick: { studentId: string; mode: 'approve' | 'choose' } | null;
+  /** the battle arena holds pop-ups until its attack animations have played (a timestamp) */
+  celebrationHoldUntil: number;
+  holdCelebrations: (until: number) => void;
+  completeMission: (battleId: string) => boolean;
 }
 
 interface Actions {
@@ -191,6 +195,8 @@ export const useStore = create<Store>()((set, get) => {
     toast: null,
     locked: false,
     branchPick: null,
+    celebrationHoldUntil: 0,
+    holdCelebrations: (until) => set({ celebrationHoldUntil: Math.max(get().celebrationHoldUntil, until) }),
 
     init: async () => {
       let data = await loadData();
@@ -507,6 +513,7 @@ export const useStore = create<Store>()((set, get) => {
     startBattle: (setup) => runAdventure((d, a) => adv.startBattle(d, a, setup)),
     controlBattle: (bid, action) => runAdventure((d, a) => adv.controlBattle(d, a, bid, action)),
     classActivity: (classId, amount, label) => runAdventure((d, a) => adv.classActivity(d, a, classId, amount, label)),
+    completeMission: (bid) => runAdventure((d, a) => adv.completeMission(d, a, bid)),
     setRegion: (classId, regionId, mode) => runAdventure((d, a) => adv.setRegion(d, a, classId, regionId, mode)),
     visitRegion: (studentIds, regionId) => runAdventure((d, a) => adv.visitRegion(d, a, studentIds, regionId), studentIds.length === 1 ? studentIds[0] : undefined),
     upgradeLocation: (classId, lid) => runAdventure((d, a) => adv.upgradeLocation(d, a, classId, lid)),

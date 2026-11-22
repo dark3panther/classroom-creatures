@@ -1,3 +1,4 @@
+import { BossStatue } from '../../creatures/bosses/BossPortrait';
 import { useEffect, useRef, useState } from 'react';
 import { BOSSES_BY_ID, LOCATIONS, LOCATIONS_BY_ID, QUEST_DECORATIONS } from '../../data/adventure';
 import { getSpecies } from '../../data/species';
@@ -48,7 +49,7 @@ export function ClassWorldView({ classId, teacher }: { classId: string; teacher:
         <Px name="world-ground" className="sea" />
         {decos.filter((d) => d.kind === 'quest').map((d) => { const [x, y, w] = DECO_SPOT[d.id]; return <Px key={d.id} name={`deco-${d.id}`} alt={d.name} className="absolute" style={{ left: pct(x, 320), top: pct(y, 200), width: pct(w, 320) }} />; })}
         {decos.filter((d) => d.kind === 'statue').map((d, i) => (
-          <Px key={d.id} name={`statue-${d.bossId}`} alt={`Statue of ${BOSSES_BY_ID[d.bossId!]?.name}`} className="absolute drop-shadow-[0_3px_0_rgb(14_42_82/.25)]" style={{ left: pct(6 + i * 24, 320), top: pct(166, 200), width: pct(22, 320) }} />
+          <BossStatue key={d.id} id={d.bossId!} alt={`Statue of ${BOSSES_BY_ID[d.bossId!]?.name}`} className="absolute drop-shadow-[0_3px_0_rgb(14_42_82/.25)]" style={{ left: pct(4 + (i % 12) * 26, 320), top: pct(i < 12 ? 166 : 140, 200), width: pct(22, 320) }} />
         ))}
         <div ref={walkers} className="absolute inset-0" aria-hidden>
           {students.map((s) => (
