@@ -6,3 +6,7 @@ release
 
 # impeccable review captures (local evidence, regenerated each review)
 .impeccable/review/
+
+# generated 3D art: Blender models, SpriteCast renders and frames (rebuilt by npm run art:bosses / art:chests)
+art/
+__pycache__/

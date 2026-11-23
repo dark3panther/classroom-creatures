@@ -149,6 +149,26 @@ Caverns) and Zapcrackle (Ember Kingdom), so a class has two bosses to battle fro
 is drawn as a painted illustration in code (`src/creatures/bosses/BossArt.tsx`) with four faces (grumpy,
 hurt, attacking, happy), a blink, an element, an aura and a strike; in Pixel mode it is made into pixel art.
 
+### 3.8 Animated bosses and the 3D chest (1.7)
+
+Every boss is also a **rigged 3D model** built in Blender from code (`scripts/bosses-3d/`) after its painting,
+and rendered by SpriteCast into sprite strips: **idle** (breathing, a blink), **hurt** (knocked back, eyes
+squeezed shut, a sweat drop), **attack** (a wind-up and a lunge with a toothy grin), **happy** (two hops, its
+befriended look: Grumblethorn flowers, Captain Puffington's hat, Zapcrackle turning white with a rainbow) and a
+side-on **walk** that the wandering bosses use to stroll along their lane on the region page. The arena maps its
+moods onto them: a creature's hit plays *hurt*, a strike back plays *attack*, a befriended boss loops *happy*, and
+every hit plays again (a `beat` counter) even when the mood does not change. One-shots fall back to idle.
+
+Rules that keep it calm and fair: the animation never changes what happened (HP, rewards and the order of moves
+come from the engine as before); a paused battle shows a still boss; Reduce Motion shows one still frame per
+mood; Pixel mode draws the same frames small and blows them up, so the pixel boss moves too. **Settings →
+Adventure → Animated bosses** brings back the painted drawings, which also stand in automatically if the sprites
+cannot load.
+
+The **treasure chest** in the opening moment is a Blender model too (`scripts/blender/chest.py`, rendered with
+Cycles): in the chest's own colours (coins, accessory, cosmetic, special) the lid flies open, light pours out
+and sparkles burst, and it stays open on what was inside. Relics and Pixel mode keep their pixel art.
+
 ## 4. Formulas
 
 * **Adventure points** (class): `AP = floor((Σ lifetimeXp / 25 + 2 × approved quest completions) / students) + 20 × different bosses befriended`

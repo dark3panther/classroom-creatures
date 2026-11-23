@@ -4,6 +4,8 @@
  * twelve painted bosses, starting a lesson battle from the boss list, giving points from the arena (a creature
  * attacks, the power-up counts double), a deduction (the boss strikes back and the creature is dazed), pausing,
  * the class mission's team attack, befriending the boss, the classroom's battle strip, Pixel mode and phone width.
+ * Since 1.7 the bosses are animated 3D sprites: the boss flinches on a hit, lunges when it strikes back and hops
+ * once befriended; the painted drawings stay one setting away.
  *
  *   npm run test:e2e:battle
  *   E2E_SHOTS=out npm run test:e2e:battle   (also saves screenshots into ./out)
@@ -43,6 +45,9 @@ const battle = () => p.evaluate(() => { const st = window.__cc.getState(); const
 /** wait until `fn` returns something truthy (the arena plays its attacks one after another) */
 const until = async (fn, ms = 8000) => { const t0 = Date.now(); for (;;) { const v = await fn(); if (v || Date.now() - t0 > ms) return v; await wait(150); } };
 const hpLeft = async () => { const bt = await battle(); return bt ? bt.hp - Math.max(0, bt.contributions.reduce((n, x) => n + x.amount, 0)) : null; };
+/** what the arena's animated boss is playing, and how much of its canvas is drawn */
+const bossAction = () => p.evaluate(() => document.querySelector('[data-arena] [data-boss-sprite]')?.getAttribute('data-action') ?? null);
+const drawn = (sel) => p.evaluate((q) => [...document.querySelectorAll(q)].map((c) => { const g = c.getContext('2d'); const d = g.getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 0) n++; return n; }), sel);
 
 try {
 await p.goto(U); await wait(1200);
@@ -54,7 +59,8 @@ await go('#/adventure/map', 2200);
 ok(await p.locator('.adv-isle').count() === 9, 'the world map shows nine regions');
 ok(await p.evaluate(() => [...document.querySelectorAll('.adv-isle img')].every((i) => i.complete && i.naturalWidth > 0)), 'every island picture loads');
 await go('#/adventure/boss', 2200);
-ok(await p.locator('svg.boss-art').count() >= 12, `the boss list shows the twelve painted bosses (${await p.locator('svg.boss-art').count()})`);
+ok(await p.locator('[data-boss-sprite]').count() >= 12, `the boss list shows the twelve animated bosses (${await p.locator('[data-boss-sprite]').count()})`);
+ok((await until(async () => { const d = await drawn('[data-boss-sprite] canvas'); return d.length >= 12 && d.every((n) => n > 200) ? d : null; }))?.length >= 12, 'every boss in the list is drawn');
 await shot('battle-bosses.png');
 
 // ---------- 2. start a lesson battle from the list ----------
@@ -66,6 +72,7 @@ let bt = await battle();
 ok(bt?.lesson?.mission === 'Everyone joins in the lesson' && bt.lesson.focusTag === 'participation' && bt.status === 'active', 'a lesson battle starts with its mission and power-up');
 ok(await p.locator('[data-arena]').count() === 1, 'the arena opens');
 ok(await p.locator('[data-arena] [data-student]').count() >= 10, `the whole class stands in the arena (${await p.locator('[data-arena] [data-student]').count()})`);
+ok(await bossAction() === 'idle' && (await until(async () => (await drawn('[data-arena] [data-boss-sprite] canvas'))[0] > 5000)), 'the 3D boss stands in the arena, breathing');
 await shot('battle-arena.png', p.locator('[data-arena]'));
 
 // ---------- 3. points from the arena: an attack ----------
@@ -75,6 +82,7 @@ await p.locator(`[data-arena] [data-student="${first}"]`).click(); await wait(50
 await p.getByRole('button', { name: /Excellent Behaviour/ }).click(); await wait(450);
 const flying = await p.evaluate(() => document.querySelectorAll('[data-arena] .z-\\[5\\] canvas').length);
 ok(flying > 0, 'the creature sends its attack flying at the boss');
+ok(await until(async () => await bossAction() === 'hurt', 3000), 'the boss flinches when it is hit');
 await wait(1200);
 const afterHit = await hpLeft();
 ok(afterHit < before, `the boss loses HP (${before} → ${afterHit})`);
@@ -93,6 +101,7 @@ await wait(1500);
 const third = await p.locator('[data-arena] [data-student]').nth(2).getAttribute('data-student');
 const hpBefore = await hpLeft();
 await p.evaluate((id) => window.__cc.getState().award([id], 'neg-talking'), third);
+ok(await until(async () => await bossAction() === 'attack', 4000), 'the boss lunges as it strikes back');
 ok(await until(async () => await p.locator(`[data-arena] [data-student="${third}"][data-dazed]`).count() === 1), 'the boss strikes back and that creature is dazed');
 ok(await until(async () => await p.locator('.arena-banner', { hasText: 'strikes back' }).count() === 1, 2000), 'the class sees who was struck and why');
 ok(await hpLeft() === hpBefore + 2, 'the boss recovers the 2 points lost');
@@ -128,6 +137,7 @@ for (let i = 0; i < 12 && (await battle()).status === 'active'; i++) {
 ok((await battle()).status === 'won', 'the class befriends the boss');
 await wait(9500);
 ok(await p.getByText(/is your friend/).count() >= 1, 'the befriend celebration plays after the final attack');
+ok(await p.locator('[data-boss-sprite][data-action="happy"]').count() >= 1, 'the befriended boss hops for joy');
 await shot('battle-won.png');
 const hooray = p.getByRole('button', { name: 'Hooray!' }); if (await hooray.count()) await hooray.click();
 await wait(600);
@@ -138,7 +148,11 @@ ok(await p.locator('[data-arena]').count() === 0, 'Done closes it');
 // ---------- 9. Pixel mode ----------
 await p.evaluate(() => { const st = window.__cc.getState(); st.updateSettings({ pixelMode: true }); st.startBattle({ classId: st.data.settings.currentClassId, bossId: 'mudsnout', hp: 200, durationMs: 0, reward: { xp: 1, coins: 1 }, lesson: { mission: 'Read our passage', strikeBack: true, lessonMs: 45 * 60000, lessons: 1 } }); });
 await wait(3000);
-ok(await p.evaluate(() => { const i = document.querySelector('[data-arena] [data-boss] img'); return !!i && i.naturalWidth === 112; }), 'in Pixel mode the boss is pixel art');
+ok(await until(async () => p.evaluate(() => { const c = document.querySelector('[data-arena] [data-boss-sprite] canvas'); return !!c && c.classList.contains('pixel') && c.width < 260 && c.width > 60; })), 'in Pixel mode the boss is pixel art (drawn small, blown up)');
+ok((await drawn('[data-arena] [data-boss-sprite] canvas'))[0] > 300, 'and still moves');
+await p.evaluate(() => window.__cc.getState().updateSettings({ bossStyle: 'painted' })); await wait(1200);
+ok(await p.evaluate(() => { const i = document.querySelector('[data-arena] [data-boss] img'); return !!i && i.naturalWidth === 112; }), 'with animated bosses off, Pixel mode uses the pixelated painting');
+await p.evaluate(() => window.__cc.getState().updateSettings({ bossStyle: 'animated' }));
 ok(await p.evaluate(() => [...document.querySelectorAll('[data-arena] img')].some((i) => i.src.includes('region-verdant'))), 'and the arena is its region in pixel art');
 await shot('battle-pixel.png', p.locator('[data-arena]'));
 

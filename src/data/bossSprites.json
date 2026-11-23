@@ -1,0 +1,1274 @@
+{
+ "colossus": {
+  "stage": [
+   515,
+   492
+  ],
+  "anchor": [
+   257.5,
+   465.9
+  ],
+  "body": [
+   335,
+   424
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/colossus/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 335,
+    "h": 424,
+    "ax": 167.5,
+    "ay": 408.1,
+    "s": 0.90149,
+    "sw": 302,
+    "sh": 382,
+    "x": 90.0,
+    "y": 57.8
+   },
+   "attack": {
+    "file": "bosses3d/colossus/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 451,
+    "h": 492,
+    "ax": 225.5,
+    "ay": 465.9,
+    "s": 0.90022,
+    "sw": 406,
+    "sh": 443,
+    "x": 32.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/colossus/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 380,
+    "h": 434,
+    "ax": 190.0,
+    "ay": 411.3,
+    "s": 0.9,
+    "sw": 342,
+    "sh": 391,
+    "x": 67.5,
+    "y": 54.6
+   },
+   "happy": {
+    "file": "bosses3d/colossus/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 515,
+    "h": 457,
+    "ax": 257.5,
+    "ay": 441.2,
+    "s": 0.90097,
+    "sw": 464,
+    "sh": 411,
+    "x": 0.0,
+    "y": 24.7
+   },
+   "walkEast": {
+    "file": "bosses3d/colossus/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 355,
+    "h": 448,
+    "ax": 177.5,
+    "ay": 432.2,
+    "s": 0.36056,
+    "sw": 128,
+    "sh": 161,
+    "x": 80.0,
+    "y": 33.7
+   },
+   "walkWest": {
+    "file": "bosses3d/colossus/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 355,
+    "h": 448,
+    "ax": 177.5,
+    "ay": 432.2,
+    "s": 0.36056,
+    "sw": 128,
+    "sh": 161,
+    "x": 80.0,
+    "y": 33.7
+   }
+  }
+ },
+ "glimmerjaw": {
+  "stage": [
+   637,
+   551
+  ],
+  "anchor": [
+   318.5,
+   488.1
+  ],
+  "body": [
+   475,
+   421
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/glimmerjaw/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 475,
+    "h": 421,
+    "ax": 237.5,
+    "ay": 376.3,
+    "s": 0.90105,
+    "sw": 428,
+    "sh": 379,
+    "x": 81.0,
+    "y": 111.8
+   },
+   "attack": {
+    "file": "bosses3d/glimmerjaw/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 637,
+    "h": 492,
+    "ax": 318.5,
+    "ay": 431.4,
+    "s": 0.89953,
+    "sw": 573,
+    "sh": 443,
+    "x": 0.0,
+    "y": 56.7
+   },
+   "hurt": {
+    "file": "bosses3d/glimmerjaw/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 505,
+    "h": 551,
+    "ax": 252.5,
+    "ay": 488.1,
+    "s": 0.89901,
+    "sw": 454,
+    "sh": 496,
+    "x": 66.0,
+    "y": 0.0
+   },
+   "happy": {
+    "file": "bosses3d/glimmerjaw/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 567,
+    "h": 464,
+    "ax": 283.5,
+    "ay": 417.6,
+    "s": 0.89947,
+    "sw": 510,
+    "sh": 418,
+    "x": 35.0,
+    "y": 70.5
+   },
+   "walkEast": {
+    "file": "bosses3d/glimmerjaw/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 503,
+    "h": 448,
+    "ax": 251.5,
+    "ay": 401.6,
+    "s": 0.35984,
+    "sw": 181,
+    "sh": 161,
+    "x": 67.0,
+    "y": 86.5
+   },
+   "walkWest": {
+    "file": "bosses3d/glimmerjaw/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 503,
+    "h": 448,
+    "ax": 251.5,
+    "ay": 401.6,
+    "s": 0.35984,
+    "sw": 181,
+    "sh": 161,
+    "x": 67.0,
+    "y": 86.5
+   }
+  }
+ },
+ "grumblethorn": {
+  "stage": [
+   579,
+   483
+  ],
+  "anchor": [
+   289.5,
+   461.7
+  ],
+  "body": [
+   418,
+   422
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/grumblethorn/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 418,
+    "h": 422,
+    "ax": 209.0,
+    "ay": 405.5,
+    "s": 0.89952,
+    "sw": 376,
+    "sh": 380,
+    "x": 80.5,
+    "y": 56.2
+   },
+   "attack": {
+    "file": "bosses3d/grumblethorn/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 579,
+    "h": 483,
+    "ax": 289.5,
+    "ay": 461.7,
+    "s": 0.89983,
+    "sw": 521,
+    "sh": 435,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/grumblethorn/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 542,
+    "h": 421,
+    "ax": 271.0,
+    "ay": 403.1,
+    "s": 0.90037,
+    "sw": 488,
+    "sh": 379,
+    "x": 18.5,
+    "y": 58.6
+   },
+   "happy": {
+    "file": "bosses3d/grumblethorn/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 450,
+    "h": 456,
+    "ax": 225.2,
+    "ay": 439.5,
+    "s": 0.9,
+    "sw": 405,
+    "sh": 410,
+    "x": 64.3,
+    "y": 22.2
+   },
+   "walkEast": {
+    "file": "bosses3d/grumblethorn/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 436,
+    "h": 448,
+    "ax": 218.0,
+    "ay": 431.1,
+    "s": 0.36009,
+    "sw": 157,
+    "sh": 161,
+    "x": 71.5,
+    "y": 30.6
+   },
+   "walkWest": {
+    "file": "bosses3d/grumblethorn/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 436,
+    "h": 448,
+    "ax": 218.0,
+    "ay": 431.1,
+    "s": 0.36009,
+    "sw": 157,
+    "sh": 161,
+    "x": 71.5,
+    "y": 30.6
+   }
+  }
+ },
+ "magmaw": {
+  "stage": [
+   448,
+   473
+  ],
+  "anchor": [
+   224.0,
+   438.5
+  ],
+  "body": [
+   363,
+   423
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/magmaw/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 363,
+    "h": 423,
+    "ax": 181.5,
+    "ay": 401.2,
+    "s": 0.90083,
+    "sw": 327,
+    "sh": 381,
+    "x": 42.5,
+    "y": 37.3
+   },
+   "attack": {
+    "file": "bosses3d/magmaw/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 448,
+    "h": 473,
+    "ax": 224.0,
+    "ay": 438.5,
+    "s": 0.89955,
+    "sw": 403,
+    "sh": 426,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/magmaw/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 421,
+    "h": 442,
+    "ax": 210.5,
+    "ay": 420.3,
+    "s": 0.90024,
+    "sw": 379,
+    "sh": 398,
+    "x": 13.5,
+    "y": 18.2
+   },
+   "happy": {
+    "file": "bosses3d/magmaw/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 388,
+    "h": 404,
+    "ax": 194.0,
+    "ay": 381.8,
+    "s": 0.89948,
+    "sw": 349,
+    "sh": 364,
+    "x": 30.0,
+    "y": 56.7
+   },
+   "walkEast": {
+    "file": "bosses3d/magmaw/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 377,
+    "h": 448,
+    "ax": 188.5,
+    "ay": 425.3,
+    "s": 0.36074,
+    "sw": 136,
+    "sh": 161,
+    "x": 35.5,
+    "y": 13.2
+   },
+   "walkWest": {
+    "file": "bosses3d/magmaw/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 377,
+    "h": 448,
+    "ax": 188.5,
+    "ay": 425.3,
+    "s": 0.36074,
+    "sw": 136,
+    "sh": 161,
+    "x": 35.5,
+    "y": 13.2
+   }
+  }
+ },
+ "mudsnout": {
+  "stage": [
+   610,
+   559
+  ],
+  "anchor": [
+   305.0,
+   473.0
+  ],
+  "body": [
+   489,
+   422
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/mudsnout/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 489,
+    "h": 422,
+    "ax": 244.5,
+    "ay": 373.1,
+    "s": 0.8998,
+    "sw": 440,
+    "sh": 380,
+    "x": 60.5,
+    "y": 99.9
+   },
+   "attack": {
+    "file": "bosses3d/mudsnout/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 610,
+    "h": 504,
+    "ax": 305.0,
+    "ay": 418.2,
+    "s": 0.9,
+    "sw": 549,
+    "sh": 454,
+    "x": 0.0,
+    "y": 54.8
+   },
+   "hurt": {
+    "file": "bosses3d/mudsnout/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 610,
+    "h": 438,
+    "ax": 305.0,
+    "ay": 364.9,
+    "s": 0.9,
+    "sw": 549,
+    "sh": 394,
+    "x": 0.0,
+    "y": 108.1
+   },
+   "happy": {
+    "file": "bosses3d/mudsnout/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 562,
+    "h": 522,
+    "ax": 281.0,
+    "ay": 473.0,
+    "s": 0.90036,
+    "sw": 506,
+    "sh": 470,
+    "x": 24.0,
+    "y": 0.0
+   },
+   "walkEast": {
+    "file": "bosses3d/mudsnout/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 489,
+    "h": 448,
+    "ax": 244.5,
+    "ay": 399.0,
+    "s": 0.35992,
+    "sw": 176,
+    "sh": 161,
+    "x": 60.5,
+    "y": 74.0
+   },
+   "walkWest": {
+    "file": "bosses3d/mudsnout/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 489,
+    "h": 448,
+    "ax": 244.5,
+    "ay": 399.0,
+    "s": 0.35992,
+    "sw": 176,
+    "sh": 161,
+    "x": 60.5,
+    "y": 74.0
+   }
+  }
+ },
+ "murkmoth": {
+  "stage": [
+   581,
+   493
+  ],
+  "anchor": [
+   290.5,
+   447.8
+  ],
+  "body": [
+   420,
+   422
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/murkmoth/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 420,
+    "h": 422,
+    "ax": 210.0,
+    "ay": 398.4,
+    "s": 0.9,
+    "sw": 378,
+    "sh": 380,
+    "x": 80.5,
+    "y": 49.4
+   },
+   "attack": {
+    "file": "bosses3d/murkmoth/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 543,
+    "h": 493,
+    "ax": 271.5,
+    "ay": 447.8,
+    "s": 0.90055,
+    "sw": 489,
+    "sh": 444,
+    "x": 19.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/murkmoth/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 581,
+    "h": 420,
+    "ax": 290.5,
+    "ay": 396.9,
+    "s": 0.90017,
+    "sw": 523,
+    "sh": 378,
+    "x": 0.0,
+    "y": 50.9
+   },
+   "happy": {
+    "file": "bosses3d/murkmoth/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 472,
+    "h": 463,
+    "ax": 236.0,
+    "ay": 431.1,
+    "s": 0.90042,
+    "sw": 425,
+    "sh": 417,
+    "x": 54.5,
+    "y": 16.7
+   },
+   "walkEast": {
+    "file": "bosses3d/murkmoth/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 445,
+    "h": 448,
+    "ax": 222.5,
+    "ay": 420.8,
+    "s": 0.35955,
+    "sw": 160,
+    "sh": 161,
+    "x": 68.0,
+    "y": 27.0
+   },
+   "walkWest": {
+    "file": "bosses3d/murkmoth/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 445,
+    "h": 448,
+    "ax": 222.5,
+    "ay": 420.8,
+    "s": 0.35955,
+    "sw": 160,
+    "sh": 161,
+    "x": 68.0,
+    "y": 27.0
+   }
+  }
+ },
+ "puffington": {
+  "stage": [
+   584,
+   519
+  ],
+  "anchor": [
+   292.0,
+   467.3
+  ],
+  "body": [
+   455,
+   446
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/puffington/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 455,
+    "h": 446,
+    "ax": 227.7,
+    "ay": 421.9,
+    "s": 0.9011,
+    "sw": 410,
+    "sh": 401,
+    "x": 64.3,
+    "y": 45.4
+   },
+   "attack": {
+    "file": "bosses3d/puffington/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 584,
+    "h": 519,
+    "ax": 292.0,
+    "ay": 467.3,
+    "s": 0.90068,
+    "sw": 526,
+    "sh": 467,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/puffington/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 523,
+    "h": 457,
+    "ax": 261.5,
+    "ay": 415.4,
+    "s": 0.90057,
+    "sw": 471,
+    "sh": 411,
+    "x": 30.5,
+    "y": 51.9
+   },
+   "happy": {
+    "file": "bosses3d/puffington/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 469,
+    "h": 472,
+    "ax": 234.5,
+    "ay": 464.9,
+    "s": 0.89979,
+    "sw": 422,
+    "sh": 425,
+    "x": 57.5,
+    "y": 2.4
+   },
+   "walkEast": {
+    "file": "bosses3d/puffington/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 471,
+    "h": 448,
+    "ax": 235.7,
+    "ay": 421.6,
+    "s": 0.36093,
+    "sw": 170,
+    "sh": 161,
+    "x": 56.3,
+    "y": 45.7
+   },
+   "walkWest": {
+    "file": "bosses3d/puffington/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 471,
+    "h": 448,
+    "ax": 235.7,
+    "ay": 421.6,
+    "s": 0.36093,
+    "sw": 170,
+    "sh": 161,
+    "x": 56.3,
+    "y": 45.7
+   }
+  }
+ },
+ "riddlepaw": {
+  "stage": [
+   500,
+   487
+  ],
+  "anchor": [
+   250.0,
+   439.6
+  ],
+  "body": [
+   343,
+   425
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/riddlepaw/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 343,
+    "h": 425,
+    "ax": 171.5,
+    "ay": 394.0,
+    "s": 0.90087,
+    "sw": 309,
+    "sh": 382,
+    "x": 78.5,
+    "y": 45.6
+   },
+   "attack": {
+    "file": "bosses3d/riddlepaw/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 500,
+    "h": 487,
+    "ax": 250.0,
+    "ay": 439.6,
+    "s": 0.9,
+    "sw": 450,
+    "sh": 438,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/riddlepaw/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 371,
+    "h": 415,
+    "ax": 185.5,
+    "ay": 386.2,
+    "s": 0.90027,
+    "sw": 334,
+    "sh": 374,
+    "x": 64.5,
+    "y": 53.4
+   },
+   "happy": {
+    "file": "bosses3d/riddlepaw/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 353,
+    "h": 451,
+    "ax": 176.5,
+    "ay": 420.9,
+    "s": 0.90085,
+    "sw": 318,
+    "sh": 406,
+    "x": 73.5,
+    "y": 18.7
+   },
+   "walkEast": {
+    "file": "bosses3d/riddlepaw/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 356,
+    "h": 448,
+    "ax": 178.0,
+    "ay": 414.2,
+    "s": 0.35955,
+    "sw": 128,
+    "sh": 161,
+    "x": 72.0,
+    "y": 25.4
+   },
+   "walkWest": {
+    "file": "bosses3d/riddlepaw/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 356,
+    "h": 448,
+    "ax": 178.0,
+    "ay": 414.2,
+    "s": 0.35955,
+    "sw": 128,
+    "sh": 161,
+    "x": 72.0,
+    "y": 25.4
+   }
+  }
+ },
+ "snorecap": {
+  "stage": [
+   547,
+   472
+  ],
+  "anchor": [
+   273.5,
+   456.1
+  ],
+  "body": [
+   402,
+   446
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/snorecap/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 402,
+    "h": 446,
+    "ax": 201.0,
+    "ay": 433.4,
+    "s": 0.9005,
+    "sw": 362,
+    "sh": 401,
+    "x": 72.5,
+    "y": 22.7
+   },
+   "attack": {
+    "file": "bosses3d/snorecap/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 547,
+    "h": 472,
+    "ax": 273.5,
+    "ay": 456.1,
+    "s": 0.89945,
+    "sw": 492,
+    "sh": 425,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/snorecap/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 488,
+    "h": 418,
+    "ax": 244.0,
+    "ay": 405.4,
+    "s": 0.89959,
+    "sw": 439,
+    "sh": 376,
+    "x": 29.5,
+    "y": 50.7
+   },
+   "happy": {
+    "file": "bosses3d/snorecap/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 425,
+    "h": 457,
+    "ax": 212.5,
+    "ay": 444.9,
+    "s": 0.89882,
+    "sw": 382,
+    "sh": 411,
+    "x": 61.0,
+    "y": 11.2
+   },
+   "walkEast": {
+    "file": "bosses3d/snorecap/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 417,
+    "h": 448,
+    "ax": 208.5,
+    "ay": 435.9,
+    "s": 0.35971,
+    "sw": 150,
+    "sh": 161,
+    "x": 65.0,
+    "y": 20.2
+   },
+   "walkWest": {
+    "file": "bosses3d/snorecap/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 417,
+    "h": 448,
+    "ax": 208.5,
+    "ay": 435.9,
+    "s": 0.35971,
+    "sw": 150,
+    "sh": 161,
+    "x": 65.0,
+    "y": 20.2
+   }
+  }
+ },
+ "snowsulk": {
+  "stage": [
+   471,
+   512
+  ],
+  "anchor": [
+   235.3,
+   452.8
+  ],
+  "body": [
+   287,
+   425
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/snowsulk/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 287,
+    "h": 425,
+    "ax": 143.5,
+    "ay": 401.9,
+    "s": 0.89895,
+    "sw": 258,
+    "sh": 382,
+    "x": 91.8,
+    "y": 50.9
+   },
+   "attack": {
+    "file": "bosses3d/snowsulk/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 471,
+    "h": 512,
+    "ax": 235.3,
+    "ay": 452.8,
+    "s": 0.90021,
+    "sw": 424,
+    "sh": 461,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/snowsulk/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 335,
+    "h": 441,
+    "ax": 167.5,
+    "ay": 391.7,
+    "s": 0.90149,
+    "sw": 302,
+    "sh": 397,
+    "x": 67.8,
+    "y": 61.1
+   },
+   "happy": {
+    "file": "bosses3d/snowsulk/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 359,
+    "h": 454,
+    "ax": 179.5,
+    "ay": 429.5,
+    "s": 0.89972,
+    "sw": 323,
+    "sh": 409,
+    "x": 55.8,
+    "y": 23.3
+   },
+   "walkEast": {
+    "file": "bosses3d/snowsulk/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 299,
+    "h": 448,
+    "ax": 149.7,
+    "ay": 423.0,
+    "s": 0.3612,
+    "sw": 108,
+    "sh": 161,
+    "x": 85.6,
+    "y": 29.8
+   },
+   "walkWest": {
+    "file": "bosses3d/snowsulk/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 299,
+    "h": 448,
+    "ax": 149.7,
+    "ay": 423.0,
+    "s": 0.3612,
+    "sw": 108,
+    "sh": 161,
+    "x": 85.6,
+    "y": 29.8
+   }
+  }
+ },
+ "whirlwing": {
+  "stage": [
+   542,
+   481
+  ],
+  "anchor": [
+   271.0,
+   456.6
+  ],
+  "body": [
+   441,
+   422
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/whirlwing/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 441,
+    "h": 422,
+    "ax": 220.5,
+    "ay": 400.9,
+    "s": 0.90023,
+    "sw": 397,
+    "sh": 380,
+    "x": 50.5,
+    "y": 55.7
+   },
+   "attack": {
+    "file": "bosses3d/whirlwing/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 542,
+    "h": 481,
+    "ax": 271.0,
+    "ay": 456.6,
+    "s": 0.90037,
+    "sw": 488,
+    "sh": 433,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/whirlwing/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 528,
+    "h": 426,
+    "ax": 264.0,
+    "ay": 404.9,
+    "s": 0.89962,
+    "sw": 475,
+    "sh": 383,
+    "x": 7.0,
+    "y": 51.7
+   },
+   "happy": {
+    "file": "bosses3d/whirlwing/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 493,
+    "h": 458,
+    "ax": 246.5,
+    "ay": 441.6,
+    "s": 0.90061,
+    "sw": 444,
+    "sh": 412,
+    "x": 24.5,
+    "y": 15.0
+   },
+   "walkEast": {
+    "file": "bosses3d/whirlwing/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 457,
+    "h": 448,
+    "ax": 228.5,
+    "ay": 431.6,
+    "s": 0.36105,
+    "sw": 165,
+    "sh": 161,
+    "x": 42.5,
+    "y": 25.0
+   },
+   "walkWest": {
+    "file": "bosses3d/whirlwing/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 457,
+    "h": 448,
+    "ax": 228.5,
+    "ay": 431.6,
+    "s": 0.36105,
+    "sw": 165,
+    "sh": 161,
+    "x": 42.5,
+    "y": 25.0
+   }
+  }
+ },
+ "zapcrackle": {
+  "stage": [
+   599,
+   512
+  ],
+  "anchor": [
+   299.5,
+   461.2
+  ],
+  "body": [
+   468,
+   427
+  ],
+  "actions": {
+   "idle": {
+    "file": "bosses3d/zapcrackle/idle.webp",
+    "frames": 12,
+    "fps": 6.0,
+    "loop": true,
+    "w": 468,
+    "h": 427,
+    "ax": 234.0,
+    "ay": 416.8,
+    "s": 0.89957,
+    "sw": 421,
+    "sh": 384,
+    "x": 65.5,
+    "y": 44.4
+   },
+   "attack": {
+    "file": "bosses3d/zapcrackle/attack.webp",
+    "frames": 12,
+    "fps": 11.0,
+    "loop": false,
+    "w": 599,
+    "h": 512,
+    "ax": 299.5,
+    "ay": 461.2,
+    "s": 0.89983,
+    "sw": 539,
+    "sh": 461,
+    "x": 0.0,
+    "y": 0.0
+   },
+   "hurt": {
+    "file": "bosses3d/zapcrackle/hurt.webp",
+    "frames": 9,
+    "fps": 12.0,
+    "loop": false,
+    "w": 511,
+    "h": 425,
+    "ax": 255.5,
+    "ay": 415.3,
+    "s": 0.9002,
+    "sw": 460,
+    "sh": 382,
+    "x": 44.0,
+    "y": 45.9
+   },
+   "happy": {
+    "file": "bosses3d/zapcrackle/happy.webp",
+    "frames": 12,
+    "fps": 9.0,
+    "loop": true,
+    "w": 565,
+    "h": 453,
+    "ax": 282.5,
+    "ay": 442.3,
+    "s": 0.89912,
+    "sw": 508,
+    "sh": 408,
+    "x": 17.0,
+    "y": 18.9
+   },
+   "walkEast": {
+    "file": "bosses3d/zapcrackle/walkEast.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 492,
+    "h": 448,
+    "ax": 246.0,
+    "ay": 437.8,
+    "s": 0.35976,
+    "sw": 177,
+    "sh": 161,
+    "x": 53.5,
+    "y": 23.4
+   },
+   "walkWest": {
+    "file": "bosses3d/zapcrackle/walkWest.webp",
+    "frames": 8,
+    "fps": 8.0,
+    "loop": true,
+    "w": 492,
+    "h": 448,
+    "ax": 246.0,
+    "ay": 437.8,
+    "s": 0.35976,
+    "sw": 177,
+    "sh": 161,
+    "x": 53.5,
+    "y": 23.4
+   }
+  }
+ }
+}

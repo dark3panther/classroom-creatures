@@ -250,6 +250,8 @@ function AdventureTab() {
       <div className="mt-2 divide-y divide-ink/10">
         <Toggle label="World of Adventures" hint="Shows the Adventure section. Turning it off hides it and pauses quests and battles; nothing is deleted." checked={settings.adventureEnabled} onChange={(v) => updateSettings({ adventureEnabled: v })} />
         <Toggle label="Shared class world" hint="The Creature Sanctuary, Fantasy Village, Magical Library, Training Arena and Royal Castle that the class builds together." checked={settings.classWorld} onChange={(v) => updateSettings({ classWorld: v })} />
+        <Toggle label="Animated bosses" hint="The bosses move: they breathe and blink, flinch when a creature hits them, lunge when they strike back and hop for joy once befriended. Turn off for the still painted drawings (lighter on very old computers)."
+          checked={(settings.bossStyle ?? 'animated') === 'animated'} onChange={(v) => updateSettings({ bossStyle: v ? 'animated' : 'painted' })} />
         <Toggle label="Students may use Adventure while controls are locked" hint="From Presentation Mode, students can see their quests, hand in quests, collect approved rewards, open their chests and read their journal. They can never approve, change points or start battles." checked={settings.adventureWhileLocked} onChange={(v) => updateSettings({ adventureWhileLocked: v })} />
       </div>
       <button className="btn btn-azure mt-4" onClick={() => navigate('/adventure/control')}>Open the Adventure Control Center</button>

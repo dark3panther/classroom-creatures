@@ -1,4 +1,4 @@
-import { BossPortrait } from '../../creatures/bosses/BossPortrait';
+import { BossPortrait, WanderingBoss } from '../../creatures/bosses/BossPortrait';
 import { BOSSES_BY_ID, REGIONS_BY_ID, TREASURES } from '../../data/adventure';
 import { BOSSES } from '../../data/adventure';
 import { ITEMS_BY_ID as ITEMS_LOOKUP } from '../../data/defaults';
@@ -98,13 +98,15 @@ export function RegionView({ classId, regionId, student }: { classId: string; re
             </div>
           </div>
           {BOSSES.filter((b) => b.regionId === regionId && b.wandering).map((w) => (
-            <div key={w.id} className="mt-4 flex items-center gap-3 border-t border-rule pt-3">
-              <span className="w-16 shrink-0"><BossPortrait id={w.id} still title={w.name} /></span>
-              <div className="min-w-0 flex-1">
-                <div className="font-bold">Also wandering here: {w.name}</div>
-                <p className="text-[13px] text-ink-soft">{w.description}</p>
+            <div key={w.id} className="mt-4 border-t border-rule pt-3">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold">Also wandering here: {w.name}</div>
+                  <p className="text-[13px] text-ink-soft">{w.description}</p>
+                </div>
+                {!live && teacher && st.open && <button className="btn btn-light !py-1.5 !text-sm" onClick={() => go(`/adventure/boss?start=${w.id}`)}>Battle</button>}
               </div>
-              {!live && teacher && st.open && <button className="btn btn-light !py-1.5 !text-sm" onClick={() => go(`/adventure/boss?start=${w.id}`)}>Battle</button>}
+              <WanderingBoss id={w.id} title={w.name} className="mt-1" />
             </div>
           ))}
         </div>

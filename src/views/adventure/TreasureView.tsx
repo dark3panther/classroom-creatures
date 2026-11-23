@@ -11,6 +11,28 @@ import { createTimeline, reducedMotion, sparkle } from '../../lib/motion';
 import { useStore } from '../../store/store';
 import type { Student } from '../../types';
 import { Px, RewardLine, StudentChip, advPath, chestArt, go } from './common';
+import CHESTS from '../../data/chestSprites.json';
+
+type ChestKind = 'coins' | 'accessory' | 'cosmetic' | 'special';
+const chestKind = (def: TreasureDef): ChestKind | null => def.kind === 'relic' ? null : def.kind === 'coins' ? 'coins' : def.kind === 'cosmetic' ? 'cosmetic' : def.kind === 'accessory' ? 'accessory' : 'special';
+
+/**
+ * The 3D chest for the opening moment (1.7): modelled, animated and rendered in Blender (scripts/blender/chest.py).
+ * Closed, it sits still; opened, the lid flies up, light pours out and sparkles burst, and it stays open.
+ * Pixel mode, relics and Reduce Motion keep the pixel art (or show the open chest straight away).
+ */
+function ChestArt({ def, open }: { def: TreasureDef; open: boolean }) {
+  const pixel = useStore((s) => !!s.data.settings.pixelMode);
+  const kind = chestKind(def);
+  const strip = kind ? (CHESTS.kinds as Record<string, { file: string; frames: number }>)[kind] : undefined;
+  if (pixel || !strip) return <Px name={chestArt(def, open)} alt="" className="h-full w-auto drop-shadow-[0_8px_0_rgb(14_42_82/.25)]" />;
+  const [fw, fh] = CHESTS.frame;
+  const still = reducedMotion();
+  return (
+    <span className={`chest3d ${open ? (still ? 'chest3d-done' : 'chest3d-open') : ''}`} data-chest3d={kind} data-open={open || undefined}
+      style={{ aspectRatio: `${fw} / ${fh}`, backgroundImage: `url(${import.meta.env.BASE_URL}${strip.file})`, backgroundSize: `${strip.frames * 100}% 100%`, '--chest-steps': strip.frames, '--chest-ms': `${Math.round((strip.frames / CHESTS.fps) * 1000)}ms` } as React.CSSProperties} />
+  );
+}
 
 const RULE_TEXT = (def: TreasureDef): string => {
   const r = def.rule;
@@ -105,7 +127,7 @@ function OpenChest({ studentId, treasureId, onClose }: { studentId: string; trea
       {def && student && (
         <div className="flex flex-col items-center gap-3 p-8 text-center">
           <div className="font-display text-2xl font-bold">{def.name}</div>
-          <div data-opening-chest className="h-36"><Px name={chestArt(def, phase === 'open')} alt="" className="h-full w-auto drop-shadow-[0_8px_0_rgb(14_42_82/.25)]" /></div>
+          <div data-opening-chest className="h-36"><ChestArt def={def} open={phase === 'open'} /></div>
           {phase === 'closed' ? (
             <>
               <p className="text-ink-soft">{def.description}</p>

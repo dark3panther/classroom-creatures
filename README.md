@@ -19,6 +19,24 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.7: the bosses come alive
+
+<p align="center"><img src="docs/screenshots/boss-sprites.gif" alt="All twelve bosses animated: each breathes, flinches with its eyes squeezed shut, lunges with a toothy grin and hops for joy in its befriended look" width="760"></p>
+
+The twelve bosses are now **animated 3D characters**. Each one was built as a 3D model in Blender, after its painting, and rendered into animation frames with [SpriteCast](https://github.com/dark3panther/spritecast).
+
+- **In the arena** a boss breathes and blinks while it waits, **flinches every time a creature hits it**, winds up and **lunges when it strikes back**, and **hops for joy** once befriended, in its befriended look (Grumblethorn bursts into flowers, Captain Puffington puts on his hat, Zapcrackle turns into a white cloud with a rainbow).
+- **Wandering bosses walk** to and fro along a lane on their region's page.
+- **Treasure chests burst open**: the chest-opening moment is a 3D chest made in Blender, in its own colours. The lid flies up, light pours out and sparkles burst.
+- In **Pixel mode** the bosses are pixel art drawn from the same animation, so they move too.
+- **Settings → Adventure → Animated bosses** turns them back into the still paintings. Reduce motion shows one still picture per mood.
+
+| In the arena | The chest opens |
+|---|---|
+| <img src="docs/screenshots/battle-3d.jpg" alt="A lesson battle against the animated 3D Grumblethorn" width="420"> | <img src="docs/screenshots/chest-open.gif" alt="A purple treasure chest: the lid flies open, light pours out and stars burst" width="300"> |
+
+How the bosses and the chest are made: [Boss models and sprites](#boss-models-and-sprites). Release notes: [docs/release-notes-1.7.0.md](docs/release-notes-1.7.0.md).
+
 ## What's new in 1.6: lesson battles
 
 > **1.6.1** fixes creatures disappearing in Pixel mode on some Macs, and renames the Crystal Caverns' wandering boss to Murkmoth ([release notes](docs/release-notes-1.6.1.md)).
@@ -265,6 +283,8 @@ src/
 │   ├── PixelCreature.tsx    Pixel mode: the sprite on screen, bobbing a pixel at a time and blinking
 │   └── pixelStage.ts        Pixel mode: each element's aura and attack (pixelfx effects and where they sit)
 │   ├── pixel.tsx            Pixel sprites (snacks, toys, ability icons) and trail particles
+│   ├── bosses/              BossArt (painted bosses in code), BossSprite (the animated 3D bosses, 1.7) and BossPortrait,
+│   │                        which picks one (and walks the wandering bosses along their lane)
 │   └── mythic.tsx           Colour grade and ornaments for the mythical final forms
 ├── (electron/main.cjs)     Desktop shell: serves dist/ from a private app:// origin, menus, full screen
 ├── audio/sfx.ts             All sounds synthesised with Web Audio (original, offline)
@@ -280,6 +300,8 @@ src/
 └── vendor/                  anime.js and pixelfx (both MIT, unmodified except where noted)
 scripts/pixel/               The adventure pixel art as code (claude-pxl): islands, regions, bosses, chests, places, the pixel sun
 scripts/sky/pixelate.py      Pixel mode copies of the painted sky layers (public/sky-pixel/)
+scripts/bosses-3d/           The bosses as Blender models from code, rendered into sprites by SpriteCast (public/bosses3d/)
+scripts/blender/chest.py     The 3D treasure chest, modelled, animated and rendered in Blender (public/chests/)
 public/adventure/            The built pixel art (68 small PNGs, about 280 KB)
 ```
 
@@ -303,6 +325,22 @@ Every creature has illustrated artwork for all five stages (150 images in `publi
 The ten Pixel Pals are drawn in code, not painted: `scripts/pixel/creatures.px.js` describes each one with [claude-pxl](https://github.com/dark3panther/claude-pxl) shapes (body, head, ears, tail, wings, face) and a shared pose function that moves those parts for every frame of the six animations. `npm run art:creatures` draws all 50 forms × 6 animations (outlined, 64×66 px a frame), packs each form into one sheet (`public/creatures-pixel/<id>-<stage>.png`, 8 columns, one row per animation) and measures where the eyes, mouth, head and body are in every frame (`src/data/pixelPals.json`). `src/creatures/PixelPal.tsx` plays the sheet on the app's shared animation clock and draws worn items on the head offset measured for that frame. `src/data/pixelPals.test.ts` checks the sheets and measurements.
 
 To add a Pixel Pal: add a `draw(c, h, p, stage)` entry to `SPECIES` in `creatures.px.js` (copy the closest one), run `npm run art:creatures`, and add it to `PALS` in `src/data/species.ts` with `pixelArt: true`.
+
+## Boss models and sprites
+
+The animated bosses (1.7) are made in two steps, both free and offline once the tools are installed:
+
+1. **Blender builds each boss from code.** `scripts/bosses-3d/` holds a small modelling kit (`kit.py`: rounded shapes, a dark outline baked into the geometry as an inverted hull, the rig and the clip writer), the face every boss shares (`common.py`: eyes, brows, closed eyes and mouths for the grumpy, hurt, attacking and happy moods, switched by bones) and one builder per boss (`bosses.py`), written after the painted art in `src/creatures/bosses/BossArt.tsx`. `build.py` runs headless and exports a rigged GLB per boss with five clips: idle, walk, attack, hurt and happy.
+2. **SpriteCast renders the sprites.** Each GLB goes through SpriteCast's character pipeline with `"rig_glb"` and `"draw": false`, so its toon renders are the frames and no paid drawing step runs. `export_sprites.py` keeps the front-facing actions and the side walks, saves them as WebP strips in `public/bosses3d/<id>/` and writes `src/data/bossSprites.json`.
+
+```bash
+BLENDER=/path/to/blender SPRITECAST_PY=~/.cache/spritecast/venv/bin/python npm run art:bosses   # all twelve, ~30 min
+python scripts/bosses-3d/peek.py out.png grumblethorn   # a quick front-only look while shaping a model
+```
+
+To change a boss, edit its builder in `bosses.py`, look at it with `peek.py`, then run `scripts/bosses-3d/render_all.sh <id>`. The models and renders land in `art/` (git-ignored); only the WebP strips and the manifest are committed. `src/creatures/bosses/BossSprite.tsx` plays them; `BossPortrait` uses them when animated bosses are on and falls back to the painting.
+
+The **treasure chest** is `scripts/blender/chest.py` (modelled, animated and rendered with Blender's Cycles, 24 frames for each kind of chest) packed by `scripts/blender/pack_chests.py` into `public/chests/`: `npm run art:chests`.
 
 ## Adding new creatures
 
@@ -361,7 +399,7 @@ Only first names (or whatever the teacher types) are stored, and only on this co
 
 ## Credits
 
-All creatures, bosses, regions, names, artwork, animations and sounds are original to this project. Inspired by the general appeal of creature-collecting games, adventure games and classroom point systems; no characters, artwork, sounds or branding from any existing game are used. The World of Adventures pixel art is drawn in code with claude-pxl.
+All creatures, bosses, regions, names, artwork, animations and sounds are original to this project. Inspired by the general appeal of creature-collecting games, adventure games and classroom point systems; no characters, artwork, sounds or branding from any existing game are used. The World of Adventures pixel art is drawn in code with claude-pxl. The animated bosses and the treasure chest are modelled in code in Blender (guided by blender-skills) and the bosses are rendered into sprites with SpriteCast.
 
 ## Design documents
 
@@ -369,9 +407,9 @@ All creatures, bosses, regions, names, artwork, animations and sounds are origin
 - [Visual reference analysis](docs/visual-reference-analysis.md)
 - [Design system](docs/design-system.md)
 - [World of Adventures design](docs/adventure-design.md) (rules, formulas, edge cases and tuning, in the game-design-document structure from Claude-Code-Game-Studios)
-- [1.5.0 release notes](docs/release-notes-1.5.0.md) · [1.5.1 release notes](docs/release-notes-1.5.1.md)
+- [1.5.0 release notes](docs/release-notes-1.5.0.md) · [1.5.1 release notes](docs/release-notes-1.5.1.md) · [1.6.0](docs/release-notes-1.6.0.md) · [1.6.1](docs/release-notes-1.6.1.md) · [1.7.0](docs/release-notes-1.7.0.md)
 - [Roadmap](ROADMAP.md)
 
 ## License
 
-[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE`), as are anime.js (`src/vendor/animejs`) and the [claude-pxl](https://github.com/dark3panther/claude-pxl) tool used to draw the adventure art (`scripts/vendor/claude-pxl/LICENSE`). See [NOTICE.md](NOTICE.md).
+[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE`), as are anime.js (`src/vendor/animejs`) and the [claude-pxl](https://github.com/dark3panther/claude-pxl) tool used to draw the adventure art (`scripts/vendor/claude-pxl/LICENSE`). [SpriteCast](https://github.com/dark3panther/spritecast) (MIT) renders the boss sprites at build time. See [NOTICE.md](NOTICE.md).

@@ -415,6 +415,8 @@ export interface Settings {
   shopWhileLocked: boolean;
   /** Pixel mode: the whole app, creatures included, as pixel art (1.5.1) */
   pixelMode?: boolean;
+  /** bosses as animated 3D sprites ('animated', the default since 1.7) or the still painted drawings */
+  bossStyle?: 'animated' | 'painted';
   /** World of Adventures on/off */
   adventureEnabled: boolean;
   /** the shared class world (Creature Sanctuary, Village, ...) on/off */

@@ -1,0 +1,25 @@
+{
+ "frame": [
+  364,
+  300
+ ],
+ "fps": 24,
+ "kinds": {
+  "accessory": {
+   "file": "chests/accessory.webp",
+   "frames": 24
+  },
+  "coins": {
+   "file": "chests/coins.webp",
+   "frames": 24
+  },
+  "cosmetic": {
+   "file": "chests/cosmetic.webp",
+   "frames": 24
+  },
+  "special": {
+   "file": "chests/special.webp",
+   "frames": 24
+  }
+ }
+}

@@ -7,6 +7,7 @@ import { CreatureSvg } from '../../creatures/CreatureSvg';
 import { PixelFx, type PixelFxId } from '../../creatures/PixelFx';
 import { BOSS_POINTS, type BossMood } from '../../creatures/bosses/BossArt';
 import { BossPortrait } from '../../creatures/bosses/BossPortrait';
+import { hasBossSprite } from '../../creatures/bosses/BossSprite';
 import { ADVENTURE_ART, BOSSES_BY_ID, LESSON, QUEST_CATEGORIES, REGIONS_BY_ID } from '../../data/adventure';
 import { getSpecies } from '../../data/species';
 import { battleTimeLeft, battleTotal } from '../../engine/adventure';
@@ -101,6 +102,9 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
   // what the HP bar shows: it follows the animations, then settles on the real total
   const [shown, setShown] = useState(total);
   const [mood, setMood] = useState<BossMood>(battle.status === 'won' ? 'happy' : 'grumpy');
+  // bumped on every hit and every strike, so the animated boss flinches (or lunges) again even when its mood is unchanged
+  const [beat, setBeat] = useState(0);
+  const animatedBoss = useStore((s) => (s.data.settings.bossStyle ?? 'animated') === 'animated') && hasBossSprite(def.id);
   const [dazed, setDazed] = useState<Record<string, number>>({});
   const [shots, setShots] = useState<Shot[]>([]);
   const [blasts, setBlasts] = useState<Blast[]>([]);
@@ -178,7 +182,7 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     if (to) await fly({ fx: sh.fx, palette: sh.palette, k: unit * (sh.size ?? 0.6) * 1.05 * (sup ? 1.3 : 1), from, to, ms: fast ? 380 : 520 });
     if (sound) playBossHit();
     if (to) blast({ fx: sh.impact, palette: sh.impactPalette, at: to, k: unit * 0.75 * (sup ? 1.3 : 1) });
-    setMood('hurt');
+    setMood('hurt'); setBeat((b) => b + 1);
     shake(bossBox.current, sup);
     if (bossBox.current && !reducedMotion()) animate(bossBox.current, { filter: ['brightness(2.4)', 'brightness(1)'], duration: 320 });
     const head = bossPoint('head');
@@ -206,7 +210,7 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     if (to) blast({ fx: 'explosions/firework-burst', at: to, k: unit * 1.05 });
     if (to && m.mission) blast({ fx: 'ui/confetti', at: { ...to, y: to.y - to.h * 0.2 }, k: unit * 1.3 });
     if (sound) playBossHit();
-    setMood('hurt');
+    setMood('hurt'); setBeat((b) => b + 1);
     shake(bossBox.current, true);
     const head = bossPoint('head');
     if (head) number({ text: `−${m.amount}`, at: head, tone: 'team' });
@@ -219,7 +223,7 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
   const strike = async (m: Extract<Move, { kind: 'strike' }>, fast: boolean) => {
     const target = rel(creatureEl(m.studentId));
     const st = students.find((s) => s.id === m.studentId);
-    setMood('attack');
+    setMood('attack'); setBeat((b) => b + 1);
     if (bossBox.current && !reducedMotion()) animate(bossBox.current, { x: [0, -0.12 * bossBox.current.offsetWidth, 0], scale: [1, 1.08, 1], duration: fast ? 520 : 720, ease: 'inOut(2)' });
     await wait(fast ? 200 : 300);
     const from = bossPoint('from');
@@ -304,9 +308,9 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
 
         {/* boss */}
         <div className="arena-boss">
-          <div ref={bossBox} className={`relative ${paused || over ? '' : 'arena-breathe'}`} data-boss={def.id} data-mood={mood}>
+          <div ref={bossBox} className={`relative ${paused || over || animatedBoss ? '' : 'arena-breathe'}`} data-boss={def.id} data-mood={mood}>
             <BossAura element={def.element} k={unit * 0.9} box={aw * 0.34} />
-            <BossPortrait id={def.id} mood={mood} title={def.name} className="drop-shadow-[0_10px_0_rgb(14_42_82/.25)]" />
+            <BossPortrait id={def.id} mood={mood} beat={beat} still={paused && !over} title={def.name} className="drop-shadow-[0_10px_0_rgb(14_42_82/.25)]" />
           </div>
         </div>
 
