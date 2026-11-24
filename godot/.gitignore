@@ -1,0 +1,3 @@
+.godot/
+*.import
+models/bosses/*.glb

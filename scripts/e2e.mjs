@@ -40,6 +40,7 @@ const wait = (ms) => p.waitForTimeout(ms);
 try {
 await p.goto(U); await wait(1200);
 const demo = p.getByRole('button', { name: 'Explore the demo first' }); if (await demo.count()) { await demo.click(); await wait(900); }
+await p.evaluate(() => window.__cc.getState().updateSettings({ stage3d: false }));   // the 2D scenes (the 3D stage: e2e-stage.mjs)
 
 // ---------- 1. 1.3 save upgrades in a real browser ----------
 const before = await p.evaluate(async () => {

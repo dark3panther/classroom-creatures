@@ -19,6 +19,25 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.8: the 3D stage
+
+<p align="center"><img src="docs/screenshots/stage-arena.jpg" alt="The 3D arena in the Crystal Caverns: the class's creatures in rows with their names, Glimmerjaw among giant crystals, the mission and HP cards on top" width="760"></p>
+
+The arena, the class world, three new class games and the evolution moment now play as **3D scenes made in [Godot](https://godotengine.org)**, with your creatures in them, outfits included. The app still runs every rule, point and reward; the 3D stage only draws.
+
+- **3D boss arena.** A Blender-built set for each of the nine regions. A creature's attack makes it hop, the boss **turns toward it**, its element flies and bursts with **real lighting and particles**, and the **camera shakes** (and zooms in on a super-effective hit). A strike back leaves a creature dazed with stars. Befriend the boss and the camera comes in **close** while everyone celebrates. Tap a creature to give points.
+- **A class world you can walk around.** The five places on one island at the stages your class has built (each pops up when it grows), every creature wandering the paths and greeting the others, befriended bosses strolling round in all eight directions (sprites made with SpriteCast), the decorations you earned. Drag, zoom, tap a creature to see whose it is.
+- **Class games** in the new **Games** tab: a **class relay** powered by today's points (the class races a boss as one team), **catch the stars** and a **memory match** with your field guide's creatures. Nobody is ranked and no points change.
+- **Creatures come alive in 3D** with no new art: breathing, swaying, hops, lunges, flinches and a happy wobble, their **element on their own body** (fire shimmers, water ripples, electric crackles, a mythical aura), lit by the scene and casting shadows.
+- **A bigger evolution**: the creature turns to light, its element swirls, a flash, and it dissolves into its next form.
+- **Settings → Classroom → 3D scenes** switches back to the 2D versions; computers that cannot run 3D get them automatically.
+
+| The class world | Class relay | Evolution |
+|---|---|---|
+| <img src="docs/screenshots/stage-world.jpg" alt="The class world island in 3D" width="300"> | <img src="docs/screenshots/stage-race.jpg" alt="The class relay" width="300"> | <img src="docs/screenshots/stage-evolution.jpg" alt="A creature evolving in 3D" width="300"> |
+
+How the stage is made: [The 3D stage](#the-3d-stage). Release notes: [docs/release-notes-1.8.0.md](docs/release-notes-1.8.0.md).
+
 ## What's new in 1.7: the bosses come alive
 
 <p align="center"><img src="docs/screenshots/boss-sprites.gif" alt="All twelve bosses animated: each breathes, flinches with its eyes squeezed shut, lunges with a toothy grin and hops for joy in its befriended look" width="760"></p>
@@ -302,6 +321,7 @@ scripts/pixel/               The adventure pixel art as code (claude-pxl): islan
 scripts/sky/pixelate.py      Pixel mode copies of the painted sky layers (public/sky-pixel/)
 scripts/bosses-3d/           The bosses as Blender models from code, rendered into sprites by SpriteCast (public/bosses3d/)
 scripts/blender/chest.py     The 3D treasure chest, modelled, animated and rendered in Blender (public/chests/)
+godot/                       The 3D stage (Godot 4.4): arena, class world, games, evolution, exported to public/godot/
 public/adventure/            The built pixel art (68 small PNGs, about 280 KB)
 ```
 
@@ -341,6 +361,21 @@ python scripts/bosses-3d/peek.py out.png grumblethorn   # a quick front-only loo
 To change a boss, edit its builder in `bosses.py`, look at it with `peek.py`, then run `scripts/bosses-3d/render_all.sh <id>`. The models and renders land in `art/` (git-ignored); only the WebP strips and the manifest are committed. `src/creatures/bosses/BossSprite.tsx` plays them; `BossPortrait` uses them when animated bosses are on and falls back to the painting.
 
 The **treasure chest** is `scripts/blender/chest.py` (modelled, animated and rendered with Blender's Cycles, 24 frames for each kind of chest) packed by `scripts/blender/pack_chests.py` into `public/chests/`: `npm run art:chests`.
+
+## The 3D stage
+
+The 3D scenes (1.8) are a Godot 4.4 project in `godot/`, exported for the web into `public/godot/` and shown in an iframe by `src/components/GodotStage.tsx`. The two talk in JSON messages: the app tells the stage what happened (a creature attacked for 5, the boss struck back, a place grew) and the stage plays it and answers (`hit` at the moment of impact, `done`, `tap`). Every rule stays in the app.
+
+```bash
+GODOT=/path/to/Godot_v4.4.1 npm run stage        # parse every script and export into public/godot/
+npm run art:stage                                  # rebuild the Blender sets, buildings and SpriteCast visitors (needs blender on PATH)
+npm run test:e2e:stage                             # the 3D scenes in a real browser, under the desktop app's content policy
+```
+
+- `godot/scripts/scenes/`: Arena, World, Race, Stars, Memory and Evolution; `Creature3D.gd` and `shaders/creature.gdshader` bring each painting to life; `Toon.gd`, `Fx.gd` and `Stage3D.gd` are shared.
+- `godot/models/`: the boss models (copied from `art/bosses-3d/` by `scripts/godot/copy-bosses.mjs`), the nine arena sets (`scripts/bosses-3d/arenas.py`) and the class world (`scripts/bosses-3d/world.py`), all made in Blender with the same outline as the bosses. `godot/sprites/`: the visiting bosses, made by `scripts/bosses-3d/visitors.py` with SpriteCast's own Godot exporter.
+- `src/lib/stage.ts` sends each class to the stage: paintings first, then each creature in its outfit.
+- The engine is MIT licensed; `public/godot/GODOT_LICENSE.txt` carries its licence and third-party notices.
 
 ## Adding new creatures
 
@@ -407,9 +442,9 @@ All creatures, bosses, regions, names, artwork, animations and sounds are origin
 - [Visual reference analysis](docs/visual-reference-analysis.md)
 - [Design system](docs/design-system.md)
 - [World of Adventures design](docs/adventure-design.md) (rules, formulas, edge cases and tuning, in the game-design-document structure from Claude-Code-Game-Studios)
-- [1.5.0 release notes](docs/release-notes-1.5.0.md) · [1.5.1 release notes](docs/release-notes-1.5.1.md) · [1.6.0](docs/release-notes-1.6.0.md) · [1.6.1](docs/release-notes-1.6.1.md) · [1.7.0](docs/release-notes-1.7.0.md)
+- [1.5.0 release notes](docs/release-notes-1.5.0.md) · [1.5.1 release notes](docs/release-notes-1.5.1.md) · [1.6.0](docs/release-notes-1.6.0.md) · [1.6.1](docs/release-notes-1.6.1.md) · [1.7.0](docs/release-notes-1.7.0.md) · [1.8.0](docs/release-notes-1.8.0.md)
 - [Roadmap](ROADMAP.md)
 
 ## License
 
-[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE`), as are anime.js (`src/vendor/animejs`) and the [claude-pxl](https://github.com/dark3panther/claude-pxl) tool used to draw the adventure art (`scripts/vendor/claude-pxl/LICENSE`). [SpriteCast](https://github.com/dark3panther/spritecast) (MIT) renders the boss sprites at build time. See [NOTICE.md](NOTICE.md).
+[MIT](LICENSE). The bundled [pixelfx](https://github.com/dark3panther/pixelfx) effects are MIT too (see `src/vendor/pixelfx/LICENSE`), as are anime.js (`src/vendor/animejs`) and the [claude-pxl](https://github.com/dark3panther/claude-pxl) tool used to draw the adventure art (`scripts/vendor/claude-pxl/LICENSE`). [SpriteCast](https://github.com/dark3panther/spritecast) (MIT) renders the boss sprites at build time, and the 3D stage runs on the [Godot Engine](https://godotengine.org) (MIT, `public/godot/GODOT_LICENSE.txt`). See [NOTICE.md](NOTICE.md).

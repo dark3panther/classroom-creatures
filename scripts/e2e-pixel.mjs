@@ -44,6 +44,7 @@ const canvases = () => p.evaluate(() => document.querySelectorAll('main canvas')
 try {
 await p.goto(U); await wait(1200);
 const demo = p.getByRole('button', { name: 'Explore the demo first' }); if (await demo.count()) { await demo.click(); await wait(900); }
+await p.evaluate(() => window.__cc.getState().updateSettings({ stage3d: false }));   // the 2D scenes (the 3D stage: e2e-stage.mjs)
 
 // ---------- 1. off by default: the painted look ----------
 ok(!(await p.evaluate(() => document.documentElement.classList.contains('pixel-mode'))), 'Pixel mode is off by default');

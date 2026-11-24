@@ -17,6 +17,8 @@ import { animate, reducedMotion } from '../../lib/motion';
 import { useStore } from '../../store/store';
 import type { BossBattle, BossContribution, CategoryTag, ElementType } from '../../types';
 import { ArenaBackdrop } from './ArenaBackdrop';
+import { GodotStage, useStage3d, type GodotStageHandle, type StageMessage } from '../../components/GodotStage';
+import { sendClass } from '../../lib/stage';
 import { timeLeft } from './common';
 
 /**
@@ -105,6 +107,13 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
   // bumped on every hit and every strike, so the animated boss flinches (or lunges) again even when its mood is unchanged
   const [beat, setBeat] = useState(0);
   const animatedBoss = useStore((s) => (s.data.settings.bossStyle ?? 'animated') === 'animated') && hasBossSprite(def.id);
+  // the 3D arena (Godot, 1.8): it draws, this component still runs the battle. Pixel mode keeps the pixel arena.
+  const want3d = useStage3d() && !pixel;
+  const [stageFailed, setStageFailed] = useState(false);
+  const [stageReady, setStageReady] = useState(false);
+  const on3d = want3d && !stageFailed;
+  const stage = useRef<GodotStageHandle>(null);
+  const studentsKey = useMemo(() => students.map((s) => `${s.id}:${s.speciesId}:${displayStage(s, settings)}:${s.branch ?? ''}:${JSON.stringify(s.equipped ?? {})}`).join('|'), [students, settings]);
   const [dazed, setDazed] = useState<Record<string, number>>({});
   const [shots, setShots] = useState<Shot[]>([]);
   const [blasts, setBlasts] = useState<Blast[]>([]);
@@ -241,7 +250,37 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     setMood('grumpy');
   };
 
+  /** the same moves on the 3D stage: it plays them and says "hit" at the moment of impact */
+  const play3d = async (m: Move, fast: boolean) => {
+    const st = stage.current!;
+    if (m.kind === 'attack') {
+      await st.play('attack', { studentId: m.studentId, amount: m.amount, super: !!m.super, fast }, 7000, (e) => {
+        if (e.type !== 'hit') return;
+        if (sound) playBossHit();
+        setShown((v) => Math.min(latest.current.hp, v + m.amount));
+      });
+    } else if (m.kind === 'team') {
+      setBanner({ key: key(), text: m.mission ? 'Mission complete!' : 'Team attack!', sub: m.mission ? lesson.mission : m.label, tone: m.mission ? 'gold' : 'azure' });
+      if (sound) (m.mission ? playClassCelebration : playMultiAward)();
+      await st.play('team', { ids: m.ids, amount: m.amount, mission: !!m.mission, fast }, 10000, (e) => {
+        if (e.type !== 'hit') return;
+        if (sound) playBossHit();
+        setShown((v) => Math.min(latest.current.hp, v + m.amount));
+      });
+    } else {
+      const s3 = students.find((s) => s.id === m.studentId);
+      setDazed((d) => ({ ...d, [m.studentId]: Date.now() + 5000 }));
+      await st.play('strike', { studentId: m.studentId, amount: m.amount, fast }, 7000, (e) => {
+        if (e.type !== 'hit') return;
+        if (sound) playBonk();
+        setBanner({ key: key(), text: `${def.name} strikes back!`, sub: s3 ? `${firstName(s3.name)}'s ${getSpecies(s3.speciesId).name} got ${def.strike.verb}${m.amount > 0 ? `. ${def.name} gets ${m.amount} back.` : '.'}` : undefined, tone: 'brick', small: true });
+        setShown((v) => Math.max(0, v - m.amount));
+      });
+    }
+  };
+
   const play = async (m: Move, fast: boolean) => {
+    if (on3d && stageReady && stage.current) return play3d(m, fast);
     if (m.kind === 'attack') return attack(m.studentId, m.amount, !!m.super, fast);
     if (m.kind === 'team') return team(m, fast);
     return strike(m, fast);
@@ -260,7 +299,7 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     setBusy(false);
     const b = latest.current;
     setShown(battleTotal(b));
-    if (b.status === 'won') { setMood('happy'); setBanner({ key: key(), text: `${def.name} is your friend!`, tone: 'gold' }); }
+    if (b.status === 'won') { setMood('happy'); setBanner({ key: key(), text: `${def.name} is your friend!`, tone: 'gold' }); stage.current?.send('status', { status: 'won' }); }
   };
 
   // every change to the battle: play what is new
@@ -276,9 +315,26 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     } else if (!playing.current) {
       setShown(total);
       if (battle.status === 'won') setMood('happy');
+      if (battle.status !== 'won' || !busy) stage.current?.send('status', { status: battle.status === 'won' ? 'won' : battle.status === 'paused' ? 'paused' : 'active' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battle]);
+
+  // the 3D stage: the boss and its region once it is ready, then the class (paintings first, outfits as they are drawn)
+  useEffect(() => {
+    if (!stageReady) return;
+    stage.current?.send('init', { boss: { id: def.id, element: def.element, name: def.name }, region: region.id, students: [], reduced: reducedMotion(),
+      status: battle.status === 'won' ? 'won' : battle.status === 'paused' ? 'paused' : 'active' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageReady]);
+  useEffect(() => {
+    if (!stageReady) return;
+    return sendClass(students, settings, (list) => stage.current?.send('students', { students: list }), (pics) => stage.current?.send('pictures', { list: pics }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageReady, studentsKey]);
+  const onStage = (msg: StageMessage) => {
+    if (msg.type === 'tap' && teacher && typeof msg.studentId === 'string') setAwardFor(msg.studentId);
+  };
 
   // dazed creatures recover
   useEffect(() => {
@@ -304,18 +360,27 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
   return (
     <section className="flex flex-col gap-3">
       <div ref={arena} className={`arena ${full ? 'arena-full' : ''}`} data-arena>
-        {pixel ? <img src={`${ADVENTURE_ART}region-${region.id}.png`} alt="" className="pixel absolute inset-0 h-full w-full object-cover" /> : <ArenaBackdrop regionId={region.id} />}
+        {on3d && (
+          <GodotStage ref={stage} scene="arena" className="absolute inset-0 z-[1]" title={`${def.name} and the class in 3D`}
+            onReady={() => setStageReady(true)} onFail={() => setStageFailed(true)} onMessage={onStage} />
+        )}
+        {on3d && teacher && (
+          <div className="sr-only" role="list" aria-label="Give points to">
+            {students.map((s) => <button key={s.id} type="button" role="listitem" data-student={s.id} onClick={() => setAwardFor(s.id)}>{firstName(s.name)}: give points</button>)}
+          </div>
+        )}
+        {!on3d && (pixel ? <img src={`${ADVENTURE_ART}region-${region.id}.png`} alt="" className="pixel absolute inset-0 h-full w-full object-cover" /> : <ArenaBackdrop regionId={region.id} />)}
 
         {/* boss */}
-        <div className="arena-boss">
+        {!on3d && <div className="arena-boss">
           <div ref={bossBox} className={`relative ${paused || over || animatedBoss ? '' : 'arena-breathe'}`} data-boss={def.id} data-mood={mood}>
             <BossAura element={def.element} k={unit * 0.9} box={aw * 0.34} />
             <BossPortrait id={def.id} mood={mood} beat={beat} still={paused && !over} title={def.name} className="drop-shadow-[0_10px_0_rgb(14_42_82/.25)]" />
           </div>
-        </div>
+        </div>}
 
         {/* the class */}
-        <div className="arena-class" role="list" aria-label="The class">
+        {!on3d && <div className="arena-class" role="list" aria-label="The class">
           {rows.map((row, r) => (
             <div key={r} className="arena-row" style={{ '--row-scale': `${0.78 + 0.22 * ((r + 1) / rows.length)}`, paddingLeft: r % 2 ? `${50 / cols}%` : 0 } as CSSProperties}>
               {row.map((s) => {
@@ -335,7 +400,7 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
               })}
             </div>
           ))}
-        </div>
+        </div>}
 
         {/* heads-up: mission (left), the boss's HP and the clock (right) */}
         <div className="arena-mission">

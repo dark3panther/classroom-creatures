@@ -4,6 +4,7 @@ export type Route =
   | { view: 'classroom' }
   | { view: 'creatures' }
   | { view: 'rewards' }
+  | { view: 'games'; game?: string }
   | { view: 'settings'; tab?: string }
   | { view: 'present' }
   | { view: 'creature'; id: string; tab?: string }
@@ -22,6 +23,7 @@ export function parseHash(hash: string): Route {
       return sub === 'customize' ? { view: 'customize', id: arg } : { view: 'creature', id: arg, tab: sub };
     case 'creatures': return { view: 'creatures' };
     case 'rewards': return { view: 'rewards' };
+    case 'games': return { view: 'games', game: arg };
     case 'settings': return { view: 'settings', tab: arg };
     case 'present': return { view: 'present' };
     case 'pixel-lab': return { view: 'pixel-lab' };

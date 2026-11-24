@@ -1,7 +1,7 @@
 {
   "name": "classroom-creatures",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,6 +18,9 @@
     "test:e2e:pixel": "node scripts/e2e-pixel.mjs",
     "test:e2e:battle": "node scripts/e2e-battle.mjs",
     "test:e2e:sprites": "node scripts/e2e-sprites.mjs",
+    "test:e2e:stage": "node scripts/e2e-stage.mjs",
+    "stage": "node scripts/godot/export.mjs",
+    "art:stage": "blender -b -P scripts/bosses-3d/arenas.py && blender -b -P scripts/bosses-3d/world.py && python3 scripts/bosses-3d/visitors.py && node scripts/godot/copy-bosses.mjs",
     "art:bosses": "bash scripts/bosses-3d/render_all.sh",
     "art:chests": "blender -b -P scripts/blender/chest.py && python3 scripts/blender/pack_chests.py",
     "art:creatures": "node scripts/pixel/build-creatures.mjs"

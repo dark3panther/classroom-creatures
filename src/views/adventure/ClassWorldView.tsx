@@ -11,6 +11,8 @@ import { animate, reducedMotion } from '../../lib/motion';
 import { useStore } from '../../store/store';
 import type { LocationId } from '../../types';
 import { EmptyNote, Px } from './common';
+import { GodotStage, useStage3d, type GodotStageHandle, type StageMessage } from '../../components/GodotStage';
+import { sendClass } from '../../lib/stage';
 
 // where each place stands on the 320×200 meadow (top-left, in pixels of the meadow picture)
 const SPOT: Record<LocationId, [number, number]> = { castle: [137, 5], arena: [16, 71], library: [240, 71], sanctuary: [65, 104], village: [197, 104] };
@@ -27,6 +29,39 @@ export function ClassWorldView({ classId, teacher }: { classId: string; teacher:
   const students = data.students.filter((s) => s.classId === classId).slice(0, 10);
   const decos = classDecorations(data, classId);
   const ap = adventurePoints(data, classId).total;
+  // the class world in 3D (Godot, 1.8): walk round the island, every creature wandering it; the pixel map stays one tap away
+  const want3d = useStage3d();
+  const [stageFailed, setStageFailed] = useState(false);
+  const [flat, setFlat] = useState(false);
+  const [stageReady, setStageReady] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const on3d = want3d && !stageFailed && !flat;
+  const stage = useRef<GodotStageHandle>(null);
+  const everyone = data.students.filter((s) => s.classId === classId);
+  const placeStages = Object.fromEntries(LOCATIONS.map((l) => [l.id, locationState(data, classId, l.id).stage]));
+  const placesKey = JSON.stringify(placeStages);
+  const decoIds = decos.filter((d) => d.kind === 'quest').map((d) => d.id);
+  const visitors = decos.filter((d) => d.kind === 'statue').map((d) => d.bossId!).filter(Boolean);
+  const decoKey = JSON.stringify([decoIds, visitors]);
+  const classKey = everyone.map((s) => `${s.id}:${s.speciesId}:${displayStage(s, data.settings)}:${JSON.stringify(s.equipped ?? {})}`).join('|');
+  useEffect(() => {
+    if (!stageReady) return;
+    stage.current?.send('init', { students: [], places: placeStages, decorations: decoIds, visitors, reduced: reducedMotion() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageReady]);
+  useEffect(() => { if (stageReady) stage.current?.send('places', { places: placeStages }); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [placesKey]);
+  useEffect(() => { if (stageReady) { stage.current?.send('decorations', { decorations: decoIds }); stage.current?.send('visitors', { visitors }); } /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [decoKey]);
+  useEffect(() => {
+    if (!stageReady) return;
+    return sendClass(everyone, data.settings, (list) => stage.current?.send('students', { students: list }), (pics) => stage.current?.send('pictures', { list: pics }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageReady, classKey]);
+  useEffect(() => { if (!picked) return; const t = setTimeout(() => setPicked(null), 3500); return () => clearTimeout(t); }, [picked]);
+  const onStage = (m: StageMessage) => {
+    if (m.type === 'place' && typeof m.id === 'string') setOpen(m.id as LocationId);
+    if (m.type === 'tap' && typeof m.studentId === 'string') setPicked(m.studentId);
+  };
+  const pickedStudent = picked ? everyone.find((s) => s.id === picked) : undefined;
 
   // the class's creatures wander slowly around the path
   useEffect(() => {
@@ -45,7 +80,21 @@ export function ClassWorldView({ classId, teacher }: { classId: string; teacher:
   if (!data.settings.classWorld) return <EmptyNote icon="castle" title="The shared class world is switched off">{teacher ? 'Turn it on in Settings → Adventure.' : 'Your teacher can turn it on.'}</EmptyNote>;
   return (
     <div className="flex flex-col gap-4">
-      <div className="adv-map" style={{ aspectRatio: '16 / 10' }}>
+      {on3d && (
+        <div className="adv-map relative" style={{ aspectRatio: '16 / 10' }} data-world3d>
+          <GodotStage ref={stage} scene="world" className="absolute inset-0" title="The class world in 3D: drag to turn round the island, scroll to zoom, tap a creature or a place"
+            onReady={() => setStageReady(true)} onFail={() => setStageFailed(true)} onMessage={onStage} />
+          {pickedStudent && (
+            <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-white/95 px-4 py-1.5 font-display text-lg font-bold shadow" role="status">
+              {pickedStudent.name.split(' ')[0]}'s {getSpecies(pickedStudent.speciesId).name}
+            </div>
+          )}
+          <div className="absolute bottom-2 left-2 rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-ink-soft shadow-sm">Drag to look around · scroll to zoom · tap a creature or a place</div>
+          <button className="btn btn-light absolute bottom-2 right-2 !py-1 !text-xs" onClick={() => setFlat(true)}>Pixel map</button>
+        </div>
+      )}
+      {!on3d && want3d && !stageFailed && flat && <button className="btn btn-light self-start !py-1 !text-sm" onClick={() => setFlat(false)}>Walk around in 3D</button>}
+      {!on3d && <div className="adv-map" style={{ aspectRatio: '16 / 10' }}>
         <Px name="world-ground" className="sea" />
         {decos.filter((d) => d.kind === 'quest').map((d) => { const [x, y, w] = DECO_SPOT[d.id]; return <Px key={d.id} name={`deco-${d.id}`} alt={d.name} className="absolute" style={{ left: pct(x, 320), top: pct(y, 200), width: pct(w, 320) }} />; })}
         {decos.filter((d) => d.kind === 'statue').map((d, i) => (
@@ -70,7 +119,7 @@ export function ClassWorldView({ classId, teacher }: { classId: string; teacher:
             </button>
           );
         })}
-      </div>
+      </div>}
 
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5" data-stagger>
         {LOCATIONS.map((l) => {

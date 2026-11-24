@@ -1,6 +1,8 @@
 import { BossPortrait } from '../creatures/bosses/BossPortrait';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { GodotStage, useStage3d, type GodotStageHandle } from './GodotStage';
+import { stageCreature, withPicture } from '../lib/stage';
 import { playAchievement, playBefriend, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone, playQuest, playRegion } from '../audio/sfx';
 import { ADVENTURE_ART, BOSSES_BY_ID, REGIONS_BY_ID } from '../data/adventure';
 import { navigate } from '../lib/router';
@@ -142,8 +144,31 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
   const el = ELEMENTS[sp.element];
   const [phase, setPhase] = useState<Phase>(reduced ? 'reveal' : 'intro');
   const [run, setRun] = useState(0);
+  // the 3D evolution (Godot, 1.8) plays behind the words and buttons; the timeline below waits for it to be ready
+  const settings = useStore((s) => s.data.settings);
+  const want3d = useStage3d() && !reduced;
+  const [stage3d, setStage3d] = useState<'loading' | 'on' | 'off'>(want3d ? 'loading' : 'off');
+  const [go, setGo] = useState(!want3d);
+  const stageRef = useRef<GodotStageHandle>(null);
+  useEffect(() => {
+    if (stage3d !== 'loading') return;
+    // a few seconds for the stage to start, then the 2D evolution plays instead (tests may wait longer, in development only)
+    const ms = (import.meta.env.DEV && (window as unknown as { __ccStageWait?: number }).__ccStageWait) || 4500;
+    const t = setTimeout(() => { setStage3d('off'); setGo(true); }, ms);
+    return () => clearTimeout(t);
+  }, [stage3d, run]);
+  const onStageReady = async () => {
+    const from = await withPicture(stageCreature(student, settings, { stage: c.from, name: false }), student);
+    const to = await withPicture(stageCreature(student, settings, { stage: c.to, name: false }), student);
+    stageRef.current?.send('init', { from, to, element: sp.element, reduced });
+    stageRef.current?.send('start', { charge: 700, flash: 3200 });
+    setStage3d((v) => (v === 'off' ? v : 'on'));
+    setGo(true);
+  };
+  const replay = () => { if (want3d && stage3d !== 'off') { setGo(false); setStage3d('loading'); } setRun((r) => r + 1); };
 
   useEffect(() => {
+    if (!go) return;
     if (reduced) { if (sound) playEvolutionReveal(); return; }
     setPhase('intro');
     const t = [
@@ -152,7 +177,8 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
       setTimeout(() => { setPhase('reveal'); if (sound) playEvolutionReveal(); }, 3450),
     ];
     return () => t.forEach(clearTimeout);
-  }, [run, reduced, sound]);
+  }, [run, reduced, sound, go]);
+  const on3d = stage3d !== 'off';
 
   const showNew = phase === 'flash' || phase === 'reveal';
   const stage: Stage = showNew ? c.to : c.from;
@@ -165,8 +191,10 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
   return (
     <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      {on3d && <GodotStage key={run} ref={stageRef} scene="evolution" className="absolute inset-0" title="The creature evolving" loading={<span />} onReady={() => void onStageReady()} onFail={() => { setStage3d('off'); setGo(true); }} />}
       <div className="relative flex w-full max-w-5xl flex-col items-center">
-        <div className="flex items-center justify-center gap-6 sm:gap-10">
+        {on3d && <div className="h-[min(50vh,420px)] w-full" aria-hidden />}
+        {!on3d && <div className="flex items-center justify-center gap-6 sm:gap-10">
           {/* the old entry steps aside once the new one is painted */}
           <AnimatePresence>
             {phase === 'reveal' && (
@@ -227,10 +255,10 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
               {phase === 'reveal' && <><Burst key={`c${run}`} kind="confetti" count={28} spread={260} size={16} duration={1.8} /><Burst key={`e${run}`} kind={sp.element} count={16} spread={200} size={26} duration={1.4} /></>}
               {phase === 'reveal' && !reduced && <PixelFx key={`burst-${run}`} id="holy/feather-burst" options={{ palette }} anchor={[0.5, 0.62]} bodyFrac={0.22} fps={30} lightOpacity={0.45} />}
             </motion.div>
-            <div className="relative z-10 mt-4 flex items-center gap-2 rounded-full bg-azure-950/80 px-4 py-1.5 font-display text-xl font-bold text-white">
+            {!on3d && <div className="relative z-10 mt-4 flex items-center gap-2 rounded-full bg-azure-950/80 px-4 py-1.5 font-display text-xl font-bold text-white">
               <ElementIcon element={sp.element} size={20} color={el.color} />
               <span className="tabular text-white/75">{fieldNo(sp.id)}</span> {sp.name} · Stage {roman(stage)} · {STAGE_NAMES[stage]}
-            </div>
+            </div>}
             {phase === 'reveal' && path && (
               <motion.span className="mt-2 chip !px-3 !py-1 !text-[14px] text-white ring-1" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
                 style={{ background: `color-mix(in srgb, ${RARITIES[path.rarity].color} 55%, transparent)`, ['--tw-ring-color' as string]: RARITIES[path.rarity].color }}>
@@ -238,7 +266,13 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
               </motion.span>
             )}
           </div>
-        </div>
+        </div>}
+        {on3d && (
+          <div className="relative z-10 mt-4 flex items-center gap-2 rounded-full bg-azure-950/80 px-4 py-1.5 font-display text-xl font-bold text-white">
+            <ElementIcon element={sp.element} size={20} color={el.color} />
+            <span className="tabular text-white/75">{fieldNo(sp.id)}</span> {sp.name} · Stage {roman(stage)} · {STAGE_NAMES[stage]}
+          </div>
+        )}
 
         <AnimatePresence>
           {phase === 'reveal' && (
@@ -248,7 +282,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
                 {firstName(student.name)}’s {sp.name} became {STAGE_NAMES[c.to]}{c.to === 5 ? `, ${path?.title ?? sp.legendTitle}!` : '!'} A new entry for the field guide.
               </p>
               <div className="mt-6 flex justify-center gap-3">
-                <button className="btn btn-ghost" onClick={() => setRun((r) => r + 1)}><Icon name="replay" size={18} />Replay</button>
+                <button className="btn btn-ghost" onClick={replay}><Icon name="replay" size={18} />Replay</button>
                 <button className="btn btn-primary px-8 text-lg" onClick={onDone} autoFocus>Hooray!</button>
               </div>
             </motion.div>

@@ -84,9 +84,9 @@ app.whenReady().then(() => {
     if (!file.startsWith(DIST)) return new Response('Not found', { status: 404 });
     return net.fetch(pathToFileURL(file).toString());
   });
-  // strict content policy: nothing is loaded from the internet
+  // strict content policy: nothing is loaded from the internet ('wasm-unsafe-eval' lets the Godot 3D stage compile its engine)
   session.defaultSession.webRequest.onHeadersReceived((details, cb) => {
-    cb({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': ["default-src 'self' app:; img-src 'self' app: data: blob:; style-src 'self' app: 'unsafe-inline'; font-src 'self' app: data:; script-src 'self' app:; connect-src 'self' app:"] } });
+    cb({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': ["default-src 'self' app:; img-src 'self' app: data: blob:; style-src 'self' app: 'unsafe-inline'; font-src 'self' app: data:; script-src 'self' app: 'wasm-unsafe-eval'; connect-src 'self' app: data:"] } });
   });
   buildMenu();
   createWindow();

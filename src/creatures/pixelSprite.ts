@@ -78,6 +78,78 @@ function palSprite(r: SpriteRequest): PixelSprite {
   return s;
 }
 
+/**
+ * The creature in its outfit as a PNG data URL about `px` tall, trimmed to the creature (feet on the bottom edge), for
+ * the 3D stage (1.8). Pixel Pals come out crisp (no smoothing).
+ */
+const pictures = new Map<string, Promise<string>>();
+export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
+  const key = `${spriteKey(r)}|${px}`;
+  let p = pictures.get(key);
+  if (!p && r.species.pixelArt) {
+    // a Pixel Pal: its sheet's first frame with its pixel outfit, blown up crisp
+    p = (async () => {
+      const [FW, FH] = (PALS as unknown as { frame: [number, number] }).frame;
+      const sheet = new Image();
+      sheet.src = `${import.meta.env.BASE_URL}creatures-pixel/${r.species.id}-${r.stage}.png`;
+      await sheet.decode();
+      const outfit = await outfitSprite(r).catch(() => null);
+      const c = document.createElement('canvas'); c.width = FW; c.height = FH;
+      const x = c.getContext('2d', { willReadFrequently: true })!;
+      x.imageSmoothingEnabled = false;
+      if (outfit?.back) x.drawImage(outfit.back, 0, 0, FW, FH);
+      x.drawImage(sheet, 0, 0, FW, FH, 0, 0, FW, FH);
+      if (outfit?.front) x.drawImage(outfit.front, 0, 0, FW, FH);
+      const d = x.getImageData(0, 0, FW, FH);
+      let l = FW, t = FH, rr = 0, b = 0;
+      for (let y = 0; y < FH; y++) for (let xx = 0; xx < FW; xx++) if (d.data[(y * FW + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
+      if (rr < l) throw new Error('empty Pixel Pal frame');
+      const k = Math.max(1, Math.floor(px / (b - t + 1))), out = document.createElement('canvas');
+      out.width = (rr - l + 1) * k; out.height = (b - t + 1) * k;
+      const o = out.getContext('2d')!; o.imageSmoothingEnabled = false;
+      o.drawImage(c, l, t, rr - l + 1, b - t + 1, 0, 0, out.width, out.height);
+      return out.toDataURL('image/png');
+    })();
+    pictures.set(key, p);
+    p.catch(() => pictures.delete(key));
+  }
+  if (!p) {
+    p = inTurn(async () => {
+      const big = px * 1.4;
+      const svg = (await svgMarkup(r, false)).replace(/width="\d+" height="\d+" /, `width="${Math.round(big)}" height="${Math.round((big * SPRITE_H) / SPRITE_W)}" `);
+      let img = await loadSvg(svg);
+      const c = document.createElement('canvas');
+      c.width = Math.round(big); c.height = Math.round((big * SPRITE_H) / SPRITE_W);
+      const x = c.getContext('2d', { willReadFrequently: true })!;
+      x.imageSmoothingEnabled = !r.species.pixelArt; x.imageSmoothingQuality = 'high';
+      let d: ImageData | null = null;
+      for (const [ms, fresh] of [[0, false], [60, false], [200, true], [450, false]] as const) {
+        if (ms) await new Promise((res) => setTimeout(res, ms));
+        if (fresh) img = await loadSvg(svg);
+        x.clearRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height);
+        d = x.getImageData(0, 0, c.width, c.height);
+        if (solidShare(d) >= MIN_SOLID) break;
+      }
+      if (!d || solidShare(d) < MIN_SOLID) throw new Error('the creature painting did not draw');
+      // trim to the creature, with a little room
+      let l = c.width, t = c.height, rr = 0, b = 0;
+      for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d.data[(y * c.width + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
+      const m = Math.round(c.width * 0.02);
+      l = Math.max(0, l - m); t = Math.max(0, t - m); rr = Math.min(c.width - 1, rr + m); b = Math.min(c.height - 1, b + 1);
+      const k = px / (b - t + 1), out = document.createElement('canvas');
+      out.width = Math.max(1, Math.round((rr - l + 1) * k)); out.height = px;
+      const o = out.getContext('2d')!;
+      o.imageSmoothingEnabled = !r.species.pixelArt; o.imageSmoothingQuality = 'high';
+      o.drawImage(c, l, t, rr - l + 1, b - t + 1, 0, 0, out.width, out.height);
+      return out.toDataURL('image/png');
+    });
+    pictures.set(key, p);
+    p.catch(() => pictures.delete(key));
+    if (pictures.size > 200) pictures.delete(pictures.keys().next().value as string);
+  }
+  return p;
+}
+
 /** What a Pixel Pal wears, as two pixel layers: behind it (wings, capes) and in front (null: nothing drawn). */
 export interface Outfit { back: HTMLCanvasElement | null; front: HTMLCanvasElement | null }
 const outfits = new Map<string, Promise<Outfit | null>>();
@@ -119,7 +191,7 @@ async function svgMarkup(r: SpriteRequest, shut: boolean): Promise<string> {
   const [{ renderToStaticMarkup }, { IllustratedCreature }] = await Promise.all([import('react-dom/server'), import('./Illustrated')]);
   // effects off: no aura, sparkles or rings, just the creature and what it wears; "sleepy" shows the eyelids
   let svg = renderToStaticMarkup(createElement(IllustratedCreature, { sp: r.species, stage: r.stage, equipped: r.equipped, branch: r.branch, noShadow: true, effects: false, expression: shut ? 'sleepy' : 'happy' }));
-  const hrefs = [...new Set([...svg.matchAll(/href="([^"]+\.webp)"/g)].map((m) => m[1]))];
+  const hrefs = [...new Set([...svg.matchAll(/href="([^"]+\.(?:webp|png))"/g)].map((m) => m[1]))];
   for (const h of hrefs) svg = svg.split(`href="${h}"`).join(`href="${await inline(h)}"`);
   const w = SPRITE_W * SUPER, h = SPRITE_H * SUPER;
   return svg.replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" `);

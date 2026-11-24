@@ -43,7 +43,7 @@ const drawn = (sel) => p.evaluate((q) => [...document.querySelectorAll(q)].map((
 try {
 await p.goto(U); await wait(1200);
 const demo = p.getByRole('button', { name: 'Explore the demo first' }); if (await demo.count()) { await demo.click(); await wait(900); }
-await p.evaluate(() => window.__cc.getState().updateSettings({ adventureEnabled: true }));
+await p.evaluate(() => window.__cc.getState().updateSettings({ adventureEnabled: true, stage3d: false }));   // the 2D arena and world (the 3D stage: e2e-stage.mjs)
 
 // ---------- 1. the boss list: twelve animated bosses ----------
 await go('#/adventure/boss', 2500);

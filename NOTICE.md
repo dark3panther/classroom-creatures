@@ -10,7 +10,9 @@ Classroom Creatures is MIT licensed (see LICENSE). It includes or uses these ope
 - **SpriteCast** 0.16.1 (Sunghwan Baek), from github.com/dark3panther/spritecast, used at build time by `scripts/bosses-3d/` to render the animated bosses: its character pipeline (`charpipe.py render`, `finish`, with `"draw": false`) turns each rigged boss model into toon-shaded sprite strips through its bundled **three.js** (MIT, three.js authors). Only the free steps are used; nothing is sent to an image service.
 - **blender-skills** (blender-skills contributors), from github.com/dark3panther/blender-skills: the creature-artist, cartoon-style, rigging, animation, lighting, rendering and export-pipeline guides shaped how the boss models and the treasure chest were built.
 
-**Blender** (GPL, blender.org) is used as a tool at build time to model, rig, animate and render the bosses and the treasure chest (`scripts/bosses-3d/`, `scripts/blender/`). No part of Blender ships with the app; the images it made are this project's own.
+- **Godot Engine** 4.4.1 (MIT; Juan Linietsky, Ariel Manzur and the Godot Engine contributors), from godotengine.org: the 3D stage in `godot/` is exported with Godot's web export template into `public/godot/` (`index.wasm`, `index.js` and its audio worklets). Its licence and the notices of the third-party code built into it are in `public/godot/GODOT_LICENSE.txt`.
+
+**Blender** (GPL, blender.org) is used as a tool at build time to model, rig, animate and render the bosses, the treasure chest, the nine arena sets and the class world (`scripts/bosses-3d/`, `scripts/blender/`). No part of Blender ships with the app; the images it made are this project's own.
 
 The World of Adventures design document follows the game-design-document structure (overview, player fantasy, detailed rules, formulas, edge cases, dependencies, tuning knobs, acceptance criteria) of github.com/dark3panther/Claude-Code-Game-Studios.
 

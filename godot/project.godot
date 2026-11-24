@@ -1,0 +1,36 @@
+; Classroom Creatures 3D stage (Godot 4.4, Compatibility renderer for the web).
+; Exported to ../public/godot/ and shown inside the app through public/godot/stage.html.
+
+config_version=5
+
+[application]
+
+config/name="Classroom Creatures Stage"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.91, 0.95, 1, 1)
+config/icon="res://icon.svg"
+
+[autoload]
+
+Bridge="*res://scripts/Bridge.gd"
+Art="*res://scripts/Art.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="disabled"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=false
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.91, 0.95, 1, 1)
+anti_aliasing/quality/msaa_3d=1
+textures/canvas_textures/default_texture_filter=1

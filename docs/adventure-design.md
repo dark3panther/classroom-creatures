@@ -169,6 +169,17 @@ The **treasure chest** in the opening moment is a Blender model too (`scripts/bl
 Cycles): in the chest's own colours (coins, accessory, cosmetic, special) the lid flies open, light pours out
 and sparkles burst, and it stays open on what was inside. Relics and Pixel mode keep their pixel art.
 
+### 3.9 The 3D stage (1.8)
+
+The arena, the class world, the class games and the evolution moment can play as 3D scenes (Godot, `godot/`). The
+engine (`engine/adventure/*`) is unchanged and remains the only source of truth: the app turns each new contribution
+into a move exactly as for the 2D arena and asks the stage to play it, updating the HP bar when the stage reports the
+impact (a move the stage does not finish within a few seconds still counts). Taps on a creature open the same award
+panel as tapping its tile; a hidden list of buttons keeps that reachable from the keyboard. The class world shows
+the place stages and decorations from `locationState` and `classDecorations`; building a stage is still the
+teacher's action in the place's panel. The class games are rewards with no effect on points: the relay uses each
+student's positive XP today only to set the speed of their leg, and the result is the class's, never a ranking.
+
 ## 4. Formulas
 
 * **Adventure points** (class): `AP = floor((Σ lifetimeXp / 25 + 2 × approved quest completions) / students) + 20 × different bosses befriended`

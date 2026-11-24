@@ -4,6 +4,10 @@
 @import '@fontsource/jersey-10/latin-400.css';
 @import '@fontsource/tiny5/latin-400.css';
 @import 'tailwindcss';
+/* the 3D stage (its Godot project and web export) holds no class names: keep it out of Tailwind's scan, so the
+   engine's own JavaScript adds no stray utilities and editing a scene does not reload the app in development */
+@source not "../godot";
+@source not "../public/godot";
 
 /* ───────────── Design tokens: the Creature Field Guide (see DESIGN.md) ───────────── */
 @theme {

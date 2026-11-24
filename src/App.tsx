@@ -25,6 +25,7 @@ const Creaturedex = lazy(() => import('./views/Creaturedex').then((m) => ({ defa
 const Customize = lazy(() => import('./views/Customize').then((m) => ({ default: m.Customize })));
 const CreatureProfile = lazy(() => import('./views/CreatureProfile').then((m) => ({ default: m.CreatureProfile })));
 const Rewards = lazy(() => import('./views/Rewards').then((m) => ({ default: m.Rewards })));
+const Games = lazy(() => import('./views/Games').then((m) => ({ default: m.Games })));
 const SettingsView = lazy(() => import('./views/Settings').then((m) => ({ default: m.SettingsView })));
 const PixelLab = lazy(() => import('./views/PixelLab').then((m) => ({ default: m.PixelLab })));
 const Adventure = lazy(() => import('./views/adventure/Adventure').then((m) => ({ default: m.Adventure })));
@@ -145,6 +146,7 @@ export default function App() {
         {route.view === 'classroom' && <Dashboard />}
         {route.view === 'creatures' && <Creaturedex />}
         {route.view === 'rewards' && <Rewards />}
+        {route.view === 'games' && <Games game={route.game} />}
         {route.view === 'pixel-lab' && <PixelLab />}
         {route.view === 'adventure' && <Adventure tab={route.tab} id={route.id} query={route.query} />}
         {route.view === 'settings' && <SettingsView tab={route.tab} />}

@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="SpriteFrames" path="murkmoth_shadow.tres" id="1"]
+[ext_resource type="SpriteFrames" path="murkmoth.tres" id="2"]
+[ext_resource type="Script" path="murkmoth.gd" id="3"]
+[ext_resource type="SpriteFrames" path="murkmoth_effect.tres" id="4"]
+
+[node name="murkmoth" type="Node2D"]
+script = ExtResource("3")
+
+[node name="Shadow" type="AnimatedSprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.3)
+sprite_frames = ExtResource("1")
+animation = &"idle_south"
+centered = false
+
+[node name="Body" type="AnimatedSprite2D" parent="."]
+sprite_frames = ExtResource("2")
+animation = &"idle_south"
+centered = false
+
+[node name="Effect" type="AnimatedSprite2D" parent="."]
+visible = false
+sprite_frames = ExtResource("4")
+animation = &"idle_south"
+centered = false

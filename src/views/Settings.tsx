@@ -270,6 +270,8 @@ function ClassroomTab() {
       <div className="mt-2 divide-y divide-ink/10">
         <Toggle label="Pixel mode" hint="Turns the whole app into pixel art: the creatures become pixel sprites that bob and blink, every element gets its own pixel aura and attack (fire breath, water jets, lightning, frost, vines and more), and the buttons, panels, text and sky go pixel too. Switch back at any time; nothing else changes."
           checked={!!settings.pixelMode} onChange={(v) => updateSettings({ pixelMode: v })} />
+        <Toggle label="3D scenes" hint="The boss arena, the class world, the class games and evolutions play as 3D scenes (made in Godot): creatures breathe, hop and glow with their element, bosses turn to whoever hit them. Turn off for the 2D versions, for example on a very old computer. Pixel mode keeps its pixel arena."
+          checked={settings.stage3d ?? true} onChange={(v) => updateSettings({ stage3d: v })} />
         <Toggle label="Illustrated creature art" hint="Painted creature artwork. Turn off for the classic drawn style (blinks and changes expression, lighter on very old computers)."
           checked={(settings.artStyle ?? 'illustrated') === 'illustrated'} onChange={(v) => updateSettings({ artStyle: v ? 'illustrated' : 'classic' })} />
         <Toggle label="Sound effects" hint="Award chimes, evolution, shop and creature sounds. Turn off to mute everything." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />

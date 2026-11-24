@@ -415,6 +415,8 @@ export interface Settings {
   shopWhileLocked: boolean;
   /** Pixel mode: the whole app, creatures included, as pixel art (1.5.1) */
   pixelMode?: boolean;
+  /** the 3D scenes made in Godot (arena, class world, games, evolution); off: the 2D versions (1.8) */
+  stage3d?: boolean;
   /** bosses as animated 3D sprites ('animated', the default since 1.7) or the still painted drawings */
   bossStyle?: 'animated' | 'painted';
   /** World of Adventures on/off */
