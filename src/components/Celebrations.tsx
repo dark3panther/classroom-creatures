@@ -1,7 +1,7 @@
 import { BossPortrait } from '../creatures/bosses/BossPortrait';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
-import { GodotStage, useStage3d, type GodotStageHandle } from './GodotStage';
+import { GodotStage, useStage3d, type GodotStageHandle, type StageMessage } from './GodotStage';
 import { stageCreature, withPicture } from '../lib/stage';
 import { playAchievement, playBefriend, playClassCelebration, playEvolutionCharge, playEvolutionReveal, playLevelUp, playMilestone, playQuest, playRegion } from '../audio/sfx';
 import { ADVENTURE_ART, BOSSES_BY_ID, REGIONS_BY_ID } from '../data/adventure';
@@ -150,6 +150,8 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
   const [stage3d, setStage3d] = useState<'loading' | 'on' | 'off'>(want3d ? 'loading' : 'off');
   const [go, setGo] = useState(!want3d);
   const stageRef = useRef<GodotStageHandle>(null);
+  const following = useRef(false);   // the 3D stage is playing: the flash and the reveal follow its own flash
+  const revealed = useRef(false);
   useEffect(() => {
     if (stage3d !== 'loading') return;
     // a few seconds for the stage to start, then the 2D evolution plays instead (tests may wait longer, in development only)
@@ -162,21 +164,28 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
     const to = await withPicture(stageCreature(student, settings, { stage: c.to, name: false }), student);
     stageRef.current?.send('init', { from, to, element: sp.element, reduced });
     stageRef.current?.send('start', { charge: 700, flash: 3200 });
-    setStage3d((v) => (v === 'off' ? v : 'on'));
+    setStage3d((v) => { if (v !== 'off') following.current = true; return v === 'off' ? v : 'on'; });
     setGo(true);
   };
-  const replay = () => { if (want3d && stage3d !== 'off') { setGo(false); setStage3d('loading'); } setRun((r) => r + 1); };
+  const replay = () => { if (want3d && stage3d !== 'off') { following.current = false; setGo(false); setStage3d('loading'); } setRun((r) => r + 1); };
+  const reveal = () => { if (revealed.current) return; revealed.current = true; setPhase('reveal'); if (sound) playEvolutionReveal(); };
+  // the stage's flash: the words change at the moment the creature does, even when a slow computer runs the scene late
+  const onStageMessage = (m: StageMessage) => { if (m.type === 'flash' && !revealed.current) { setPhase('flash'); setTimeout(reveal, 250); } };
 
   useEffect(() => {
     if (!go) return;
     if (reduced) { if (sound) playEvolutionReveal(); return; }
     setPhase('intro');
+    revealed.current = false;
+    // with the 3D stage playing, these two are only a fallback in case its flash never comes
+    const late = following.current ? 6000 : 0;
     const t = [
       setTimeout(() => { setPhase('charge'); if (sound) playEvolutionCharge(2.4); }, 700),
-      setTimeout(() => setPhase('flash'), 3200),
-      setTimeout(() => { setPhase('reveal'); if (sound) playEvolutionReveal(); }, 3450),
+      setTimeout(() => { if (!revealed.current) setPhase('flash'); }, 3200 + late),
+      setTimeout(reveal, 3450 + late),
     ];
     return () => t.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [run, reduced, sound, go]);
   const on3d = stage3d !== 'off';
 
@@ -191,7 +200,7 @@ export function EvolutionOverlay({ c, student, onDone, sound, reduced }: {
   return (
     <motion.div className="azure-deep on-azure fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden px-4" role="dialog" aria-label="Evolution"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      {on3d && <GodotStage key={run} ref={stageRef} scene="evolution" className="absolute inset-0" title="The creature evolving" loading={<span />} onReady={() => void onStageReady()} onFail={() => { setStage3d('off'); setGo(true); }} />}
+      {on3d && <GodotStage key={run} ref={stageRef} scene="evolution" className="absolute inset-0" title="The creature evolving" loading={<span />} onReady={() => void onStageReady()} onMessage={onStageMessage} onFail={() => { setStage3d('off'); setGo(true); }} />}
       <div className="relative flex w-full max-w-5xl flex-col items-center">
         {on3d && <div className="h-[min(50vh,420px)] w-full" aria-hidden />}
         {!on3d && <div className="flex items-center justify-center gap-6 sm:gap-10">

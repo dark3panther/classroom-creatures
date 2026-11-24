@@ -67,7 +67,7 @@ func _track() -> void:
 	box.size = Vector3(TRACK + 200.0, 0.2, 90.0)     # wide and deep enough that its edges stay out of sight
 	ground.mesh = box
 	var gm := StandardMaterial3D.new()
-	gm.albedo_color = Color("#8fcf5e")
+	gm.albedo_color = Color("#6fae48")
 	ground.material_override = gm
 	ground.position = Vector3(TRACK * 0.5, -0.1, -30.0)
 	add_child(ground)
@@ -77,7 +77,7 @@ func _track() -> void:
 		lb.size = Vector3(TRACK + 6.0, 0.04, 1.6)
 		lane.mesh = lb
 		var lm := StandardMaterial3D.new()
-		lm.albedo_color = Color("#e8b77a") if z == 0.0 else Color("#d9a86a")
+		lm.albedo_color = Color("#d8a467") if z == 0.0 else Color("#c79457")
 		lane.material_override = lm
 		lane.position = Vector3(TRACK * 0.5, 0.0, -z)
 		add_child(lane)
@@ -126,7 +126,7 @@ func _tree(p: Vector3, s: float) -> void:
 	sp.height = 1.6 * s
 	crown.mesh = sp
 	var cm := StandardMaterial3D.new()
-	cm.albedo_color = Color("#5fb04a")
+	cm.albedo_color = Color("#4c9a3c")
 	cm.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
 	crown.material_override = cm
 	crown.position = p + Vector3(0, 1.7 * s, 0)

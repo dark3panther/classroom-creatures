@@ -21,7 +21,7 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 ## What's new in 1.8: the 3D stage
 
-<p align="center"><img src="docs/screenshots/stage-arena.jpg" alt="The 3D arena in the Crystal Caverns: the class's creatures in rows with their names, Glimmerjaw among giant crystals, the mission and HP cards on top" width="760"></p>
+<p align="center"><img src="docs/screenshots/stage-arena.jpg" alt="The 3D arena in the Ember Kingdom: the class's creatures in rows with their names, Magmaw turning toward the creature that just hit it for a super-effective 6, the mission and HP cards on top" width="760"></p>
 
 The arena, the class world, three new class games and the evolution moment now play as **3D scenes made in [Godot](https://godotengine.org)**, with your creatures in them, outfits included. The app still runs every rule, point and reward; the 3D stage only draws.
 
@@ -34,7 +34,7 @@ The arena, the class world, three new class games and the evolution moment now p
 
 | The class world | Class relay | Evolution |
 |---|---|---|
-| <img src="docs/screenshots/stage-world.jpg" alt="The class world island in 3D" width="300"> | <img src="docs/screenshots/stage-race.jpg" alt="The class relay" width="300"> | <img src="docs/screenshots/stage-evolution.jpg" alt="A creature evolving in 3D" width="300"> |
+| <img src="docs/screenshots/stage-world.jpg" alt="The class world island in 3D: the Royal Castle, the Library tower, the village and the sanctuary built, the wishing fountain, the rainbow arch and bunting, creatures and visiting bosses on the paths" width="300"> | <img src="docs/screenshots/stage-race.jpg" alt="The class relay: Magmaw chases Ava down the track while Leo waits to run the next leg" width="300"> | <img src="docs/screenshots/stage-evolution.jpg" alt="Orbitoad glowing in a pillar of light as it starts to evolve" width="300"> |
 
 How the stage is made: [The 3D stage](#the-3d-stage). Release notes: [docs/release-notes-1.8.0.md](docs/release-notes-1.8.0.md).
 

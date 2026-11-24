@@ -10,8 +10,8 @@ shader_type spatial;
 // cross its own middle)
 render_mode depth_prepass_alpha, cull_disabled, shadows_disabled;
 
-uniform sampler2D art : source_color, filter_linear_mipmap, repeat_disable;
-uniform sampler2D art_next : source_color, filter_linear_mipmap, repeat_disable;
+uniform sampler2D art : source_color, hint_default_transparent, filter_linear_mipmap, repeat_disable;     // transparent until the picture arrives
+uniform sampler2D art_next : source_color, hint_default_transparent, filter_linear_mipmap, repeat_disable;
 uniform float use_next = 0.0;          // 1: show art_next (after the evolution flash)
 uniform float pad = 0.2;               // the card reaches this far past the painting on every side (room for auras)
 uniform int element = 2;               // 0 fire 1 water 2 nature 3 electric 4 ice 5 earth 6 shadow 7 light 8 cosmic 9 air
@@ -98,7 +98,11 @@ vec4 paint(vec2 auv) {
 }
 float soft(vec2 auv, float lod) {
 	vec2 c = clamp(auv, vec2(0.0), vec2(1.0));
-	return mix(textureLod(art, c, lod).a, textureLod(art_next, c, lod).a, use_next);
+	float a = mix(textureLod(art, c, lod).a, textureLod(art_next, c, lod).a, use_next);
+	// past the picture's edge the blur is only clamped, so a creature cropped close to its picture would smear its
+	// glow sideways into a band: let it die away over the blur's own radius instead
+	vec2 radius = exp2(lod) / max(vec2(textureSize(art, 0)), vec2(1.0));
+	return a * (1.0 - smoothstep(0.0, 1.0, length(abs(auv - c) / max(radius, vec2(1e-4)))));
 }
 
 void fragment() {
@@ -124,6 +128,11 @@ void fragment() {
 	float wide = soft(auv, 4.5);
 	float edge = clamp(body * (1.0 - soft(auv, 2.0)) * 3.0, 0.0, 1.0);
 	float halo = clamp(wide * 1.6 - body, 0.0, 1.0);
+	// the blurred picture runs on past the painting's edge (it is clamped there), so fade the halo out well before the
+	// card ends, or the card's own rectangle shows round the creature
+	vec2 outside = max(-auv, auv - 1.0);
+	float margin = pad / (1.0 - 2.0 * pad);    // how far the card reaches past the painting, in painting widths
+	halo *= 1.0 - smoothstep(0.12 * margin, 0.78 * margin, max(max(outside.x, outside.y), 0.0));
 	vec3 col = c.rgb * brightness;
 	vec3 em = vec3(0.0);
 	float ha = 0.0;                    // halo opacity

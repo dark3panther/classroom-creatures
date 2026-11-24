@@ -37,6 +37,8 @@ const TAN_ACROSS := 0.4663      # tan(25 degrees)
 const TAN_UP := 0.2623          # tan(25 degrees) / (16 / 9)
 var fov_base := 29.4
 var fov_k := 1.0                # zooms scale the framing
+var _num_t := -10.0
+var _num_k := 0
 
 
 func _ready() -> void:
@@ -226,6 +228,18 @@ func _zoom(fov: float, back_after: float) -> void:
 
 
 # --- the boss ----------------------------------------------------------------------------------------
+## Where the damage and heal numbers pop: beside the boss's face on the class's side, low enough that the rising
+## number stays clear of the mission and HP cards on top, zoomed in or not.
+## Numbers that come close together (a point that also finishes a quest hits twice) step down and out, not on top
+## of each other.
+func _number_point() -> Vector3:
+	var now := Time.get_ticks_msec() / 1000.0
+	_num_k = _num_k + 1 if now - _num_t < 1.3 else 0
+	_num_t = now
+	var k := float(_num_k % 3)
+	return _boss_point("head") + Vector3(-1.5 - 0.45 * k, -1.2 - 0.6 * k, 1.0)
+
+
 func _boss_play(name: String) -> void:
 	if boss_anim and boss_anim.has_animation(name):
 		boss_anim.play(name, 0.12)
@@ -282,7 +296,7 @@ func _attack(msg: Dictionary) -> void:
 	_bump(0.9 if sup else 0.5)
 	if sup:
 		_zoom(40.0, 0.5)
-	Fx.number(self, _boss_point("head"), ("-%d SUPER!" if sup else "-%d") % int(msg.get("amount", 0)), Color("#ffd23f") if sup else Color.WHITE, 1.2 if sup else 1.0)
+	Fx.number(self, _number_point(), ("-%d SUPER!" if sup else "-%d") % int(msg.get("amount", 0)), Color("#ffd23f") if sup else Color.WHITE, 1.0 if sup else 0.85, 0.5)
 	Bridge.send("hit", {"rid": rid})
 	await get_tree().create_timer(0.45 if fast else 0.8).timeout
 	Bridge.send("done", {"rid": rid})
@@ -317,7 +331,7 @@ func _team(msg: Dictionary) -> void:
 		Fx.burst(self, _boss_point("hit") + Vector3(randf_range(-0.4, 0.4), randf_range(-0.2, 0.6), 0), e, 1.6, 50)
 	_boss_play("hurt")
 	_bump(1.1)
-	Fx.number(self, _boss_point("head"), "-%d" % int(msg.get("amount", 0)), Color("#ffd23f"), 1.3)
+	Fx.number(self, _number_point(), "-%d" % int(msg.get("amount", 0)), Color("#ffd23f"), 1.1, 0.5)
 	Bridge.send("hit", {"rid": rid})
 	await get_tree().create_timer(0.9).timeout
 	Bridge.send("done", {"rid": rid})
@@ -340,7 +354,7 @@ func _strike(msg: Dictionary) -> void:
 		_daze(cr, 5.0)
 	var amount := int(msg.get("amount", 0))
 	if amount > 0:
-		Fx.number(self, _boss_point("head"), "+%d" % amount, Color("#7fe08a"))
+		Fx.number(self, _number_point(), "+%d" % amount, Color("#7fe08a"), 0.85, 0.5)
 	Bridge.send("hit", {"rid": rid})
 	await get_tree().create_timer(0.55 if fast else 0.85).timeout
 	Bridge.send("done", {"rid": rid})

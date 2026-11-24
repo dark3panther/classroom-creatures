@@ -250,32 +250,41 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     setMood('grumpy');
   };
 
-  /** the same moves on the 3D stage: it plays them and says "hit" at the moment of impact */
+  /** the same moves on the 3D stage: it plays them and says "hit" at the moment of impact. On a computer too slow to
+   *  play a move in time, its effect (the HP bar, the sound, the banner) still lands when the stage gives up. */
   const play3d = async (m: Move, fast: boolean) => {
     const st = stage.current!;
+    const once = (effect: () => void) => {
+      let landed = false;
+      const land = () => { if (!landed) { landed = true; effect(); } };
+      return { onEvent: (e: StageMessage) => { if (e.type === 'hit') land(); }, land };
+    };
     if (m.kind === 'attack') {
-      await st.play('attack', { studentId: m.studentId, amount: m.amount, super: !!m.super, fast }, 7000, (e) => {
-        if (e.type !== 'hit') return;
+      const h = once(() => {
         if (sound) playBossHit();
         setShown((v) => Math.min(latest.current.hp, v + m.amount));
       });
+      await st.play('attack', { studentId: m.studentId, amount: m.amount, super: !!m.super, fast }, 7000, h.onEvent);
+      h.land();
     } else if (m.kind === 'team') {
       setBanner({ key: key(), text: m.mission ? 'Mission complete!' : 'Team attack!', sub: m.mission ? lesson.mission : m.label, tone: m.mission ? 'gold' : 'azure' });
       if (sound) (m.mission ? playClassCelebration : playMultiAward)();
-      await st.play('team', { ids: m.ids, amount: m.amount, mission: !!m.mission, fast }, 10000, (e) => {
-        if (e.type !== 'hit') return;
+      const h = once(() => {
         if (sound) playBossHit();
         setShown((v) => Math.min(latest.current.hp, v + m.amount));
       });
+      await st.play('team', { ids: m.ids, amount: m.amount, mission: !!m.mission, fast }, 10000, h.onEvent);
+      h.land();
     } else {
       const s3 = students.find((s) => s.id === m.studentId);
       setDazed((d) => ({ ...d, [m.studentId]: Date.now() + 5000 }));
-      await st.play('strike', { studentId: m.studentId, amount: m.amount, fast }, 7000, (e) => {
-        if (e.type !== 'hit') return;
+      const h = once(() => {
         if (sound) playBonk();
         setBanner({ key: key(), text: `${def.name} strikes back!`, sub: s3 ? `${firstName(s3.name)}'s ${getSpecies(s3.speciesId).name} got ${def.strike.verb}${m.amount > 0 ? `. ${def.name} gets ${m.amount} back.` : '.'}` : undefined, tone: 'brick', small: true });
         setShown((v) => Math.max(0, v - m.amount));
       });
+      await st.play('strike', { studentId: m.studentId, amount: m.amount, fast }, 7000, h.onEvent);
+      h.land();
     }
   };
 

@@ -183,7 +183,7 @@ static func shot(parent: Node, from: Vector3, to: Vector3, element: String, seco
 
 
 ## A number floating up from `pos` and fading ("-5", "+2", "-6 SUPER!").
-static func number(parent: Node, pos: Vector3, text: String, color: Color, size := 1.0) -> void:
+static func number(parent: Node, pos: Vector3, text: String, color: Color, size := 1.0, rise := 1.1) -> void:
 	var l := Label3D.new()
 	l.text = text
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -199,6 +199,6 @@ static func number(parent: Node, pos: Vector3, text: String, color: Color, size 
 	l.scale = Vector3.ONE * 0.4
 	var tw := l.create_tween().set_parallel(true)
 	tw.tween_property(l, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "global_position", pos + Vector3(0, 1.1, 0), 1.4).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "global_position", pos + Vector3(0, rise, 0), 1.4).set_ease(Tween.EASE_OUT)
 	tw.chain().tween_property(l, "modulate:a", 0.0, 0.35)
 	tw.chain().tween_callback(l.queue_free)

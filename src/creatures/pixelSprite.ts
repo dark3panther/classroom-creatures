@@ -83,6 +83,11 @@ function palSprite(r: SpriteRequest): PixelSprite {
  * the 3D stage (1.8). Pixel Pals come out crisp (no smoothing).
  */
 const pictures = new Map<string, Promise<string>>();
+/** Room left round the creature in a picture for the 3D stage, as a share of its height: its glow and aura fade out
+ *  in it (cropped tight they fill the picture as a box), and it keeps a creature close to the size of its painting,
+ *  which the stage shows until the picture is ready. Less below: the feet stand on the ground. */
+const ROOM = 0.1, ROOM_BELOW = 0.02;
+
 export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
   const key = `${spriteKey(r)}|${px}`;
   let p = pictures.get(key);
@@ -105,9 +110,10 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
       for (let y = 0; y < FH; y++) for (let xx = 0; xx < FW; xx++) if (d.data[(y * FW + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
       if (rr < l) throw new Error('empty Pixel Pal frame');
       const k = Math.max(1, Math.floor(px / (b - t + 1))), out = document.createElement('canvas');
-      out.width = (rr - l + 1) * k; out.height = (b - t + 1) * k;
+      const cw = (rr - l + 1) * k, ch = (b - t + 1) * k, room = Math.round(ch * ROOM);
+      out.width = cw + 2 * room; out.height = ch + room + Math.round(ch * ROOM_BELOW);
       const o = out.getContext('2d')!; o.imageSmoothingEnabled = false;
-      o.drawImage(c, l, t, rr - l + 1, b - t + 1, 0, 0, out.width, out.height);
+      o.drawImage(c, l, t, rr - l + 1, b - t + 1, room, room, cw, ch);
       return out.toDataURL('image/png');
     })();
     pictures.set(key, p);
@@ -136,11 +142,12 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
       for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d.data[(y * c.width + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
       const m = Math.round(c.width * 0.02);
       l = Math.max(0, l - m); t = Math.max(0, t - m); rr = Math.min(c.width - 1, rr + m); b = Math.min(c.height - 1, b + 1);
-      const k = px / (b - t + 1), out = document.createElement('canvas');
-      out.width = Math.max(1, Math.round((rr - l + 1) * k)); out.height = px;
+      const ch = Math.round(px / (1 + ROOM + ROOM_BELOW)), k = ch / (b - t + 1), out = document.createElement('canvas');
+      const cw = Math.max(1, Math.round((rr - l + 1) * k)), room = Math.round(ch * ROOM);
+      out.width = cw + 2 * room; out.height = px;
       const o = out.getContext('2d')!;
       o.imageSmoothingEnabled = !r.species.pixelArt; o.imageSmoothingQuality = 'high';
-      o.drawImage(c, l, t, rr - l + 1, b - t + 1, 0, 0, out.width, out.height);
+      o.drawImage(c, l, t, rr - l + 1, b - t + 1, room, room, cw, ch);
       return out.toDataURL('image/png');
     });
     pictures.set(key, p);

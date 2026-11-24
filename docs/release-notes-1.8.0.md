@@ -4,7 +4,7 @@ The arena, the class world, three new class games and the evolution moment now p
 Your creatures come with them, outfits included, and move, glow and cast shadows. Nothing about your classes,
 points or rewards changes: the app still runs every rule, and the 3D stage only draws what happened.
 
-<p align="center"><img src="screenshots/stage-arena.jpg" alt="The 3D arena in the Crystal Caverns: the class's creatures stand in rows with their names, Glimmerjaw faces them among giant crystals, the mission and HP cards on top" width="760"></p>
+<p align="center"><img src="screenshots/stage-arena.jpg" alt="The 3D arena in the Ember Kingdom: the class's creatures in rows with their names, Magmaw turning toward the creature that just hit it for a super-effective 6, the mission and HP cards on top" width="760"></p>
 
 ## New
 - **A real-time 3D boss arena.** The 3D bosses stand in a 3D set for their region, nine in all, built in Blender:
@@ -36,7 +36,7 @@ points or rewards changes: the app still runs every rule, and the 3D stage only 
 
 | The class world | Class relay | Evolution |
 |---|---|---|
-| <img src="screenshots/stage-world.jpg" alt="The class world island in 3D" width="300"> | <img src="screenshots/stage-race.jpg" alt="The class relay" width="300"> | <img src="screenshots/stage-evolution.jpg" alt="A creature evolving in 3D" width="300"> |
+| <img src="screenshots/stage-world.jpg" alt="The class world island in 3D: the Royal Castle, the Library tower, the village and the sanctuary built, the wishing fountain, the rainbow arch and bunting, creatures and visiting bosses on the paths" width="300"> | <img src="screenshots/stage-race.jpg" alt="The class relay: Magmaw chases Ava down the track while Leo waits to run the next leg" width="300"> | <img src="screenshots/stage-evolution.jpg" alt="Orbitoad glowing in a pillar of light as it starts to evolve" width="300"> |
 
 ## Settings
 - **Settings → Classroom → 3D scenes** (on by default). Turn it off for the 2D arena, the pixel class world and the

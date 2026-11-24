@@ -10,6 +10,7 @@ const ACTIONS := {"idle": 0, "hop": 1, "lunge": 2, "flinch": 3, "happy": 4, "wal
 var student_id := ""
 var element := "nature"
 var body_height := 0.8
+var _shown_height := 0.8     # wide creatures stand a little lower, see _resize
 var mat: ShaderMaterial
 var card: MeshInstance3D
 var label: Label3D
@@ -100,11 +101,15 @@ func _resize(aspect: float) -> void:
 	_aspect = aspect
 	var q := QuadMesh.new()
 	var k := 1.0 / (1.0 - 2.0 * _pad)
-	q.size = Vector2(body_height * aspect * k, body_height * k)
+	# a wide picture (a creature lying down, most Pixel Pals) at full height would look twice the size of an upright
+	# one: wide pictures keep about the same area instead
+	var h := body_height * minf(1.0, 1.0 / sqrt(maxf(aspect, 0.01)))
+	_shown_height = h
+	q.size = Vector2(h * aspect * k, h * k)
 	q.subdivide_width = 8
 	q.subdivide_depth = 12
 	# the feet (the bottom of the painting) at the node's origin
-	q.center_offset = Vector3(0, body_height * k * 0.5 - body_height * _pad * k, 0)
+	q.center_offset = Vector3(0, h * k * 0.5 - h * _pad * k, 0)
 	card.mesh = q
 
 
@@ -138,4 +143,4 @@ func _process(_delta: float) -> void:
 
 ## The point a shot should aim at (the middle of the body).
 func aim_point() -> Vector3:
-	return global_position + Vector3(0, body_height * 0.55, 0)
+	return global_position + Vector3(0, _shown_height * 0.55, 0)
