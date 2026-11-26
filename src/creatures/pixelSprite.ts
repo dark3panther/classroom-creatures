@@ -83,13 +83,63 @@ function palSprite(r: SpriteRequest): PixelSprite {
  * The creature in its outfit as a PNG data URL about `px` tall, trimmed to the creature (feet on the bottom edge), for
  * the 3D stage (1.8). Pixel Pals come out crisp (no smoothing).
  */
-const pictures = new Map<string, Promise<string>>();
+const pictures = new Map<string, Promise<StagePic>>();
 /** Room left round the creature in a picture for the 3D stage, as a share of its height: its glow and aura fade out
  *  in it (cropped tight they fill the picture as a box), and it keeps a creature close to the size of its painting,
  *  which the stage shows until the picture is ready. Less below: the feet stand on the ground. */
 const ROOM = 0.1, ROOM_BELOW = 0.02;
 
+/**
+ * The puppet layout of a stage picture (1.9.1): which way the creature faces and where its head, neck, tail root,
+ * body box and eyelids are, in the picture's own 0..1 coordinates (x across, y down; `hw`, the head's size, is a share
+ * of the picture's height). The 3D stage bends the painting by these (see godot/shaders/creature.gdshader), so a
+ * creature nods, wags, steps, breathes and blinks without anything being redrawn.
+ */
+export interface PuppetRig {
+  dir: number; head: [number, number]; neck: [number, number]; tail: [number, number];
+  box: [number, number, number, number]; hw: number; lids: [number, number, number, number][]; lid: string; lash: string;
+}
+interface StagePic { url: string; rig?: PuppetRig }
+type ToPic = (x: number, y: number) => [number, number];
+
+/** The layout in the source drawing's coordinates (a painting's 512 square, or a Pixel Pal's frame), mapped to the
+ *  picture by `to` (source point -> picture 0..1) and `h` (picture height in source units, for the head's size). */
+function puppetRig(key: string, pal: boolean, to: ToPic, srcPerPicH: number): PuppetRig | undefined {
+  let box: [number, number, number, number], eyes: number[][], hw: number, cx: number;
+  let lids: { cx: number; cy: number; rx: number; ry: number; top: string; lash: string }[] = [];
+  if (pal) {
+    const f = (PALS.forms as unknown as Record<string, { box: number[]; eyes: number[][] }>)[key];
+    if (!f) return undefined;
+    box = f.box as [number, number, number, number]; eyes = f.eyes; hw = Math.max(6, (box[3] - box[1]) * 0.5); cx = (box[0] + box[2]) / 2;
+  } else {
+    const a = (ART as unknown as Record<string, { top: number; bottom: number; left: number; right: number; cx: number; headW: number; eyes: number[][]; lids?: typeof lids }>)[key];
+    if (!a) return undefined;
+    box = [a.left, a.top, a.right, a.bottom]; eyes = a.eyes; hw = a.headW; cx = a.cx; lids = a.lids ?? [];
+  }
+  const ex = eyes.reduce((n, e) => n + e[0], 0) / eyes.length, ey = eyes.reduce((n, e) => n + e[1], 0) / eyes.length;
+  const dir = ex >= cx ? 1 : -1;
+  const [l, t, r, b] = box;
+  const head: [number, number] = [ex - dir * hw * 0.06, Math.min(ey, t + hw * 0.5)];
+  const neck: [number, number] = [head[0] - dir * hw * 0.12, head[1] + hw * 0.52];
+  const tail: [number, number] = [(dir > 0 ? l : r) + dir * (r - l) * 0.22, t + (b - t) * 0.55];
+  const tl = to(l, t), br = to(r, b);
+  return {
+    dir, head: to(...head), neck: to(...neck), tail: to(...tail), box: [tl[0], tl[1], br[0], br[1]], hw: hw / srcPerPicH,
+    lids: lids.slice(0, 2).map((d) => { const c = to(d.cx, d.cy), e = to(d.cx + d.rx, d.cy + d.ry); return [c[0], c[1], e[0] - c[0], e[1] - c[1]] as [number, number, number, number]; }),
+    lid: lids[0]?.top ?? '#000000', lash: lids[0]?.lash ?? '#000000',
+  };
+}
+
 export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
+  return stagePictureOf(r, px).then((p) => p.url);
+}
+
+/** The stage picture and its puppet layout (see PuppetRig). */
+export function creaturePictureRig(r: SpriteRequest, px = 300): Promise<{ url: string; rig?: PuppetRig }> {
+  return stagePictureOf(r, px);
+}
+
+function stagePictureOf(r: SpriteRequest, px: number): Promise<StagePic> {
   const key = `${spriteKey(r)}|${px}`;
   let p = pictures.get(key);
   if (!p && r.species.pixelArt) {
@@ -115,13 +165,15 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
       out.width = cw + 2 * room; out.height = ch + room + Math.round(ch * ROOM_BELOW);
       const o = out.getContext('2d')!; o.imageSmoothingEnabled = false;
       o.drawImage(c, l, t, rr - l + 1, b - t + 1, room, room, cw, ch);
-      return out.toDataURL('image/png');
+      const to: ToPic = (sx, sy) => [((sx - l) * k + room) / out.width, ((sy - t) * k + room) / out.height];
+      return { url: out.toDataURL('image/png'), rig: puppetRig(`${r.species.id}-${r.stage}`, true, to, out.height / k) };
     })();
     pictures.set(key, p);
     p.catch(() => pictures.delete(key));
   }
   // a mythical form is a painting of its own only for some creatures (the others add ornaments in the SVG)
   const mythicForm = r.stage === 5 && r.branch === 'b' && (BRANCH_FORMS as Record<string, unknown>)[r.species.id] !== undefined;
+  const artKey = mythicForm && `${r.species.id}-5b` in ANCHORS ? `${r.species.id}-5b` : `${r.species.id}-${r.stage}`;
   if (!p && !r.species.pixelArt && !wearsOutfit(r) && (mythicForm ? `${r.species.id}-5b` : `${r.species.id}-${r.stage}`) in ANCHORS) {
     // nothing worn: the painting itself, without the SVG round trip (much cheaper when a whole class arrives on the
     // stage at once, and it cannot come out empty)
@@ -132,7 +184,9 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
       const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
       const x = c.getContext('2d', { willReadFrequently: true })!;
       x.drawImage(img, 0, 0);
-      return stagePicture(c, x.getImageData(0, 0, c.width, c.height), px, true);
+      const pic = stagePicture(c, x.getImageData(0, 0, c.width, c.height), px, true);
+      const s = c.width / 512;
+      return { url: pic.url, rig: puppetRig(artKey, false, (ax, ay) => pic.to(ax * s, ay * s), pic.srcH / s) };
     });
     pictures.set(key, p);
     p.catch(() => pictures.delete(key));
@@ -155,7 +209,11 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
         if (solidShare(d) >= MIN_SOLID) break;
       }
       if (!d || solidShare(d) < MIN_SOLID) throw new Error('the creature painting did not draw');
-      return stagePicture(c, d, px, !r.species.pixelArt);
+      const pic = stagePicture(c, d, px, !r.species.pixelArt);
+      // the painting sits in the SVG at IMG_X/IMG_Y, IMG_S wide, inside the VIEW_W-wide view the canvas shows
+      const u = c.width / VIEW_W;
+      const toCanvas = (ax: number, ay: number): [number, number] => [(IMG_X + (ax * IMG_S) / 512 - VIEW_X) * u, (IMG_Y + (ay * IMG_S) / 512 - VIEW_Y) * u];
+      return { url: pic.url, rig: puppetRig(artKey, false, (ax, ay) => pic.to(...toCanvas(ax, ay)), pic.srcH / ((IMG_S / 512) * u)) };
     });
     pictures.set(key, p);
     p.catch(() => pictures.delete(key));
@@ -168,7 +226,7 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
 const wearsOutfit = (r: SpriteRequest) => Object.entries(r.equipped ?? {}).some(([slot, v]) => v && slot !== 'background' && slot !== 'trail');
 
 /** Trim a drawing to the creature and leave the stage's room round it, `px` tall in all. */
-function stagePicture(c: HTMLCanvasElement, d: ImageData, px: number, smooth: boolean): string {
+function stagePicture(c: HTMLCanvasElement, d: ImageData, px: number, smooth: boolean): { url: string; to: ToPic; srcH: number } {
   let l = c.width, t = c.height, rr = 0, b = 0;
   for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d.data[(y * c.width + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
   if (rr < l) throw new Error('the creature painting did not draw');
@@ -180,7 +238,9 @@ function stagePicture(c: HTMLCanvasElement, d: ImageData, px: number, smooth: bo
   const o = out.getContext('2d')!;
   o.imageSmoothingEnabled = smooth; o.imageSmoothingQuality = 'high';
   o.drawImage(c, l, t, rr - l + 1, b - t + 1, room, room, cw, ch);
-  return out.toDataURL('image/png');
+  // canvas point -> picture 0..1, and the picture's height in canvas pixels
+  const to: ToPic = (x, y) => [((x - l) * (cw / (rr - l + 1)) + room) / out.width, ((y - t) * k + room) / out.height];
+  return { url: out.toDataURL('image/png'), to, srcH: out.height / k };
 }
 
 /** What a Pixel Pal wears, as two pixel layers: behind it (wings, capes) and in front (null: nothing drawn). */

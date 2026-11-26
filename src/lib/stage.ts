@@ -1,7 +1,7 @@
 import { BRANCHES } from '../data/branches';
 import { ELEMENTS } from '../data/elements';
 import { getSpecies } from '../data/species';
-import { creaturePicture } from '../creatures/pixelSprite';
+import { creaturePictureRig, type PuppetRig } from '../creatures/pixelSprite';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import type { Settings, Stage, Student } from '../types';
@@ -13,6 +13,8 @@ import type { Settings, Stage, Student } from '../types';
  */
 export interface StageCreature {
   id: string; name: string; element: string; glow: string; stage: Stage; mythic: boolean; pixel: boolean; art: string; picture?: string;
+  /** where the head, tail and eyelids are in the picture, so the stage can animate the painting (1.9.1) */
+  rig?: PuppetRig;
 }
 
 export function stageCreature(s: Student, settings: Settings, opts: { stage?: Stage; name?: boolean } = {}): StageCreature {
@@ -35,8 +37,8 @@ export function stageCreature(s: Student, settings: Settings, opts: { stage?: St
 /** The same creature with its outfit drawn in (resolves without a picture if it cannot be drawn). */
 export async function withPicture(c: StageCreature, s: Student): Promise<StageCreature> {
   try {
-    const picture = await creaturePicture({ species: getSpecies(s.speciesId), stage: c.stage, equipped: s.equipped, branch: s.branch });
-    return { ...c, picture };
+    const { url, rig } = await creaturePictureRig({ species: getSpecies(s.speciesId), stage: c.stage, equipped: s.equipped, branch: s.branch });
+    return { ...c, picture: url, ...(rig ? { rig } : {}) };
   } catch {
     return c;
   }
@@ -48,7 +50,7 @@ export async function withPicture(c: StageCreature, s: Student): Promise<StageCr
  * nothing is its painting, trimmed (quick); an outfit is drawn in (slower), so those come last.
  */
 export function sendClass(students: Student[], settings: Settings, send: (list: StageCreature[]) => void,
-  pictures: (list: { id: string; picture: string }[]) => void, opts: { stage?: (s: Student) => Stage } = {}): () => void {
+  pictures: (list: { id: string; picture: string; rig?: PuppetRig }[]) => void, opts: { stage?: (s: Student) => Stage } = {}): () => void {
   let live = true;
   const list = students.map((s) => stageCreature(s, settings, { stage: opts.stage?.(s) }));
   send(list);
@@ -59,7 +61,7 @@ export function sendClass(students: Student[], settings: Settings, send: (list: 
       const batch = order.slice(i, i + 4);
       const done = await Promise.all(batch.map((k) => withPicture(list[k], students[k])));
       if (!live) return;
-      const got = done.filter((c) => c.picture).map((c) => ({ id: c.id, picture: c.picture! }));
+      const got = done.filter((c) => c.picture).map((c) => ({ id: c.id, picture: c.picture!, ...(c.rig ? { rig: c.rig } : {}) }));
       if (got.length) pictures(got);
     }
   })();

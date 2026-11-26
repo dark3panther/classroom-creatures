@@ -62,7 +62,7 @@ func _on_message(msg: Dictionary) -> void:
 		"pictures":
 			for p in msg.get("list", []):
 				var cr: Creature3D = creatures.get(str(p.get("id")))
-				if cr: cr.set_picture(str(p.get("picture", "")))
+				if cr: cr.set_picture(str(p.get("picture", "")), p.get("rig"))
 		"places": _places(msg.get("places", {}), true)
 		"decorations": _decorations(msg.get("decorations", []))
 		"visitors": _visitors(msg.get("visitors", []))

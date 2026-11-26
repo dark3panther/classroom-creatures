@@ -11,6 +11,7 @@ const SWITCH_EVERY := 12.0
 var cam: Camera3D
 var creatures: Array = []          # creature infos from the app
 var picture_of := {}               # student id -> picture data URL
+var rig_of := {}                   # student id -> its puppet layout
 var bubbles: Array = []            # {node, cr, element, speed, phase, popped}
 var running := false
 var seconds := 60.0
@@ -69,9 +70,10 @@ func _on_message(msg: Dictionary) -> void:
 		"pictures":
 			for p in msg.get("list", []):
 				picture_of[str(p.get("id"))] = str(p.get("picture", ""))
+				rig_of[str(p.get("id"))] = p.get("rig")
 				for b in bubbles:
 					if (b.cr as Creature3D).student_id == str(p.get("id")):
-						(b.cr as Creature3D).set_picture(str(p.get("picture", "")))
+						(b.cr as Creature3D).set_picture(str(p.get("picture", "")), p.get("rig"))
 		"start":
 			if not running and not creatures.is_empty():
 				running = true
@@ -129,7 +131,7 @@ func _spawn() -> void:
 	cr.shadow.visible = false
 	var pic := str(picture_of.get(str(info.get("id")), ""))
 	if pic != "":
-		cr.set_picture(pic)
+		cr.set_picture(pic, rig_of.get(str(info.get("id"))))
 	var area := Area3D.new()
 	area.input_ray_pickable = true
 	var shape := CollisionShape3D.new()

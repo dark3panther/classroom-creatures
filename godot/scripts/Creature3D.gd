@@ -19,6 +19,7 @@ var _aspect := 1.0
 var _pad := 0.2
 var _info := {}
 var _action_until := 0.0
+var _rig_next = null            # the puppet layout of the picture on its way, applied when it arrives
 
 
 static func element_index(e: String) -> int:
@@ -81,11 +82,13 @@ func setup(info: Dictionary, height: float, show_name := true) -> void:
 		label.render_priority = 2
 		add_child(label)
 	var url := str(info.get("picture", info.get("art", "")))
+	_rig_next = info.get("rig", null)
 	Art.texture(url, _on_art)
 
 
-## Swap in a new picture (the creature in a new outfit, or its next form).
-func set_picture(url: String) -> void:
+## Swap in a new picture (the creature in a new outfit, or its next form), with its puppet layout.
+func set_picture(url: String, rig = null) -> void:
+	_rig_next = rig
 	Art.texture(url, _on_art)
 
 
@@ -95,6 +98,30 @@ func _on_art(tex: Texture2D) -> void:
 	mat.set_shader_parameter("art", tex)
 	mat.set_shader_parameter("art_next", tex)
 	_resize(float(tex.get_width()) / max(1.0, float(tex.get_height())))
+	set_rig(_rig_next)
+
+
+## The puppet layout of the picture (src/creatures/pixelSprite.ts, PuppetRig): the shader bends the painting by it,
+## so the creature nods, wags, steps, breathes and blinks. Without one the card moves as a whole only.
+func set_rig(rig) -> void:
+	if typeof(rig) != TYPE_DICTIONARY or (rig as Dictionary).is_empty():
+		mat.set_shader_parameter("p_on", 0.0)
+		return
+	var v2 := func(a) -> Vector2: return Vector2(float(a[0]), float(a[1])) if a is Array and a.size() >= 2 else Vector2.ZERO
+	var box: Array = rig.get("box", [0.1, 0.1, 0.9, 0.95])
+	mat.set_shader_parameter("p_dir", float(rig.get("dir", 1)))
+	mat.set_shader_parameter("p_head", v2.call(rig.get("head")))
+	mat.set_shader_parameter("p_neck", v2.call(rig.get("neck")))
+	mat.set_shader_parameter("p_tail", v2.call(rig.get("tail")))
+	mat.set_shader_parameter("p_box", Vector4(float(box[0]), float(box[1]), float(box[2]), float(box[3])))
+	mat.set_shader_parameter("p_hw", float(rig.get("hw", 0.4)))
+	var lids: Array = rig.get("lids", [])
+	for i in 2:
+		var l: Array = lids[i] if i < lids.size() else [0, 0, 0, 0]
+		mat.set_shader_parameter("p_lid%d" % i, Vector4(float(l[0]), float(l[1]), float(l[2]), float(l[3])))
+	mat.set_shader_parameter("p_lid_color", Color(str(rig.get("lid", "#000000"))))
+	mat.set_shader_parameter("p_lash", Color(str(rig.get("lash", "#000000"))))
+	mat.set_shader_parameter("p_on", 1.0)
 
 
 func _resize(aspect: float) -> void:

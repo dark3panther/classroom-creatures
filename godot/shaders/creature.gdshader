@@ -30,6 +30,21 @@ uniform float dissolve = 0.0;          // 0 whole .. 1 gone
 uniform float pixelated = 0.0;         // Pixel Pals: sample on a pixel grid
 uniform float pixels = 64.0;
 uniform float brightness = 1.0;
+// the puppet (1.9.1): where the head, neck, tail root, body and eyelids are in the picture (0..1, y down; p_hw: the
+// head's size as a share of the picture's height), from src/creatures/pixelSprite.ts. The painting is bent by them:
+// the head nods and tilts round the neck, the tail wags round its root, the legs step, the chest breathes, the eyes
+// blink. Nothing is redrawn. p_on 0: no layout (the card moves as a whole only).
+uniform float p_on = 0.0;
+uniform float p_dir = 1.0;
+uniform vec2 p_head = vec2(0.6, 0.3);
+uniform vec2 p_neck = vec2(0.55, 0.5);
+uniform vec2 p_tail = vec2(0.25, 0.6);
+uniform vec4 p_box = vec4(0.1, 0.1, 0.9, 0.95);
+uniform float p_hw = 0.4;
+uniform vec4 p_lid0 = vec4(0.0);
+uniform vec4 p_lid1 = vec4(0.0);
+uniform vec4 p_lid_color : source_color = vec4(1.0);
+uniform vec4 p_lash : source_color = vec4(0.1, 0.05, 0.05, 1.0);
 
 varying float v_hf;
 
@@ -98,6 +113,48 @@ vec4 paint(vec2 auv) {
 	vec4 a = texture(art, auv);
 	return use_next > 0.0 ? mix(a, texture(art_next, auv), use_next) : a;
 }
+vec2 rot2(vec2 p, vec2 c, float deg) {
+	float a = radians(deg); float cs = cos(a), sn = sin(a); vec2 d = p - c;
+	return c + vec2(d.x * cs - d.y * sn, d.x * sn + d.y * cs);
+}
+// where in the painting this pixel comes from in the current pose (worked back from the output, like a mesh warp)
+vec2 puppet(vec2 auv, float t, float tt) {
+	float A = float(textureSize(art, 0).x) / max(1.0, float(textureSize(art, 0).y));
+	vec2 q = vec2(auv.x * A, auv.y);
+	vec2 H = vec2(p_head.x * A, p_head.y), N = vec2(p_neck.x * A, p_neck.y), TL = vec2(p_tail.x * A, p_tail.y);
+	float hw = p_hw, bt = p_box.y, bb = p_box.w, bh = max(bb - bt, 1e-3);
+	// the pose: a slow nod, a wag, breathing; steps when walking; faster wags when happy; the lunge and the flinch
+	float T = t + seed * 3.0;
+	float head = 3.0 * sin(T * 3.1416), nod = 0.006 * sin(T * 3.1416 + 1.0), tail = 10.0 * sin(T * 6.283), steps = 0.0;
+	float breathe = 0.012 * (0.5 - 0.5 * cos(T * 3.1416));
+	if (action == 5) { steps = 0.02 * sin(T * 9.0); tail = 14.0 * sin(T * 9.0); head = 2.0 * sin(T * 9.0); nod = 0.006 * abs(sin(T * 9.0)); }
+	else if (action == 4) { tail = 22.0 * sin(T * 18.0); head = 6.0 * sin(T * 4.0); }
+	else if (action == 2) { float k = sin(3.1416 * clamp(tt / 0.6, 0.0, 1.0)); head += 10.0 * k; tail += 20.0 * k; }
+	else if (action == 3) { float e = exp(-tt * 5.0); head -= 10.0 * e; tail -= 15.0 * e; }
+	else if (action == 6) { head = -6.0 + 2.0 * sin(T * 1.1); tail = 3.0 * sin(T * 1.1); breathe *= 1.6; }
+	head *= energy; nod *= energy; tail *= energy; steps *= energy; breathe *= energy;
+	// the regions, soft-edged: the head round its centre down to the neck, the tail past its root away from the face,
+	// the legs along the bottom, the chest in between
+	float wh = (1.0 - smoothstep(hw * 0.5, hw * 0.78, distance(q, H))) * (1.0 - smoothstep(N.y - hw * 0.05, N.y + hw * 0.2, q.y));
+	float wt = smoothstep(-hw * 0.05, hw * 0.25, (TL.x - q.x) * p_dir) * (1.0 - smoothstep(bb - bh * 0.28, bb - bh * 0.12, q.y)) * (1.0 - wh);
+	float wl = smoothstep(bb - bh * 0.26, bb - bh * 0.12, q.y) * (1.0 - wt);
+	float front = smoothstep(-hw * 0.1, hw * 0.1, (q.x - (p_box.x + p_box.z) * 0.5 * A) * p_dir);
+	float wb = (1.0 - wh) * (1.0 - wl) * smoothstep(bt + bh * 0.2, bt + bh * 0.45, q.y);
+	vec2 s = q;
+	vec2 hr = rot2(s, N, -head * p_dir); s += (hr - s) * wh; s.y -= nod * wh;
+	vec2 tr = rot2(s, TL, tail * p_dir); s += (tr - s) * wt;
+	float sh = steps * (2.0 * front - 1.0);
+	s.x -= sh * wl * p_dir; s.y += abs(sh) * 0.35 * wl * (steps > 0.0 ? front : 1.0 - front);
+	s.y += breathe * wb * (s.y - bt) / bh;
+	return vec2(s.x / A, s.y);
+}
+// how far inside an eyelid (0 outside), for blinking: lids are measured on the painting
+float in_lid(vec2 a, vec4 lid) {
+	if (lid.z <= 0.0) return 0.0;
+	vec2 d = (a - lid.xy) / (lid.zw * vec2(1.1, 1.12));
+	return 1.0 - step(1.0, dot(d, d));
+}
+
 float soft(vec2 auv, float lod) {
 	vec2 c = clamp(auv, vec2(0.0), vec2(1.0));
 	float a = textureLod(art, c, lod).a;
@@ -112,12 +169,28 @@ void fragment() {
 	vec2 uv = UV;
 	if (facing < 0.0) uv.x = 1.0 - uv.x;
 	vec2 auv = (uv - pad) / (1.0 - 2.0 * pad);
-	if (pixelated > 0.5) auv = (floor(auv * pixels) + 0.5) / pixels;
 	float t = TIME;
+	if (p_on > 0.5) auv = puppet(auv, t, t - t0);
+	if (pixelated > 0.5) auv = (floor(auv * pixels) + 0.5) / pixels;
 	float hf = 1.0 - auv.y;
 	// fire: the air shimmers, more toward the top
 	if (element == 0) auv.x += sin(auv.y * 34.0 - t * 9.0 + seed) * 0.0045 * glow * clamp(hf, 0.0, 1.0);
 	vec4 c = paint(auv);
+	// a blink now and then (shut while hurt and asleep): the painted eyelid colour over the eye, a lash across it
+	if (p_on > 0.5 && use_next < 0.5) {
+		float shut = step(fract((t + seed * 1.7) / 3.7), 0.035);
+		if ((action == 3 && t - t0 < 0.6) || action == 6) shut = 1.0;
+		if (shut > 0.5) {
+			for (int i = 0; i < 2; i++) {
+				vec4 lid = i == 0 ? p_lid0 : p_lid1;
+				if (in_lid(auv, lid) > 0.5) {
+					vec2 d = (auv - lid.xy) / (lid.zw * vec2(1.1, 1.12));
+					float lash = 1.0 - smoothstep(0.08, 0.16, abs(d.y - 0.12 - 0.3 * d.x * d.x));
+					c.rgb = mix(p_lid_color.rgb, p_lash.rgb, lash);
+				}
+			}
+		}
+	}
 	float body = c.a;
 	// the blurred silhouette: a soft roundness from it, so the stage lights shade the painting (three reads; Pixel
 	// Pals stay flat, as pixel art should), and the halo just outside the outline

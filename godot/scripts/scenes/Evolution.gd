@@ -13,6 +13,7 @@ var pillar: MeshInstance3D
 var light: OmniLight3D
 var element := "light"
 var to_pic := ""
+var to_rig = null                # the next form's puppet layout
 var reduced := false
 var flash_rect: ColorRect
 
@@ -66,6 +67,7 @@ func _on_message(msg: Dictionary) -> void:
 			var to: Dictionary = msg.get("to", {})
 			element = str(msg.get("element", from.get("element", "light")))
 			to_pic = str(to.get("picture", to.get("art", "")))
+			to_rig = to.get("rig")
 			cr = Creature3D.new()
 			add_child(cr)
 			cr.setup(from, 1.7, false)
@@ -120,7 +122,7 @@ func _run(charge_at: float, flash_at: float) -> void:
 	Art.texture(to_pic, func(tex: Texture2D) -> void:
 		if tex: cr.set_param("art_next", tex))
 	cr.set_param("use_next", 1.0)
-	cr.set_picture(to_pic)
+	cr.set_picture(to_pic, to_rig)
 	var d := create_tween().set_parallel(true)
 	d.tween_method(func(v: float) -> void: cr.set_param("silhouette", v), 1.0, 0.0, 0.9).set_delay(0.15)
 	d.tween_property(light, "light_energy", 0.8, 0.9)

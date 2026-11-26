@@ -75,7 +75,7 @@ func _on_message(msg: Dictionary) -> void:
 		"start": _start()
 		"pictures":
 			for p in msg.get("list", []):
-				if hero and hero.student_id == str(p.get("id")): hero.set_picture(str(p.get("picture", "")))
+				if hero and hero.student_id == str(p.get("id")): hero.set_picture(str(p.get("picture", "")), p.get("rig"))
 
 
 func _start() -> void:

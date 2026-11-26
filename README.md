@@ -19,6 +19,10 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.9.1: the paintings come alive
+
+On the 3D stage the painted creatures now move like animated characters, with the paintings themselves bent (nothing redrawn): heads nod and tilt, tails wag, legs step, chests breathe and eyes blink, faster wags when happy, a flinch with the eyes shut when the boss strikes. Release notes: [docs/release-notes-1.9.1.md](docs/release-notes-1.9.1.md).
+
 ## What's new in 1.9: special attacks, card packs and more games
 
 <p align="center"><img src="docs/screenshots/cards-pack.jpg" alt="A student opens a card pack: three creature cards turned over, each marked NEW with its rarity" width="760"></p>

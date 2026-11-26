@@ -58,7 +58,7 @@ func _on_message(msg: Dictionary) -> void:
 			for p in msg.get("list", []):
 				for r in runners:
 					if r.student_id == str(p.get("id")):
-						r.set_picture(str(p.get("picture", "")))
+						r.set_picture(str(p.get("picture", "")), p.get("rig"))
 
 
 func _track() -> void:

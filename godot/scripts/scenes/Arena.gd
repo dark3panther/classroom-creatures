@@ -144,7 +144,7 @@ func _students(list: Array) -> void:
 			_add_tap_area(cr)
 			creatures[id] = cr
 		elif info.has("picture") and str(info.get("picture")) != "":
-			cr.set_picture(str(info.get("picture")))
+			cr.set_picture(str(info.get("picture")), info.get("rig"))
 		cr.position = pos
 		cr.face(1.0)
 		if bool(info.get("dazed", false)):
@@ -159,7 +159,7 @@ func _pictures(list: Array) -> void:
 	for p in list:
 		var cr: Creature3D = creatures.get(str(p.get("id")))
 		if cr:
-			cr.set_picture(str(p.get("picture", "")))
+			cr.set_picture(str(p.get("picture", "")), p.get("rig"))
 
 
 func _add_tap_area(cr: Creature3D) -> void:

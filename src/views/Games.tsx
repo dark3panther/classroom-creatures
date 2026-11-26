@@ -141,7 +141,7 @@ function Play({ game, title, students }: { game: GameId; title: string; students
       const base = stageCreature(s, settings, { name: false });
       const fast = import.meta.env.DEV && (window as unknown as { __ccFastGames?: boolean }).__ccFastGames;
       stage.current?.send('init', { student: base, seconds: fast ? 8 : 60, reduced: reducedMotion() });
-      void withPicture(base, s).then((c) => { if (c.picture) stage.current?.send('pictures', { list: [{ id: c.id, picture: c.picture }] }); });
+      void withPicture(base, s).then((c) => { if (c.picture) stage.current?.send('pictures', { list: [{ id: c.id, picture: c.picture, rig: c.rig }] }); });
     }
     if (game === 'quiz') {
       let live = true;
