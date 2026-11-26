@@ -1,21 +1,19 @@
 import { BRANCHES } from '../data/branches';
 import { ELEMENTS } from '../data/elements';
 import { getSpecies } from '../data/species';
-import { hasIllustration, illustrationUrl } from '../creatures/Illustrated';
 import { creaturePicture } from '../creatures/pixelSprite';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import type { Settings, Stage, Student } from '../types';
 
 /**
- * What the 3D stage (godot/) needs to draw a student's creature: name, element, glow colour, the painting to start
- * with (a URL of the app's own file) and, once it is drawn, `picture`: the creature in its outfit (a data URL).
+ * What the 3D stage (godot/) needs to draw a student's creature: name, element, glow colour and, once it is drawn,
+ * `picture`: the creature in its outfit, as a data URL. Pictures always cross as data: the stage cannot fetch the
+ * desktop app's own files (its HTTP client only speaks http and https, and the app serves app://).
  */
 export interface StageCreature {
   id: string; name: string; element: string; glow: string; stage: Stage; mythic: boolean; pixel: boolean; art: string; picture?: string;
 }
-
-const abs = (path: string) => new URL(path, window.location.href).href;
 
 export function stageCreature(s: Student, settings: Settings, opts: { stage?: Stage; name?: boolean } = {}): StageCreature {
   const sp = getSpecies(s.speciesId);
@@ -29,8 +27,8 @@ export function stageCreature(s: Student, settings: Settings, opts: { stage?: St
     stage,
     mythic,
     pixel: !!sp.pixelArt,
-    // Pixel Pals keep their art elsewhere: they appear when their picture (outfit included) is drawn
-    art: !sp.pixelArt && hasIllustration(sp.id, stage) ? abs(illustrationUrl(sp.id, stage, mythic ? 'b' : '')) : '',
+    // nothing to fetch: the creature appears when its picture arrives (a moment later, see sendClass)
+    art: '',
   };
 }
 
@@ -45,17 +43,21 @@ export async function withPicture(c: StageCreature, s: Student): Promise<StageCr
 }
 
 /**
- * Send a class to the stage: first everyone with their plain painting (so the scene fills at once, `send`), then, a
- * few at a time, each creature in its outfit (`pictures`: only the new pictures, so big images cross once).
+ * Send a class to the stage: first everyone without a picture (so the scene sets up at once, `send`), then, a few at
+ * a time, each creature's picture (`pictures`: only the new pictures, so big images cross once). A creature wearing
+ * nothing is its painting, trimmed (quick); an outfit is drawn in (slower), so those come last.
  */
 export function sendClass(students: Student[], settings: Settings, send: (list: StageCreature[]) => void,
   pictures: (list: { id: string; picture: string }[]) => void, opts: { stage?: (s: Student) => Stage } = {}): () => void {
   let live = true;
   const list = students.map((s) => stageCreature(s, settings, { stage: opts.stage?.(s) }));
   send(list);
+  const dressed = (s: Student) => Object.entries(s.equipped ?? {}).some(([slot, v]) => v && slot !== 'background' && slot !== 'trail');
+  const order = students.map((_, i) => i).sort((a, b) => Number(dressed(students[a])) - Number(dressed(students[b])));
   void (async () => {
-    for (let i = 0; i < students.length && live; i += 4) {
-      const done = await Promise.all(students.slice(i, i + 4).map((s, k) => withPicture(list[i + k], s)));
+    for (let i = 0; i < order.length && live; i += 4) {
+      const batch = order.slice(i, i + 4);
+      const done = await Promise.all(batch.map((k) => withPicture(list[k], students[k])));
       if (!live) return;
       const got = done.filter((c) => c.picture).map((c) => ({ id: c.id, picture: c.picture! }));
       if (got.length) pictures(got);

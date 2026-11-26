@@ -41,7 +41,7 @@ func setup(info: Dictionary, height: float, show_name := true) -> void:
 	mat.set_shader_parameter("energy", float(info.get("energy", 1.0)))
 	mat.set_shader_parameter("pad", _pad)
 	card = MeshInstance3D.new()
-	card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF     # its blob shadow stands in (a card's own shadow is a rectangle)
 	card.material_override = mat
 	add_child(card)
 	_resize(1.0)

@@ -4,6 +4,7 @@ import { ADJUST_CATEGORY_ID, applyAward, refreshAll, refreshStudent as refreshSt
 import * as adv from '../engine/adventure';
 import type { BattleSetup } from '../engine/adventure';
 import { equipItem, purchase } from '../engine/shop';
+import { openPack as openCardPack, type DrawnCard } from '../engine/cards';
 import { raiseAbility as raiseAbilityPure, resetAbilities as resetAbilitiesPure } from '../engine/abilities';
 import { approveEvolution as approveEvolutionPure, canChooseBranch, chooseBranch as chooseBranchPure, needsBranchChoice, pendingStage } from '../engine/evolution';
 import { buildDemoData, removeDemo } from '../engine/demo';
@@ -54,6 +55,8 @@ interface Actions {
   undo: (batchId: string) => void;
   /** buy with coins: checks price overrides, season, teacher switches and duplicates */
   buy: (studentId: string, itemId: string) => boolean;
+  /** open a creature card pack for a student (1.9): a pack they won, or coins; the cards drawn, or null */
+  openPack: (studentId: string) => DrawnCard[] | null;
   setRewardGiven: (studentId: string, rewardId: string, given: boolean) => void;
   /** spin result for a class whose goal was reached: records the prize and raises the goal */
   recordPrize: (classId: string, prizeId: string) => void;
@@ -279,6 +282,16 @@ export const useStore = create<Store>()((set, get) => {
       return outcomes;
     },
 
+    openPack: (studentId) => {
+      const r = openCardPack(get().data, studentId);
+      if ('error' in r) {
+        const msg: Record<string, string> = { coins: 'Not enough coins for a card pack yet', disabled: 'Card packs are switched off in Settings' };
+        if (msg[r.error]) get().notify(msg[r.error], 'warn');
+        return null;
+      }
+      commit(r.data);
+      return r.cards;
+    },
     buy: (studentId, itemId) => {
       const before = get().data;
       const r = purchase(before, studentId, itemId);

@@ -3,7 +3,7 @@ import { BOSSES_BY_ID, LOCATIONS_BY_ID, REGIONS, TREASURES_BY_ID } from '../data
 import { DEFAULT_CHALLENGES } from '../data/defaults';
 import type { AppData, Quest } from '../types';
 import {
-  AdventureError, TEACHER, adventurePoints, afterAward, approveQuest, asStudent, battleTimeLeft, classActivity, collectQuest,
+  AdventureError, TEACHER, adventurePoints, afterAward, approveQuest, asStudent, battleRemaining, battleTimeLeft, classActivity, collectQuest,
   controlBattle, currentBattle, deleteQuest, duplicateQuest, journalFor, locationState, questBoard, regionStates, rejectQuest,
   saveQuest, setRegion, startBattle, submitQuest, tickBattles, treasureState, undoAdventure, upgradeLocation, visitRegion,
   openTreasure, classHistory,
@@ -238,11 +238,14 @@ describe('World of Adventures: boss battles', () => {
     // a whole-class award: 3 × 5 = 15, then a class activity of 15 befriends it
     data = award(data, ids, 'cat-behaviour', NOW + 4);
     const coins = ids.map((id) => student(data, id).coins);
-    data = classActivity(data, TEACHER, classId, 15, 'Finished the class story', NOW + 5).data;
+    // (the boss's special attack at half its HP gave it a little back, 1.9: the activity covers what is left)
+    data = classActivity(data, TEACHER, classId, battleRemaining(currentBattle(data, classId)!), 'Finished the class story', NOW + 5).data;
     const b = data.bosses[0];
     expect(b.status).toBe('won');
     ids.forEach((id, i) => {
-      expect(student(data, id).coins - coins[i]).toBe(15);
+      // the class reward, and a lucky find on top when it is coins (1.9)
+      const find = b.loot?.[id];
+      expect(student(data, id).coins - coins[i]).toBe(15 + (find?.kind === 'coins' ? find.amount : 0));
       expect(student(data, id).adventure!.bosses).toHaveLength(1);
       expect(student(data, id).achievements.some((a) => a.id === 'boss-buster')).toBe(true);
     });

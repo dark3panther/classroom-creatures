@@ -62,6 +62,8 @@ func _on_message(msg: Dictionary) -> void:
 		"attack": _attack(msg)
 		"team": _team(msg)
 		"strike": _strike(msg)
+		"special": _special(msg)
+		"boss_special": _boss_special(msg)
 		"status": _status(str(msg.get("status", "active")))
 
 
@@ -357,6 +359,83 @@ func _strike(msg: Dictionary) -> void:
 		Fx.number(self, _number_point(), "+%d" % amount, Color("#7fe08a"), 0.85, 0.5)
 	Bridge.send("hit", {"rid": rid})
 	await get_tree().create_timer(0.55 if fast else 0.85).timeout
+	Bridge.send("done", {"rid": rid})
+
+
+## A creature's special attack (every 10 points it gives in a battle, 1.9): it glows and powers up in a swirl of
+## its element, leaps, and lets fly three big shots; the camera comes in and shakes on the impact.
+func _special(msg: Dictionary) -> void:
+	var rid = msg.get("rid")
+	var fast := bool(msg.get("fast", false))
+	var cr: Creature3D = creatures.get(str(msg.get("studentId", "")))
+	var element := cr.element if cr else boss_element
+	var from := cr.aim_point() if cr else Vector3(-2.5, 1.0, 1.0)
+	if cr:
+		_face_creature(cr)
+		cr.set_param("glow", 2.2)
+		var swirl := Fx.emitter(element, 1.3, 50, 0.45)
+		swirl.position = Vector3(0, cr.body_height * 0.5, 0)
+		swirl.orbit_velocity_min = 0.5
+		swirl.orbit_velocity_max = 0.9
+		swirl.gravity = Vector3(0, 1.2, 0)
+		cr.add_child(swirl)
+		get_tree().create_timer(1.6).timeout.connect(func() -> void: if is_instance_valid(swirl): swirl.emitting = false)
+		get_tree().create_timer(2.6).timeout.connect(func() -> void: if is_instance_valid(swirl): swirl.queue_free())
+		cr.act("happy")
+	_zoom(44.0, 1.2)
+	await get_tree().create_timer(0.35 if fast else 0.7).timeout
+	if cr:
+		cr.act("lunge", 1.0)
+	var hit := _boss_point("hit")
+	for i in 3:
+		Fx.shot(self, from, hit + Vector3((i - 1) * 0.35, randf_range(-0.2, 0.3), 0), element, 0.4 if fast else 0.55, 1.9)
+		await get_tree().create_timer(0.1 if fast else 0.16).timeout
+	await get_tree().create_timer(0.3 if fast else 0.45).timeout
+	Fx.burst(self, hit, element, 2.2, 90)
+	Fx.burst(self, hit + Vector3(0, 0.4, 0.2), "light", 1.4, 40)
+	_boss_play("hurt")
+	_bump(1.2)
+	Fx.number(self, _number_point(), "-%d %s!" % [int(msg.get("amount", 0)), str(msg.get("name", "Special"))], Color("#ffd23f"), 1.0, 0.5)
+	Bridge.send("hit", {"rid": rid})
+	await get_tree().create_timer(0.6 if fast else 1.0).timeout
+	if cr:
+		cr.set_param("glow", 0.6)
+		cr.act("idle")
+	Bridge.send("done", {"rid": rid})
+
+
+## The boss's special attack (at half and a quarter of its HP, 1.9): it rears up in a burst of its element and a wave
+## washes over the whole class; every creature flinches (nobody loses anything) and the boss gets a little back.
+func _boss_special(msg: Dictionary) -> void:
+	var rid = msg.get("rid")
+	var fast := bool(msg.get("fast", false))
+	_turn_boss_to(BOSS_TURN)
+	_boss_play("attack")
+	var from := _boss_point("from")
+	Fx.burst(self, _boss_point("hit"), boss_element, 2.4, 80)
+	_bump(1.0)
+	await get_tree().create_timer(0.35 if fast else 0.55).timeout
+	var list: Array = creatures.values()
+	list.sort_custom(func(a: Creature3D, b: Creature3D) -> bool: return a.position.x > b.position.x)
+	var i := 0
+	for cr in list:
+		if not is_instance_valid(cr):
+			continue
+		var c: Creature3D = cr
+		if i < 6:
+			Fx.shot(self, from, c.aim_point(), boss_element, 0.45, 1.2)
+		get_tree().create_timer(0.05 * i + 0.3).timeout.connect(func() -> void:
+			if is_instance_valid(c):
+				Fx.burst(self, c.aim_point(), boss_element, 0.8, 18)
+				c.act("flinch"))
+		i += 1
+	await get_tree().create_timer(0.5 if fast else 0.8).timeout
+	_bump(0.8)
+	var amount := int(msg.get("amount", 0))
+	if amount > 0:
+		Fx.number(self, _number_point(), "+%d" % amount, Color("#7fe08a"), 1.0, 0.5)
+	Bridge.send("hit", {"rid": rid})
+	await get_tree().create_timer(0.8 if fast else 1.2).timeout
 	Bridge.send("done", {"rid": rid})
 
 

@@ -135,8 +135,8 @@ for (let i = 0; i < 12 && (await battle()).status === 'active'; i++) {
   await wait(300);
 }
 ok((await battle()).status === 'won', 'the class befriends the boss');
-await wait(9500);
-ok(await p.getByText(/is your friend/).count() >= 1, 'the befriend celebration plays after the final attack');
+// the queued attacks play first (special attacks and the boss's own special too, 1.9)
+ok(await until(async () => await p.getByText(/is your friend/).count() >= 1, 60000), 'the befriend celebration plays after the final attack');
 ok(await p.locator('[data-boss-sprite][data-action="happy"]').count() >= 1, 'the befriended boss hops for joy');
 await shot('battle-won.png');
 const hooray = p.getByRole('button', { name: 'Hooray!' }); if (await hooray.count()) await hooray.click();

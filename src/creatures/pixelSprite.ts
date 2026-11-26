@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import ART from '../data/creatureArt.json';
 import PALS from '../data/pixelPals.json';
+import { BRANCHES as BRANCH_FORMS } from '../data/branches';
 import type { Equipped, Species, Stage } from '../types';
 
 /**
@@ -119,6 +120,23 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
     pictures.set(key, p);
     p.catch(() => pictures.delete(key));
   }
+  // a mythical form is a painting of its own only for some creatures (the others add ornaments in the SVG)
+  const mythicForm = r.stage === 5 && r.branch === 'b' && (BRANCH_FORMS as Record<string, unknown>)[r.species.id] !== undefined;
+  if (!p && !r.species.pixelArt && !wearsOutfit(r) && (mythicForm ? `${r.species.id}-5b` : `${r.species.id}-${r.stage}`) in ANCHORS) {
+    // nothing worn: the painting itself, without the SVG round trip (much cheaper when a whole class arrives on the
+    // stage at once, and it cannot come out empty)
+    p = inTurn(async () => {
+      const img = new Image();
+      img.src = `${import.meta.env.BASE_URL}creatures/${r.species.id}-${r.stage}${mythicForm ? 'b' : ''}.webp`;
+      await img.decode();
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const x = c.getContext('2d', { willReadFrequently: true })!;
+      x.drawImage(img, 0, 0);
+      return stagePicture(c, x.getImageData(0, 0, c.width, c.height), px, true);
+    });
+    pictures.set(key, p);
+    p.catch(() => pictures.delete(key));
+  }
   if (!p) {
     p = inTurn(async () => {
       const big = px * 1.4;
@@ -137,24 +155,32 @@ export function creaturePicture(r: SpriteRequest, px = 300): Promise<string> {
         if (solidShare(d) >= MIN_SOLID) break;
       }
       if (!d || solidShare(d) < MIN_SOLID) throw new Error('the creature painting did not draw');
-      // trim to the creature, with a little room
-      let l = c.width, t = c.height, rr = 0, b = 0;
-      for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d.data[(y * c.width + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
-      const m = Math.round(c.width * 0.02);
-      l = Math.max(0, l - m); t = Math.max(0, t - m); rr = Math.min(c.width - 1, rr + m); b = Math.min(c.height - 1, b + 1);
-      const ch = Math.round(px / (1 + ROOM + ROOM_BELOW)), k = ch / (b - t + 1), out = document.createElement('canvas');
-      const cw = Math.max(1, Math.round((rr - l + 1) * k)), room = Math.round(ch * ROOM);
-      out.width = cw + 2 * room; out.height = px;
-      const o = out.getContext('2d')!;
-      o.imageSmoothingEnabled = !r.species.pixelArt; o.imageSmoothingQuality = 'high';
-      o.drawImage(c, l, t, rr - l + 1, b - t + 1, room, room, cw, ch);
-      return out.toDataURL('image/png');
+      return stagePicture(c, d, px, !r.species.pixelArt);
     });
     pictures.set(key, p);
     p.catch(() => pictures.delete(key));
     if (pictures.size > 200) pictures.delete(pictures.keys().next().value as string);
   }
   return p;
+}
+
+/** Something worn that the creature's own picture has to show (a background or a trail belongs to the scene). */
+const wearsOutfit = (r: SpriteRequest) => Object.entries(r.equipped ?? {}).some(([slot, v]) => v && slot !== 'background' && slot !== 'trail');
+
+/** Trim a drawing to the creature and leave the stage's room round it, `px` tall in all. */
+function stagePicture(c: HTMLCanvasElement, d: ImageData, px: number, smooth: boolean): string {
+  let l = c.width, t = c.height, rr = 0, b = 0;
+  for (let y = 0; y < c.height; y++) for (let xx = 0; xx < c.width; xx++) if (d.data[(y * c.width + xx) * 4 + 3] > 24) { if (xx < l) l = xx; if (xx > rr) rr = xx; if (y < t) t = y; if (y > b) b = y; }
+  if (rr < l) throw new Error('the creature painting did not draw');
+  const m = Math.round(c.width * 0.02);
+  l = Math.max(0, l - m); t = Math.max(0, t - m); rr = Math.min(c.width - 1, rr + m); b = Math.min(c.height - 1, b + 1);
+  const ch = Math.round(px / (1 + ROOM + ROOM_BELOW)), k = ch / (b - t + 1), out = document.createElement('canvas');
+  const cw = Math.max(1, Math.round((rr - l + 1) * k)), room = Math.round(ch * ROOM);
+  out.width = cw + 2 * room; out.height = px;
+  const o = out.getContext('2d')!;
+  o.imageSmoothingEnabled = smooth; o.imageSmoothingQuality = 'high';
+  o.drawImage(c, l, t, rr - l + 1, b - t + 1, room, room, cw, ch);
+  return out.toDataURL('image/png');
 }
 
 /** What a Pixel Pal wears, as two pixel layers: behind it (wings, capes) and in front (null: nothing drawn). */

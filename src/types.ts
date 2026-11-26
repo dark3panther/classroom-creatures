@@ -120,6 +120,10 @@ export interface Student {
   createdAt: number;
   equipped: Equipped;
   unlockedItems: string[];
+  /** creature cards collected from card packs (1.9): form key (`speciesId-stage`, `-5b` for a mythical form) → copies */
+  cards?: Record<string, number>;
+  /** unopened card packs (won from bosses) */
+  packs?: number;
   achievements: UnlockedAchievement[];
   /** times each category tag was awarded */
   tagCounts: Partial<Record<CategoryTag, number>>;
@@ -229,8 +233,10 @@ export interface BossContribution {
   amount: number;
   at: number;
   /** award / quest / class activity hit the boss; mission = the lesson battle's team finisher;
-   *  setback = a deduction during a lesson battle (the boss strikes back at that creature) */
-  source: 'award' | 'quest' | 'class' | 'mission' | 'setback';
+   *  setback = a deduction during a lesson battle (the boss strikes back at that creature);
+   *  special = a creature's special attack (every SPECIAL.every points it gives in a battle, 1.9);
+   *  boss-special = the boss's own special attack at half and a quarter of its HP (it recovers a little, 1.9) */
+  source: 'award' | 'quest' | 'class' | 'mission' | 'setback' | 'special' | 'boss-special';
   /** a lesson battle's power-up behaviour: this hit counted double */
   super?: boolean;
   /** award batch id or quest record id */
@@ -255,7 +261,12 @@ export interface BossBattle {
   contributions: BossContribution[];
   /** set for a lesson battle (1.6): a battle sized for one or two lessons around a class mission */
   lesson?: LessonBattle;
+  /** the lucky find each student rolled when the boss was befriended (1.9) */
+  loot?: Record<string, BossLoot>;
 }
+
+/** A random reward from a befriended boss (1.9): coins, XP, a shop item or a card pack. */
+export interface BossLoot { kind: 'coins' | 'xp' | 'item' | 'pack'; amount: number; itemId?: string; label: string }
 
 /**
  * A lesson battle (1.6). Every award is that creature's attack, a deduction makes the boss strike back at
@@ -417,6 +428,9 @@ export interface Settings {
   pixelMode?: boolean;
   /** the 3D scenes made in Godot (arena, class world, games, evolution); off: the 2D versions (1.8) */
   stage3d?: boolean;
+  /** creature card packs students buy with coins (1.9): on unless switched off, and their price */
+  cardPacks?: boolean;
+  packPrice?: number;
   /** bosses as animated 3D sprites ('animated', the default since 1.7) or the still painted drawings */
   bossStyle?: 'animated' | 'painted';
   /** World of Adventures on/off */

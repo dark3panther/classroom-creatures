@@ -19,6 +19,22 @@ A gamified classroom management app for Grade 2 and Grade 3 teachers. Every stud
 
 <p align="center"><img src="docs/screenshots/reactions.jpg" alt="Pixel effects: a happy award, a BONK deduction, dizzy stars and confused question marks" width="900"></p>
 
+## What's new in 1.9: special attacks, card packs and more games
+
+<p align="center"><img src="docs/screenshots/cards-pack.jpg" alt="A student opens a card pack: three creature cards turned over, each marked NEW with its rarity" width="760"></p>
+
+- **Special attacks.** Every 10 points a creature gives in a boss battle, it powers up and unleashes its element's **special attack** (Ember Storm, Bubble Surge, Starfall and seven more) for 5 extra damage. **Bosses have one too** (Lava Hiccup, Crystal Clatter, Bramble Storm...): at half and a quarter of their HP a wave hits the whole class and the boss gets a little back. Nobody is singled out, and lesson battles are sized so they still last the lessons you planned.
+- **Lucky finds.** Befriend a boss and every student also gets a random find: bonus coins, bonus XP, an outfit they do not have yet or a creature card pack.
+- **Creature card packs** (new **Cards** tab). Students spend coins (25, or a free pack from a boss) on packs of three creature cards and fill a binder of all 210 creature forms. The third card is always Rare or better, and copies turn back into coins.
+- **Two new class games:** **Whose shadow?** (guess the creature from its silhouette) and **Element bubbles** (pop the bubbles whose creature has the element on the screen). The **memory match** now has real picture cards.
+- **Faster, fitted 3D.** The 3D stage draws at normal resolution on Retina screens, creatures lost the square round them, pictures load in the desktop app, every scene fits the window, and Pixel mode turns the 3D scenes into pixel art.
+
+| Lucky finds | Whose shadow? | Element bubbles |
+|---|---|---|
+| <img src="docs/screenshots/lucky-finds.jpg" alt="The befriend celebration listing every student's lucky find" width="300"> | <img src="docs/screenshots/game-shadow.jpg" alt="Whose shadow?: a creature's silhouette above four picture cards" width="300"> | <img src="docs/screenshots/game-bubbles.jpg" alt="Element bubbles: creatures float up inside bubbles" width="300"> |
+
+Release notes: [docs/release-notes-1.9.0.md](docs/release-notes-1.9.0.md).
+
 ## What's new in 1.8: the 3D stage
 
 <p align="center"><img src="docs/screenshots/stage-arena.jpg" alt="The 3D arena in the Ember Kingdom: the class's creatures in rows with their names, Magmaw turning toward the creature that just hit it for a super-effective 6, the mission and HP cards on top" width="760"></p>
@@ -321,7 +337,7 @@ scripts/pixel/               The adventure pixel art as code (claude-pxl): islan
 scripts/sky/pixelate.py      Pixel mode copies of the painted sky layers (public/sky-pixel/)
 scripts/bosses-3d/           The bosses as Blender models from code, rendered into sprites by SpriteCast (public/bosses3d/)
 scripts/blender/chest.py     The 3D treasure chest, modelled, animated and rendered in Blender (public/chests/)
-godot/                       The 3D stage (Godot 4.4): arena, class world, games, evolution, exported to public/godot/
+godot/                       The 3D stage (Godot 4.4): arena, class world, five games, evolution, exported to public/godot/
 public/adventure/            The built pixel art (68 small PNGs, about 280 KB)
 ```
 

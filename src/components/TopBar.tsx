@@ -10,6 +10,7 @@ const TABS: { view: Route['view']; label: string; path: string; adventure?: bool
   { view: 'creatures', label: 'Creatures', path: '/creatures' },
   { view: 'adventure', label: 'Adventure', path: '/adventure', adventure: true },
   { view: 'rewards', label: 'Rewards', path: '/rewards' },
+  { view: 'cards', label: 'Cards', path: '/cards' },
   { view: 'games', label: 'Games', path: '/games' },
   { view: 'settings', label: 'Settings', path: '/settings' },
 ];

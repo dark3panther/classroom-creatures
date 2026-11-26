@@ -4,6 +4,8 @@ export type Route =
   | { view: 'classroom' }
   | { view: 'creatures' }
   | { view: 'rewards' }
+  /** creature card packs and each student's binder (1.9) */
+  | { view: 'cards'; id?: string }
   | { view: 'games'; game?: string }
   | { view: 'settings'; tab?: string }
   | { view: 'present' }
@@ -23,6 +25,7 @@ export function parseHash(hash: string): Route {
       return sub === 'customize' ? { view: 'customize', id: arg } : { view: 'creature', id: arg, tab: sub };
     case 'creatures': return { view: 'creatures' };
     case 'rewards': return { view: 'rewards' };
+    case 'cards': return { view: 'cards', id: arg };
     case 'games': return { view: 'games', game: arg };
     case 'settings': return { view: 'settings', tab: arg };
     case 'present': return { view: 'present' };

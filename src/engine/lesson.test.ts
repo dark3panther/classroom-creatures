@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { BOSSES, BOSSES_BY_ID, LESSON, MISSIONS, REGIONS, TREASURES, lessonHp } from '../data/adventure';
+import { BOSSES, BOSSES_BY_ID, LESSON, MISSIONS, REGIONS, SPECIAL, TREASURES, lessonHp } from '../data/adventure';
 import type { AppData } from '../types';
 import {
-  AdventureError, TEACHER, adventurePoints, afterAward, asStudent, battleRecovered, battleTimeLeft, battleTotal, completeMission,
+  AdventureError, TEACHER, adventurePoints, afterAward, asStudent, battleRecovered, battleRemaining, battleTimeLeft, battleTotal, completeMission,
   contributionsByStudent, controlBattle, currentBattle, setRegion, startBattle, tickBattles, undoAdventure,
 } from './adventure';
 import { applyAward } from './awards';
@@ -57,11 +57,12 @@ describe('World of Adventures 1.6: regions and bosses', () => {
   });
   it('counts each befriended boss once for adventure points, however often it is befriended again', () => {
     let { data, ids, classId } = lessonWorld({ hp: 20 });
-    data = award(data, ids, 'cat-behaviour', NOW + MIN); // 4 × 5 = 20: befriended
+    // until befriended (the boss's own special attack gives it back a point or two on the way, 1.9)
+    for (let i = 1; currentBattle(data, classId); i++) data = award(data, ids, 'cat-behaviour', NOW + i * MIN);
     expect(battleOf(data, classId).status).toBe('won');
     const once = adventurePoints(data, classId);
     data = startBattle(data, TEACHER, { classId, bossId: 'grumblethorn', hp: 20, durationMs: 0, reward: { xp: 0, coins: 0 }, lesson: { mission: 'Again', strikeBack: false, lessonMs: 45 * MIN, lessons: 1 } }, NOW + 2 * MIN).data;
-    data = award(data, ids, 'cat-behaviour', NOW + 3 * MIN);
+    for (let i = 3; currentBattle(data, classId); i++) data = award(data, ids, 'cat-behaviour', NOW + i * MIN);
     expect(data.bosses.filter((b) => b.status === 'won')).toHaveLength(2);
     expect(adventurePoints(data, classId).bosses).toBe(1);
     expect(adventurePoints(data, classId).total - once.total).toBeLessThan(20);
@@ -70,8 +71,9 @@ describe('World of Adventures 1.6: regions and bosses', () => {
 
 describe('Lesson battles', () => {
   it('sizes HP from class size, award values and length', () => {
-    expect(lessonHp(24, 4, 1)).toBe(240);
-    expect(lessonHp(24, 4, 2)).toBe(480);
+    // 24 students × 2.5 awards × 4 XP, and half as much again for special attacks (1.9)
+    expect(lessonHp(24, 4, 1)).toBe(360);
+    expect(lessonHp(24, 4, 2)).toBe(720);
     expect(lessonHp(24, 4, 1, 'gentle')).toBeLessThan(lessonHp(24, 4, 1));
     expect(lessonHp(24, 4, 1, 'tough')).toBeGreaterThan(lessonHp(24, 4, 1));
     expect(lessonHp(1, 1, 1)).toBeGreaterThanOrEqual(20);
@@ -151,7 +153,8 @@ describe('Lesson battles', () => {
 
   it('completing the mission is a team attack worth a quarter of the HP, once, and can befriend the boss', () => {
     let { data, ids, classId } = lessonWorld({ hp: 100 });
-    for (let i = 0; i < 4; i++) data = award(data, ids, 'cat-behaviour', NOW + (1 + i) * MIN); // 80
+    // until a quarter or less is left (one award at a time; special attacks and the boss's own special count too)
+    for (let i = 0; battleRemaining(currentBattle(data, classId)!) > 25; i++) data = award(data, [ids[i % 4]], 'cat-behaviour', NOW + (1 + i) * MIN);
     const b = currentBattle(data, classId)!;
     expect(() => completeMission(data, asStudent(ids[0]), b.id, NOW + 10 * MIN)).toThrow(AdventureError);
     const r = completeMission(data, TEACHER, b.id, NOW + 10 * MIN);
@@ -197,7 +200,8 @@ describe('Lesson battles', () => {
     expect(b.status).toBe('active');
     expect(battleTimeLeft(b, tomorrow)).toBe(45 * MIN);
     data = award(data, ids, 'cat-behaviour', tomorrow + MIN);
-    expect(battleTotal(battleOf(data, classId))).toBe(40);
+    // everyone reaches 10 points: each creature's special attack follows (1.9)
+    expect(battleTotal(battleOf(data, classId))).toBe(40 + ids.length * SPECIAL.bonus);
   });
 
   it('a long (multi-day) battle keeps its old rules: no strike back, ends when time runs out', () => {

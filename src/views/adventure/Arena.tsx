@@ -8,7 +8,7 @@ import { PixelFx, type PixelFxId } from '../../creatures/PixelFx';
 import { BOSS_POINTS, type BossMood } from '../../creatures/bosses/BossArt';
 import { BossPortrait } from '../../creatures/bosses/BossPortrait';
 import { hasBossSprite } from '../../creatures/bosses/BossSprite';
-import { ADVENTURE_ART, BOSSES_BY_ID, LESSON, QUEST_CATEGORIES, REGIONS_BY_ID } from '../../data/adventure';
+import { ADVENTURE_ART, BOSSES_BY_ID, LESSON, QUEST_CATEGORIES, REGIONS_BY_ID, bossSpecial } from '../../data/adventure';
 import { getSpecies } from '../../data/species';
 import { battleTimeLeft, battleTotal } from '../../engine/adventure';
 import { displayStage } from '../../engine/progression';
@@ -17,6 +17,7 @@ import { animate, reducedMotion } from '../../lib/motion';
 import { useStore } from '../../store/store';
 import type { BossBattle, BossContribution, CategoryTag, ElementType } from '../../types';
 import { ArenaBackdrop } from './ArenaBackdrop';
+import { useFitHeight } from '../../lib/useFitHeight';
 import { GodotStage, useStage3d, type GodotStageHandle, type StageMessage } from '../../components/GodotStage';
 import { sendClass } from '../../lib/stage';
 import { timeLeft } from './common';
@@ -51,7 +52,11 @@ export const tagLabel = (t?: CategoryTag) => (t ? TAG_LABEL[t] ?? QUEST_CATEGORI
 type Move =
   | { kind: 'attack'; studentId?: string; amount: number; super?: boolean; label: string }
   | { kind: 'team'; amount: number; label: string; ids: string[]; mission?: boolean; super?: boolean }
-  | { kind: 'strike'; studentId: string; amount: number; label: string };
+  | { kind: 'strike'; studentId: string; amount: number; label: string }
+  /** a creature's special attack (1.9): every 10 points it gives in a battle */
+  | { kind: 'special'; studentId: string; amount: number; label: string }
+  /** the boss's special attack (1.9): at half and a quarter of its HP, on the whole class; it recovers `amount` */
+  | { kind: 'boss-special'; amount: number; label: string };
 
 /** New contributions → the moves to play: a big batch (whole class) is one team attack. */
 function movesFrom(list: BossContribution[], allIds: string[]): Move[] {
@@ -62,6 +67,10 @@ function movesFrom(list: BossContribution[], allIds: string[]): Move[] {
     const c = g[0];
     if (c.source === 'mission') out.push({ kind: 'team', mission: true, amount: c.amount, label: c.label, ids: allIds });
     else if (c.source === 'setback') for (const x of g) out.push({ kind: 'strike', studentId: x.studentId!, amount: -x.amount, label: x.label });
+    // many special attacks from one award (a whole-class award): one team special attack, not a long queue
+    else if (c.source === 'special' && g.length > 3) out.push({ kind: 'team', amount: g.reduce((n, x) => n + x.amount, 0), label: `${g.length} special attacks at once!`, ids: g.map((x) => x.studentId!).filter(Boolean), super: true });
+    else if (c.source === 'special') for (const x of g) out.push({ kind: 'special', studentId: x.studentId!, amount: x.amount, label: x.label });
+    else if (c.source === 'boss-special') for (const x of g) out.push({ kind: 'boss-special', amount: -x.amount, label: x.label });
     else if (c.source === 'class') out.push({ kind: 'team', amount: c.amount, label: c.label, ids: allIds });
     else if (g.length > 3) out.push({ kind: 'team', amount: g.reduce((n, x) => n + x.amount, 0), label: c.label, ids: g.map((x) => x.studentId!).filter(Boolean), super: g.some((x) => x.super) });
     else for (const x of g) out.push({ kind: 'attack', studentId: x.studentId, amount: x.amount, super: x.super, label: x.label });
@@ -128,6 +137,9 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
   const unit = aw / 400;
 
   const arena = useRef<HTMLDivElement>(null);
+  // the arena fits the window: the 3D one gets wider (its camera shows more at the sides), the 2D one (and Pixel
+  // mode's) keeps its shape and gets narrower
+  const fitH = useFitHeight(arena, !full);
   const bossBox = useRef<HTMLDivElement>(null);
   const tiles = useRef(new Map<string, HTMLElement>());
   const seen = useRef(new Set(battle.contributions.map((c) => c.id)));
@@ -250,6 +262,55 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     setMood('grumpy');
   };
 
+  /** a creature's special attack (1.9): it powers up and lets fly three big shots */
+  const special = async (m: Extract<Move, { kind: 'special' }>, fast: boolean) => {
+    const st = students.find((s) => s.id === m.studentId);
+    const sh = SHOT[st ? getSpecies(st.speciesId).element : def.element];
+    setBanner({ key: key(), text: `${m.label}!`, sub: st ? `${firstName(st.name)}'s ${getSpecies(st.speciesId).name} used its special attack` : undefined, tone: 'gold', small: true });
+    if (sound) playMultiAward();
+    const el = creatureEl(m.studentId);
+    if (el && !reducedMotion()) animate(el, { scale: [1, 1.35, 1.2, 1], filter: ['brightness(1)', 'brightness(1.9)', 'brightness(1)'], duration: fast ? 600 : 900, ease: 'out(2)' });
+    await wait(fast ? 260 : 420);
+    const from = rel(el) ?? { x: (arena.current?.offsetWidth ?? 800) * 0.3, y: (arena.current?.offsetHeight ?? 450) * 0.7, w: 80, h: 80 };
+    const to = bossPoint('hit');
+    if (to) {
+      await Promise.all([0, 1, 2].map(async (i) => {
+        await wait(i * (fast ? 90 : 140));
+        await fly({ fx: sh.fx, palette: sh.palette, k: unit * (sh.size ?? 0.6) * 1.6, from, to: { ...to, x: to.x + (i - 1) * to.w * 0.15 }, ms: fast ? 360 : 500 });
+      }));
+      blast({ fx: sh.impact, palette: sh.impactPalette, at: to, k: unit * 1.3 });
+      blast({ fx: 'explosions/firework-burst', at: { ...to, y: to.y - to.h * 0.15 }, k: unit * 1.1 });
+    }
+    if (sound) playBossHit();
+    setMood('hurt'); setBeat((b) => b + 1);
+    shake(bossBox.current, true);
+    const head = bossPoint('head');
+    if (head) number({ text: `−${m.amount} ${m.label}!`, at: head, tone: 'super' });
+    setShown((v) => Math.min(latest.current.hp, v + m.amount));
+    await wait(fast ? 500 : 800);
+    setMood('grumpy');
+  };
+
+  /** the boss's special attack (1.9): it hits the whole class (nobody loses anything) and recovers a little */
+  const bossSpecialMove = async (m: Extract<Move, { kind: 'boss-special' }>, fast: boolean) => {
+    const sp = bossSpecial(def.id);
+    setMood('attack'); setBeat((b) => b + 1);
+    setBanner({ key: key(), text: `${def.name} used ${m.label}!`, sub: `It ${sp.verb}. ${def.name} gets ${m.amount} back. Keep going!`, tone: 'brick' });
+    if (bossBox.current && !reducedMotion()) animate(bossBox.current, { scale: [1, 1.18, 1], y: [0, -0.06 * bossBox.current.offsetHeight, 0], duration: fast ? 700 : 1000, ease: 'inOut(2)' });
+    await wait(fast ? 300 : 500);
+    if (sound) playBonk();
+    students.slice(0, 16).forEach((s, i) => {
+      const t = rel(creatureEl(s.id));
+      if (t) setTimeout(() => blast({ fx: def.strike.fx as PixelFxId, palette: def.strike.palette, at: { ...t, y: t.y + t.h * 0.3 }, k: unit * 0.5, flip: true }), (i % 8) * 60);
+      setTimeout(() => shake(tileOf(s.id), false), (i % 8) * 60);
+    });
+    const head = bossPoint('head');
+    if (head) number({ text: `+${m.amount}`, at: head, tone: 'heal' });
+    setShown((v) => Math.max(0, v - m.amount));
+    await wait(fast ? 800 : 1200);
+    setMood('grumpy');
+  };
+
   /** the same moves on the 3D stage: it plays them and says "hit" at the moment of impact. On a computer too slow to
    *  play a move in time, its effect (the HP bar, the sound, the banner) still lands when the stage gives up. */
   const play3d = async (m: Move, fast: boolean) => {
@@ -275,7 +336,7 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
       });
       await st.play('team', { ids: m.ids, amount: m.amount, mission: !!m.mission, fast }, 10000, h.onEvent);
       h.land();
-    } else {
+    } else if (m.kind === 'strike') {
       const s3 = students.find((s) => s.id === m.studentId);
       setDazed((d) => ({ ...d, [m.studentId]: Date.now() + 5000 }));
       const h = once(() => {
@@ -285,6 +346,25 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
       });
       await st.play('strike', { studentId: m.studentId, amount: m.amount, fast }, 7000, h.onEvent);
       h.land();
+    } else if (m.kind === 'special') {
+      const s3 = students.find((s) => s.id === m.studentId);
+      setBanner({ key: key(), text: `${m.label}!`, sub: s3 ? `${firstName(s3.name)}'s ${getSpecies(s3.speciesId).name} used its special attack` : undefined, tone: 'gold', small: true });
+      if (sound) playMultiAward();
+      const h = once(() => {
+        if (sound) playBossHit();
+        setShown((v) => Math.min(latest.current.hp, v + m.amount));
+      });
+      await st.play('special', { studentId: m.studentId, amount: m.amount, name: m.label, fast }, 9000, h.onEvent);
+      h.land();
+    } else {
+      const sp = bossSpecial(def.id);
+      setBanner({ key: key(), text: `${def.name} used ${m.label}!`, sub: `It ${sp.verb}. ${def.name} gets ${m.amount} back. Keep going!`, tone: 'brick' });
+      const h = once(() => {
+        if (sound) playBonk();
+        setShown((v) => Math.max(0, v - m.amount));
+      });
+      await st.play('boss_special', { amount: m.amount, name: m.label, fast }, 9000, h.onEvent);
+      h.land();
     }
   };
 
@@ -292,6 +372,8 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
     if (on3d && stageReady && stage.current) return play3d(m, fast);
     if (m.kind === 'attack') return attack(m.studentId, m.amount, !!m.super, fast);
     if (m.kind === 'team') return team(m, fast);
+    if (m.kind === 'special') return special(m, fast);
+    if (m.kind === 'boss-special') return bossSpecialMove(m, fast);
     return strike(m, fast);
   };
 
@@ -368,7 +450,8 @@ export function Arena({ battle, teacher, onClose }: { battle: BossBattle; teache
 
   return (
     <section className="flex flex-col gap-3">
-      <div ref={arena} className={`arena ${full ? 'arena-full' : ''}`} data-arena>
+      <div ref={arena} className={`arena ${full ? 'arena-full' : ''}`} data-arena
+        style={fitH && !full ? (on3d ? { height: fitH, aspectRatio: 'auto' } : { maxWidth: Math.round(fitH * 16 / 9), marginInline: 'auto' }) : undefined}>
         {on3d && (
           <GodotStage ref={stage} scene="arena" className="absolute inset-0 z-[1]" title={`${def.name} and the class in 3D`}
             onReady={() => setStageReady(true)} onFail={() => setStageFailed(true)} onMessage={onStage} />

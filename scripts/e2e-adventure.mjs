@@ -144,7 +144,8 @@ ok(await g(() => window.__cc.getState().celebrations.some((c) => c.type === 'bos
 await shot(p, 'woa-boss-friend.png');
 const coinsAfter = await g((ids) => ids.map((id) => window.__cc.getState().data.students.find((s) => s.id === id).coins), classIds);
 const extra = coinsAfter.map((c, i) => c - coinsBefore[i]);
-ok(extra.slice(2).every((x) => x === won.reward.coins), `every student got the boss reward once (+${won.reward.coins})`);
+// the boss reward once, plus each student's lucky find when it is coins (1.9)
+ok(extra.every((x, i) => i < 2 || x === won.reward.coins + (won.loot?.[classIds[i]]?.kind === 'coins' ? won.loot[classIds[i]].amount : 0)), `every student got the boss reward once (+${won.reward.coins}), and their lucky find`);
 await quiet();
 
 // ---------- 7. explore, then open a treasure chest ----------

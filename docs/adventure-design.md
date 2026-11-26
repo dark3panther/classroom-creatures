@@ -180,6 +180,24 @@ the place stages and decorations from `locationState` and `classDecorations`; bu
 teacher's action in the place's panel. The class games are rewards with no effect on points: the relay uses each
 student's positive XP today only to set the speed of their leg, and the result is the class's, never a ranking.
 
+### 3.10 Special attacks, lucky finds and card packs (1.9)
+
+* **Special attacks** (any battle). A creature's points in a battle are its award hits (a super-effective hit counts
+  its points, not its double damage) and the quests it completes. Each time they pass another multiple of
+  `SPECIAL.every` (10), a `special` contribution of `SPECIAL.bonus` (5) follows, named after the creature's element.
+  Undoing the award (or the quest) that set it off takes it back too.
+* **The boss's special attack.** After any hit that leaves the boss at or below half, then a quarter, of its HP
+  (`SPECIAL.bossAt`), it answers once per threshold with a `boss-special` contribution of `-round(0.05 × HP)`. It is
+  checked after the win, so it can never undo one, and it is not undone with the hits. It affects no student.
+* **Lucky finds.** `rollLoot` gives every student of the class one find, seeded by battle and student so it comes
+  out the same however often it is worked out: a card pack 30 % (when card packs are on), else an item they do not
+  own from the shop at 80 coins or less 22 %, 3–6 XP 24 %, otherwise 5–15 coins. Coins, XP and items go through
+  `applyReward` (ledger key `bossloot:<battle>:<student>`, so undo and history know them); packs go to `packs`.
+* **Card packs.** `openPack` uses an unopened pack first, else `packPrice` coins (25, teacher setting), never below 0.
+  Three cards: a rarity by the odds (common 40, uncommon 26, rare 16, epic 9, legendary 5, mythical 2; the third card
+  rare or better), then a form of that rarity; a card the student already has is drawn again once, and a copy that
+  is still a duplicate gives 2 coins back. Rarity is the stage (`-5b` mythical forms are mythical). 210 forms.
+
 ## 4. Formulas
 
 * **Adventure points** (class): `AP = floor((Σ lifetimeXp / 25 + 2 × approved quest completions) / students) + 20 × different bosses befriended`
@@ -192,8 +210,9 @@ student's positive XP today only to set the speed of their leg, and the result i
   the second region in the first week, Ancient Kingdom in about a term, Sunstone Desert for the end of the year. A region that has opened stays open (undo never closes it); only the teacher can close one.
 * **Suggested boss HP**: `students × perStudent` (easy 8, medium 14, hard 22, epic 32), minimum 30.
 * **Boss hit**: award XP (positive awards only); approved quest `max(5, reward XP)`.
-* **Lesson battle HP**: `round5(students × 2.5 awards × average positive award XP × lessons × level)`, level
-  Gentle 0.75 · Normal 1 · Tough 1.35, minimum 20. E.g. 24 students, awards averaging 4 XP, one lesson: 240 HP.
+* **Lesson battle HP**: `round5(students × 2.5 awards × average positive award XP × lessons × 1.5 × level)`, level
+  Gentle 0.75 · Normal 1 · Tough 1.35, minimum 20 (the 1.5 since 1.9 makes room for special attacks:
+  `1 + SPECIAL.bonus / SPECIAL.every`). E.g. 24 students, awards averaging 4 XP, one lesson: 360 HP.
   The class's awards bring it most of the way; the mission's 25% finishes it.
 * **Super effective**: the award's XP × 2. **Strike back**: the boss recovers the XP lost, while
   `recovered ≤ floor(0.2 × HP)` and never below a full meter. **Team finisher**: `ceil(0.25 × HP)`.
@@ -215,9 +234,11 @@ student's positive XP today only to set the speed of their leg, and the result i
 | Boss befriended | 5–15 | 15–40 | per battle | every student, plus a statue |
 | Lesson battle befriended | 2 | 5 | up to daily | every student (defaults; the teacher can change them) |
 | Coin chest | 0 | 20–50 | once each | per region + specials |
+| Lucky find (1.9) | 0 or 3–6 | 0 or 5–15 | per befriended boss | every student: coins, XP, an item or a card pack |
 | Cosmetic / boss chest | 0 | fallback 30–40 | once each | item, or coins if owned |
 
-Coin sinks stay the 1.4 shop (items 25–180 coins). A student completing every daily quest earns about
+Coin sinks: the 1.4 shop (items 25–180 coins) and, since 1.9, creature card packs (25 coins for three cards; a
+copy gives 2 back). A student completing every daily quest earns about
 25 coins a week from quests, so a mid-priced item takes two to four weeks.
 
 ## 6. Edge cases

@@ -260,6 +260,41 @@ export const LESSON = {
 };
 export type LessonLevel = keyof typeof LESSON.level;
 
+/* ───────────── special attacks (1.9) ───────────── */
+export const SPECIAL = {
+  /** a creature's special attack comes every this many points it gives in one battle */
+  every: 10,
+  /** and hits the boss for this much more (lesson HP is sized up by the same share, see lessonHp) */
+  bonus: 5,
+  /** the boss's special attack: once when what is left of its HP falls to each of these shares */
+  bossAt: [0.5, 0.25],
+  /** it recovers this share of its HP each time (a little: the class still wins) */
+  bossHeal: 0.05,
+};
+
+/** Each element's special attack. */
+export const ELEMENT_SPECIALS: Record<ElementType, string> = {
+  fire: 'Ember Storm', water: 'Bubble Surge', nature: 'Bloom Burst', electric: 'Spark Cascade', ice: 'Frost Flurry',
+  earth: 'Boulder Roll', shadow: 'Moonshade Pounce', light: 'Dawn Ray', cosmic: 'Starfall', air: 'Gale Spin',
+};
+
+/** Each boss's special attack: its name, and what it does to the whole class (nothing that lasts). */
+export const BOSS_SPECIALS: Record<string, { name: string; verb: string }> = {
+  grumblethorn: { name: 'Bramble Storm', verb: 'whips its brambles round the whole class' },
+  mudsnout: { name: 'Mud Belly-Flop', verb: 'belly-flops and splashes everyone with mud' },
+  glimmerjaw: { name: 'Crystal Clatter', verb: 'clatters its claws and showers the class with crystals' },
+  murkmoth: { name: 'Dusty Wing Gust', verb: 'flaps up a cloud of sleepy dust' },
+  puffington: { name: 'Puffer Burst', verb: 'puffs up huge and bursts out a wave of bubbles' },
+  snowsulk: { name: 'Sulky Snowstorm', verb: 'sulks so hard it snows on everyone' },
+  magmaw: { name: 'Lava Hiccup', verb: 'hiccups a shower of warm lava sparks' },
+  zapcrackle: { name: 'Grumble Thunder', verb: 'grumbles a thunderclap over the class' },
+  snorecap: { name: 'Sleepy Spore Cloud', verb: 'yawns out a cloud of sleepy spores' },
+  whirlwing: { name: 'Kite Twister', verb: 'spins up a twister across the arena' },
+  colossus: { name: 'Gear Quake', verb: 'stamps and shakes the whole arena' },
+  riddlepaw: { name: 'Riddle Roar', verb: 'roars a riddle so loud everyone wobbles' },
+};
+export const bossSpecial = (bossId: string) => BOSS_SPECIALS[bossId] ?? { name: 'Big Stomp', verb: 'stomps and shakes the whole arena' };
+
 /** Class missions to choose from (the class's daily task); each comes with its power-up behaviour. */
 export const MISSIONS: { text: string; tag?: CategoryTag }[] = [
   { text: 'Everyone joins in the lesson', tag: 'participation' },
@@ -276,7 +311,10 @@ export const MISSIONS: { text: string; tag?: CategoryTag }[] = [
 /** Boss HP for a lesson battle: the points the class should earn, from its size, its award values and the length. */
 export function lessonHp(students: number, avgAwardXp: number, lessons: number, level: LessonLevel = 'normal'): number {
   const expected = Math.max(1, students) * LESSON.awardsPerStudent * Math.max(1, avgAwardXp) * Math.max(1, lessons);
-  return Math.max(20, Math.round((expected * LESSON.level[level]) / 5) * 5);
+  // special attacks add SPECIAL.bonus for every SPECIAL.every points, so the boss is that much bigger (1.9): a battle
+  // still lasts about the lessons it was planned for
+  const specials = 1 + SPECIAL.bonus / SPECIAL.every;
+  return Math.max(20, Math.round((expected * specials * LESSON.level[level]) / 5) * 5);
 }
 
 /** XP an approved quest adds to an active battle. */

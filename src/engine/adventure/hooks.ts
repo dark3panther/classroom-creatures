@@ -81,7 +81,7 @@ export function undoAdventure(data: AppData, batchId: string, now = Date.now()):
   d = undoBatch(d, batchId);
   // the award's boss hits come off battles that are still running
   d = { ...d, bosses: d.bosses.map((b) => (b.status === 'active' || b.status === 'paused'
-    ? { ...b, contributions: b.contributions.filter((x) => !((x.source === 'award' || x.source === 'setback') && x.ref === batchId)) } : b)) };
+    ? { ...b, contributions: b.contributions.filter((x) => !((x.source === 'award' || x.source === 'setback' || x.source === 'special') && x.ref === batchId)) } : b)) };
   // tracked quests this award completed are taken back when the target is no longer met and nothing was collected
   const removed = d.questRecords.filter((r) => r.sourceBatchId === batchId && (r.status === 'submitted' || r.status === 'approved'));
   const gone = new Set<string>();
@@ -97,7 +97,7 @@ export function undoAdventure(data: AppData, batchId: string, now = Date.now()):
       ...d,
       questRecords: d.questRecords.filter((r) => !gone.has(r.id)),
       adventureLog: d.adventureLog.filter((l) => !(l.ref && gone.has(l.ref))),
-      bosses: d.bosses.map((b) => (b.status === 'active' || b.status === 'paused' ? { ...b, contributions: b.contributions.filter((x) => !(x.source === 'quest' && x.ref && gone.has(x.ref))) } : b)),
+      bosses: d.bosses.map((b) => (b.status === 'active' || b.status === 'paused' ? { ...b, contributions: b.contributions.filter((x) => !((x.source === 'quest' || x.source === 'special') && x.ref && gone.has(x.ref))) } : b)),
       students: d.students.map((s) => {
         const mine = recs.filter((r) => r.studentId === s.id);
         if (!mine.length) return s;

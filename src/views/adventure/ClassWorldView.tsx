@@ -11,6 +11,7 @@ import { animate, reducedMotion } from '../../lib/motion';
 import { useStore } from '../../store/store';
 import type { LocationId } from '../../types';
 import { EmptyNote, Px } from './common';
+import { useFitHeight } from '../../lib/useFitHeight';
 import { GodotStage, useStage3d, type GodotStageHandle, type StageMessage } from '../../components/GodotStage';
 import { sendClass } from '../../lib/stage';
 
@@ -37,6 +38,8 @@ export function ClassWorldView({ classId, teacher }: { classId: string; teacher:
   const [picked, setPicked] = useState<string | null>(null);
   const on3d = want3d && !stageFailed && !flat;
   const stage = useRef<GodotStageHandle>(null);
+  const worldBox = useRef<HTMLDivElement>(null);
+  const worldH = useFitHeight(worldBox, on3d, 16 / 10);
   const everyone = data.students.filter((s) => s.classId === classId);
   const placeStages = Object.fromEntries(LOCATIONS.map((l) => [l.id, locationState(data, classId, l.id).stage]));
   const placesKey = JSON.stringify(placeStages);
@@ -81,7 +84,7 @@ export function ClassWorldView({ classId, teacher }: { classId: string; teacher:
   return (
     <div className="flex flex-col gap-4">
       {on3d && (
-        <div className="adv-map relative" style={{ aspectRatio: '16 / 10' }} data-world3d>
+        <div ref={worldBox} className="adv-map relative" style={worldH ? { height: worldH, aspectRatio: 'auto' } : { aspectRatio: '16 / 10' }} data-world3d>
           <GodotStage ref={stage} scene="world" className="absolute inset-0" title="The class world in 3D: drag to turn round the island, scroll to zoom, tap a creature or a place"
             onReady={() => setStageReady(true)} onFail={() => setStageFailed(true)} onMessage={onStage} />
           {pickedStudent && (

@@ -1,28 +1,34 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useFitHeight } from '../lib/useFitHeight';
 import { GodotStage, useStage3d, type GodotStageHandle, type StageMessage, type StageScene } from '../components/GodotStage';
 import { Icon } from '../components/Icon';
 import { BOSSES, BOSSES_BY_ID } from '../data/adventure';
 import { getSpecies } from '../data/species';
-import { hasIllustration, illustrationUrl } from '../creatures/Illustrated';
+import { ELEMENTS } from '../data/elements';
+import { hasIllustration } from '../creatures/Illustrated';
+import { creaturePicture } from '../creatures/pixelSprite';
 import { firstName } from '../engine/util';
 import { sendClass, stageCreature, withPicture } from '../lib/stage';
 import { navigate } from '../lib/router';
 import { reducedMotion } from '../lib/motion';
 import { playClassCelebration } from '../audio/sfx';
 import { useStore } from '../store/store';
-import type { Student } from '../types';
+import type { Species, Stage, Student } from '../types';
 
 /**
  * Class games (1.8): short games for a brain break or a reward, played on the projector in the 3D stage (godot/).
  * Nobody is ranked: the relay is the whole class against a boss, the stars and the memory match are played together.
  * They change no points; they are for fun.
  */
-type GameId = 'race' | 'stars' | 'memory';
+type GameId = 'race' | 'stars' | 'memory' | 'quiz' | 'bubbles';
 const GAMES: { id: GameId; title: string; time: string; blurb: string; icon: string }[] = [
   { id: 'race', title: 'Class relay', time: 'about a minute', icon: 'runner', blurb: "Every creature runs one leg of the track, and each one's points today make its leg faster. The class races a boss as one team." },
   { id: 'stars', title: 'Catch the stars', time: 'one minute', icon: 'star', blurb: 'One creature catches falling stars. Pass the mouse (or the arrow keys) round the class. Gold stars are worth three.' },
-  { id: 'memory', title: 'Memory match', time: 'two or three minutes', icon: 'puzzle', blurb: "Turn over two cards at a time to find the pairs of creatures from your class's field guide." },
+  { id: 'memory', title: 'Memory match', time: 'two or three minutes', icon: 'puzzle', blurb: "Turn over two picture cards at a time to find the pairs of creatures from your class's field guide." },
+  { id: 'quiz', title: 'Whose shadow?', time: 'two or three minutes', icon: 'eye', blurb: 'A creature hides as a dark shadow. The class calls out who it is, then tap its picture to bring it out of the shadows.' },
+  { id: 'bubbles', title: 'Element bubbles', time: 'one minute', icon: 'sparkles', blurb: "Bubbles float up with the class's creatures inside. Pop the ones of the element on the screen; it changes every few seconds." },
 ];
+const ELEMENT_NAME = (e: string) => ELEMENTS[e as keyof typeof ELEMENTS]?.name ?? e;
 
 const startOfToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); };
 
@@ -68,6 +74,7 @@ function Play({ game, title, students }: { game: GameId; title: string; students
   const settings = data.settings;
   const stage = useRef<GodotStageHandle>(null);
   const box = useRef<HTMLDivElement>(null);
+  const boxH = useFitHeight(box, true);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [started, setStarted] = useState(false);
@@ -86,18 +93,37 @@ function Play({ game, title, students }: { game: GameId; title: string; students
     const won = data.bosses.filter((b) => b.classId === settings.currentClassId && b.status === 'won').at(-1);
     return BOSSES_BY_ID[won?.bossId ?? ''] ?? BOSSES[0];
   }, [data.bosses, settings.currentClassId]);
+  // the memory cards: forms from the class's field guide (and everyone's own creature), Pixel Pals included
   const cards = useMemo(() => {
     const cls = data.classes.find((c) => c.id === settings.currentClassId);
     const keys = new Set<string>([...(cls?.discovered ?? []), ...students.map((s) => `${s.speciesId}-1`)]);
-    const out: { key: string; art: string; name: string }[] = [];
+    const out: { key: string; species: Species; stage: Stage; branch?: 'b' }[] = [];
     for (const k of keys) {
       const m = k.match(/^(.*)-(\d)(b?)$/);
       if (!m) continue;
       const sp = getSpecies(m[1]);
-      if (sp.pixelArt || !hasIllustration(sp.id, Number(m[2]) as 1)) continue;
-      out.push({ key: k, art: new URL(illustrationUrl(sp.id, Number(m[2]) as 1, m[3]), window.location.href).href, name: sp.name });
+      const stage = Number(m[2]) as Stage;
+      if (!sp.pixelArt && !hasIllustration(sp.id, stage)) continue;
+      out.push({ key: k, species: sp, stage, ...(m[3] ? { branch: 'b' as const } : {}) });
     }
     return out.sort(() => Math.random() - 0.5).slice(0, 8);
+  }, [data.classes, settings.currentClassId, students]);
+  // Whose shadow?: one form per creature (so no two answers look alike), from the field guide and the class
+  const quizForms = useMemo(() => {
+    const cls = data.classes.find((c) => c.id === settings.currentClassId);
+    const keys = [...students.map((s) => `${s.speciesId}-1`), ...(cls?.discovered ?? [])];
+    const seen = new Set<string>();
+    const out: { key: string; species: Species; stage: Stage; branch?: 'b' }[] = [];
+    for (const k of keys) {
+      const m = k.match(/^(.*)-(\d)(b?)$/);
+      if (!m || seen.has(m[1])) continue;
+      const sp = getSpecies(m[1]);
+      const stage = Number(m[2]) as Stage;
+      if (!sp.pixelArt && !hasIllustration(sp.id, stage)) continue;
+      seen.add(m[1]);
+      out.push({ key: k, species: sp, stage, ...(m[3] ? { branch: 'b' as const } : {}) });
+    }
+    return out;
   }, [data.classes, settings.currentClassId, students]);
 
   useEffect(() => {
@@ -117,7 +143,41 @@ function Play({ game, title, students }: { game: GameId; title: string; students
       stage.current?.send('init', { student: base, seconds: fast ? 8 : 60, reduced: reducedMotion() });
       void withPicture(base, s).then((c) => { if (c.picture) stage.current?.send('pictures', { list: [{ id: c.id, picture: c.picture }] }); });
     }
-    if (game === 'memory') stage.current?.send('init', { cards, reduced: reducedMotion() });
+    if (game === 'quiz') {
+      let live = true;
+      // six creatures to guess; each with two or three others to choose from, all from the class's field guide
+      const pool = [...quizForms];
+      const answers = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(6, pool.length));
+      const rounds = answers.map((a) => {
+        const others = pool.filter((f) => f.species.id !== a.species.id).sort(() => Math.random() - 0.5).slice(0, pool.length > 8 ? 3 : 2);
+        return { answer: a.key, options: [a, ...others].sort(() => Math.random() - 0.5).map((f) => f.key) };
+      });
+      const keys = [...new Set(rounds.flatMap((r) => r.options))];
+      const byKey = new Map(pool.map((f) => [f.key, f]));
+      void Promise.all(keys.map((k) => {
+        const f = byKey.get(k)!;
+        return creaturePicture({ species: f.species, stage: f.stage, equipped: {}, branch: f.branch }, 320)
+          .then((picture) => [k, { picture, element: f.species.element, pixel: !!f.species.pixelArt }] as const).catch(() => null);
+      })).then((list) => {
+        if (live) stage.current?.send('init', { rounds, pictures: Object.fromEntries(list.filter((x): x is NonNullable<typeof x> => !!x)), reduced: reducedMotion() });
+      });
+      return () => { live = false; };
+    }
+    if (game === 'bubbles') {
+      const fast = import.meta.env.DEV && (window as unknown as { __ccFastGames?: boolean }).__ccFastGames;
+      return sendClass(students, settings, (list) => stage.current?.send('init', { students: list, seconds: fast ? 10 : 60, reduced: reducedMotion() }),
+        (pics) => stage.current?.send('pictures', { list: pics }));
+    }
+    if (game === 'memory') {
+      let live = true;
+      // each card's picture crosses as data (the stage cannot fetch the app's files); a few at a time, then the deal
+      void Promise.all(cards.map((c) => creaturePicture({ species: c.species, stage: c.stage, equipped: {}, branch: c.branch }, 320)
+        .then((picture) => ({ key: c.key, picture, element: c.species.element, pixel: !!c.species.pixelArt }))
+        .catch(() => null))).then((list) => {
+        if (live) stage.current?.send('init', { cards: list.filter(Boolean), reduced: reducedMotion() });
+      });
+      return () => { live = false; };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, round]);
 
@@ -125,10 +185,16 @@ function Play({ game, title, students }: { game: GameId; title: string; students
     if (m.type === 'leg') { const s = students.find((x) => x.id === m.studentId); if (s) setNote(`${firstName(s.name)} is running (${Number(m.index) + 1} of ${students.length})`); }
     if (m.type === 'score') setNote(`${m.stars} stars`);
     if (m.type === 'pair') setNote(`${m.found} of ${m.total} pairs`);
+    if (m.type === 'round') setNote(`Whose shadow is it? (${Number(m.index) + 1} of ${m.total})`);
+    if (m.type === 'answer' && m.correct) setNote(m.first ? 'Yes! First try!' : 'Yes, that is it!');
+    if (m.type === 'target') setNote(`Pop the ${ELEMENT_NAME(String(m.element))} creatures!`);
+    if (m.type === 'score') setNote((n) => n.replace(/ · \d+ popped$/, '') + ` · ${m.popped} popped`);
     if (m.type === 'result') {
       if (game === 'race') setResult(m.win ? `The class beat ${boss.name}! ${m.classTime} s against ${m.bossTime} s.` : `${boss.name} won this time (${m.bossTime} s against ${m.classTime} s). Every point today makes the class faster: race again later!`);
       if (game === 'stars') setResult(`${m.stars} stars caught!`);
       if (game === 'memory') setResult(`All the pairs found in ${m.seconds} seconds and ${m.turns} turns!`);
+      if (game === 'quiz') setResult(`${m.first} of ${m.rounds} guessed on the first try!`);
+      if (game === 'bubbles') setResult(`${m.popped} bubbles popped!`);
       if (settings.soundEnabled && (game !== 'race' || m.win)) playClassCelebration();
     }
   };
@@ -150,7 +216,7 @@ function Play({ game, title, students }: { game: GameId; title: string; students
           </label>
         )}
       </div>
-      <div ref={box} className="relative overflow-hidden rounded-[var(--radius-card)] bg-sky shadow-[var(--shadow-lift)]" style={{ aspectRatio: '16 / 9' }} data-game-stage={game}>
+      <div ref={box} className="relative overflow-hidden rounded-[var(--radius-card)] bg-sky shadow-[var(--shadow-lift)]" style={boxH ? { height: boxH } : { aspectRatio: '16 / 9' }} data-game-stage={game}>
         {!failed && <GodotStage key={round} ref={stage} scene={scene} className="absolute inset-0" title={title} onReady={() => setReady(true)} onFail={() => setFailed(true)} onMessage={onMessage} />}
         {failed && <div className="absolute inset-0 grid place-items-center p-6 text-center font-bold">This computer could not start the 3D scene.</div>}
         {note && !result && <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full bg-white/90 px-4 py-1.5 font-display text-xl font-bold shadow" role="status" data-game-note>{note}</div>}

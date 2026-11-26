@@ -53,7 +53,7 @@ await p.goto(U); await wait(1200);
 const demo = p.getByRole('button', { name: 'Explore the demo first' }); if (await demo.count()) { await demo.click(); await wait(900); }
 // a fresh dev server optimises the lazily loaded screens' dependencies on first sight and reloads the page: visit them
 // once, then reload, so no reload lands in the middle of a check
-for (const h of ['#/games', '#/adventure/boss', '#/adventure/world', '#/']) { await p.evaluate((x) => { location.hash = x; }, h); await wait(2500); }
+for (const h of ['#/games', '#/games/quiz', '#/cards', '#/adventure/boss', '#/adventure/world', '#/']) { await p.evaluate((x) => { location.hash = x; }, h); await wait(2500); }
 await p.reload(); await wait(2500);
 await p.evaluate(() => window.__cc.getState().updateSettings({ adventureEnabled: true, stage3d: true, pixelMode: false }));
 
@@ -71,6 +71,13 @@ await shot('stage-arena.png', '[data-arena]');
 await wait(9000);
 await p.evaluate((id) => window.__cc.getState().award([id], 'neg-talking'), ids[4]);
 ok(await until(async () => await p.locator('.arena-banner', { hasText: 'strikes back' }).count() === 1, 45000), 'a deduction: the boss strikes back in 3D and the class is told');
+// a special attack (1.9): a creature's points in the battle pass 10
+for (let i = 0; i < 6 && !(await p.evaluate(() => window.__cc.getState().data.bosses.find((b) => b.status === 'active')?.contributions.some((x) => x.source === 'special'))); i++) {
+  await p.evaluate((id) => { window.__cc.getState().award([id], 'cat-participating'); window.__cc.setState({ celebrations: [] }); }, ids[3]);
+  await wait(1500);
+}
+ok(await until(async () => await p.locator('.arena-banner', { hasText: 'used its special attack' }).count() === 1, 90000), 'every 10 points a creature gives, it follows up with its special attack in 3D');
+await shot('stage-special.png', '[data-arena]');
 await wait(2500);
 await p.locator('[data-arena] .sr-only button').first().evaluate((el) => el.click()); await wait(600);   // as Enter on the focused button does
 ok(await p.getByRole('dialog').count() >= 1, 'the creature list for keyboards opens the award panel');
@@ -78,6 +85,12 @@ await p.keyboard.press('Escape'); await wait(400);
 await p.evaluate(() => window.__cc.getState().updateSettings({ stage3d: false })); await wait(1200);
 ok(await p.locator('[data-arena] .arena-class').count() === 1 && await p.locator('[data-stage="arena"]').count() === 0, 'with 3D scenes off, the 2D arena is back');
 await p.evaluate(() => { const s = window.__cc.getState(); const bt = s.data.bosses.find((x) => x.status === 'active'); if (bt) s.controlBattle(bt.id, 'end'); s.updateSettings({ stage3d: true }); });
+
+// ---------- 1b. befriending a boss: everyone's lucky find (1.9) ----------
+await p.evaluate(() => { const s = window.__cc.getState(); s.startBattle({ classId: s.data.settings.currentClassId, bossId: 'grumblethorn', hp: 30, durationMs: 0, reward: { xp: 2, coins: 5 }, lesson: { mission: 'Tidy up together', strikeBack: true, lessonMs: 45 * 60000, lessons: 1 } }); });
+await p.evaluate(() => { const s = window.__cc.getState(); const b = s.data.bosses.find((x) => x.status === 'active'); s.classActivity(b.classId, 100, 'Finished'); window.__cc.setState({ celebrations: window.__cc.getState().celebrations.filter((c) => c.type === 'bossWon') }); });
+ok(await until(async () => await p.locator('[data-lucky-finds] li').count() === ids.length, 20000), 'a befriended boss gives every student a lucky find, shown on the celebration');
+await p.getByRole('button', { name: 'Hooray!' }).click(); await wait(600);
 
 // ---------- 2. the 3D class world ----------
 await go('#/adventure/world', 1000);
@@ -92,7 +105,7 @@ ok(await p.locator('[data-world3d]').count() === 1, 'and back to 3D');
 // ---------- 3. class games ----------
 await p.evaluate(() => { window.__ccFastGames = true; });
 await go('#/games', 1200);
-ok(await until(async () => await p.locator('[data-game]').count() === 3, 15000), 'the games page offers three games');
+ok(await until(async () => await p.locator('[data-game]').count() === 5, 15000), 'the games page offers five games');
 await p.locator('[data-game="race"]').click();
 ok(await until(async () => await p.locator('[data-game-start]').count() === 1), 'the class relay is ready');
 await wait(2500);
@@ -111,6 +124,20 @@ await go('#/games/memory', 800);
 ok(await until(async () => await p.locator('[data-game-start]').count() === 1), 'the memory match deals its cards');
 await wait(2500);
 await shot('stage-memory.png', '[data-game-stage]');
+await go('#/games/quiz', 800);
+ok(await until(async () => await p.locator('[data-game-start]').count() === 1), 'Whose shadow? is ready');
+await wait(3000);
+await p.locator('[data-game-start]').click();
+ok(await until(async () => (await p.locator('[data-game-note]').innerText()).includes('Whose shadow'), 30000), 'it shows the first shadow to guess');
+await shot('stage-quiz.png', '[data-game-stage]');
+await go('#/games/bubbles', 800);
+ok(await until(async () => await p.locator('[data-game-start]').count() === 1), 'element bubbles is ready');
+await wait(2500);
+await p.locator('[data-game-start]').click();
+ok(await until(async () => /Pop the .* creatures/.test(await p.locator('[data-game-note]').innerText()), 30000), 'it names an element to pop');
+await shot('stage-bubbles.png', '[data-game-stage]');
+const bubbles = await until(async () => (await p.locator('[data-game-result]').count()) && p.locator('[data-game-result]').innerText(), 90000);
+ok(!!bubbles && /bubbles popped/.test(bubbles), `element bubbles ends with the class's count (${String(bubbles).split('\n')[0]})`);
 
 // ---------- 4. the 3D evolution ----------
 await go('#/', 1200);

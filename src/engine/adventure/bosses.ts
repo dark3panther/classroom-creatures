@@ -1,7 +1,11 @@
-import { BOSSES_BY_ID, LESSON } from '../../data/adventure';
-import type { AppData, BossBattle, BossContribution, CategoryTag, QuestReward } from '../../types';
+import { BOSSES_BY_ID, ELEMENT_SPECIALS, LESSON, SPECIAL, bossSpecial } from '../../data/adventure';
+import { ITEMS } from '../../data/defaults';
+import { SPECIES_BY_ID } from '../../data/species';
+import type { AppData, BossBattle, BossContribution, BossLoot, CategoryTag, QuestReward } from '../../types';
 import { applyReward } from '../awards';
-import { uid } from '../util';
+import { itemPrice, inSeason } from '../shop';
+import { mulberry32, uid } from '../util';
+import { packsOn } from '../cards';
 import { AdventureError, type Actor, type AdventureResult, type Ctx, addLog, clampInt, ctxOf, getClass, patchStudentAdv, refreshBadges, requireTeacher, result } from './core';
 import { regionOpen, syncWorld } from './world';
 
@@ -121,9 +125,19 @@ export function controlBattle(data: AppData, actor: Actor, battleId: string, act
   return result(c);
 }
 
+/** The points a student has given in a battle, towards special attacks: their awards and quests (a super-effective
+ *  hit counts its points, not its double damage), not the specials themselves. */
+export function specialPoints(b: BossBattle, studentId: string): number {
+  return b.contributions.reduce((n, x) => (x.studentId === studentId && (x.source === 'award' || x.source === 'quest') && x.amount > 0
+    ? n + (x.super ? x.amount / LESSON.superMultiplier : x.amount) : n), 0);
+}
+
 /**
  * Approved activity hits the class's running boss. The only way HP goes down. When the class reaches the
  * total, the boss is befriended and every student in the class gets the reward once.
+ * Special attacks (1.9): each time a creature's points in the battle pass another SPECIAL.every, it follows up with
+ * its element's special attack (SPECIAL.bonus more); and the boss answers with its own special attack once when
+ * its HP falls to a half and once at a quarter, recovering a little (SPECIAL.bossHeal), never enough to undo a win.
  */
 export function hitBoss(c: Ctx, classId: string, hit: Omit<BossContribution, 'id' | 'at'>): void {
   if (!c.data.settings.adventureEnabled) return;
@@ -131,9 +145,26 @@ export function hitBoss(c: Ctx, classId: string, hit: Omit<BossContribution, 'id
   const b = c.data.bosses.find((x) => x.classId === classId && x.status === 'active');
   const amount = Math.round(hit.amount);
   if (!b || !(amount > 0)) return;
-  const next: BossBattle = { ...b, contributions: [...b.contributions, { id: uid('hit'), at: c.now, ...hit, amount }] };
+  const added: BossContribution[] = [{ id: uid('hit'), at: c.now, ...hit, amount }];
+  if (hit.studentId && (hit.source === 'award' || hit.source === 'quest')) {
+    const before = specialPoints(b, hit.studentId);
+    const after = before + (hit.super ? amount / LESSON.superMultiplier : amount);
+    const st = c.data.students.find((x) => x.id === hit.studentId);
+    const name = ELEMENT_SPECIALS[SPECIES_BY_ID[st?.speciesId ?? '']?.element ?? 'light'];
+    for (let k = Math.floor(before / SPECIAL.every); k < Math.floor(after / SPECIAL.every); k++) {
+      added.push({ id: uid('hit'), at: c.now, studentId: hit.studentId, amount: SPECIAL.bonus, source: 'special', ref: hit.ref, label: name });
+    }
+  }
+  let next: BossBattle = { ...b, contributions: [...b.contributions, ...added] };
   replaceBattle(c, next);
-  if (battleTotal(next) >= next.hp) befriend(c, next);
+  if (battleTotal(next) >= next.hp) { befriend(c, next); return; }
+  const used = next.contributions.filter((x) => x.source === 'boss-special').length;
+  const due = SPECIAL.bossAt.filter((share) => battleRemaining(next) <= next.hp * share).length;
+  if (due > used) {
+    const sp = bossSpecial(next.bossId);
+    next = { ...next, contributions: [...next.contributions, { id: uid('hit'), at: c.now, amount: -Math.max(1, Math.round(next.hp * SPECIAL.bossHeal)), source: 'boss-special', label: sp.name }] };
+    replaceBattle(c, next);
+  }
 }
 
 /**
@@ -168,9 +199,41 @@ export function completeMission(data: AppData, actor: Actor, battleId: string, n
   return result(c);
 }
 
+/** A string to a seed, so a battle's lucky finds come out the same however often they are worked out. */
+const seedOf = (text: string) => { let h = 2166136261; for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619); return h >>> 0; };
+
+/**
+ * Each student's lucky find when a boss is befriended (1.9), on top of the class reward: a few coins, a little XP,
+ * a shop item they do not have yet (the cheaper ones), or a creature card pack (when card packs are on).
+ */
+export function rollLoot(data: AppData, b: BossBattle, now = Date.now()): Record<string, BossLoot> {
+  const out: Record<string, BossLoot> = {};
+  const packs = packsOn(data.settings);
+  const off = new Set(data.settings.disabledItems ?? []);
+  const shop = ITEMS.filter((it) => it.unlock.type === 'shop' && !off.has(it.id) && inSeason(it.season, now) && (itemPrice(it, data.settings) ?? 999) <= 80);
+  for (const s of data.students.filter((x) => x.classId === b.classId)) {
+    const rand = mulberry32(seedOf(`${b.id}:${s.id}`));
+    const r = rand();
+    const items = shop.filter((it) => !s.unlockedItems.includes(it.id));
+    if (packs && r < 0.3) out[s.id] = { kind: 'pack', amount: 1, label: 'a creature card pack' };
+    else if (r < 0.52 && items.length) {
+      const it = items[Math.floor(rand() * items.length)];
+      out[s.id] = { kind: 'item', amount: 1, itemId: it.id, label: it.name };
+    } else if (r < 0.76) {
+      const xp = 3 + Math.floor(rand() * 4);
+      out[s.id] = { kind: 'xp', amount: xp, label: `${xp} bonus XP` };
+    } else {
+      const coins = 5 + Math.floor(rand() * 11);
+      out[s.id] = { kind: 'coins', amount: coins, label: `${coins} bonus coins` };
+    }
+  }
+  return out;
+}
+
 function befriend(c: Ctx, b: BossBattle): void {
   const def = BOSSES_BY_ID[b.bossId];
-  replaceBattle(c, { ...b, status: 'won', endedAt: c.now });
+  const loot = rollLoot(c.data, b, c.now);
+  replaceBattle(c, { ...b, status: 'won', endedAt: c.now, loot });
   const students = c.data.students.filter((s) => s.classId === b.classId);
   // everyone in the class is part of the adventure: no one is left out of the friendship
   for (const s of students) {
@@ -187,6 +250,19 @@ function befriend(c: Ctx, b: BossBattle): void {
   } else {
     refreshBadges(c, students.map((s) => s.id));
   }
+  // the lucky finds: coins, XP and items go through the reward pipeline (so undo and the history know them);
+  // card packs go straight into each winner's unopened packs
+  const grants = Object.entries(loot).filter(([, l]) => l.kind !== 'pack').map(([id, l]) => ({
+    studentId: id, key: `bossloot:${b.id}:${id}`, xp: l.kind === 'xp' ? l.amount : 0, coins: l.kind === 'coins' ? l.amount : 0, ...(l.itemId ? { itemId: l.itemId } : {}),
+  }));
+  if (grants.length) {
+    const r = applyReward(c.data, grants, { kind: 'boss', ref: b.id, label: `Lucky find from ${def?.name ?? 'a boss'}`, icon: '🎁' }, c.now);
+    c.data = r.data;
+    c.outcomes.push(...r.outcomes);
+    for (const o of r.outcomes) for (const a of o.newAchievements) c.notes.push({ type: 'achievement', studentId: o.studentId, achievementId: a });
+  }
+  const packWinners = new Set(Object.entries(loot).filter(([, l]) => l.kind === 'pack').map(([id]) => id));
+  if (packWinners.size) c.data = { ...c.data, students: c.data.students.map((s) => (packWinners.has(s.id) ? { ...s, packs: (s.packs ?? 0) + 1 } : s)) };
   syncWorld(c, b.classId);
 }
 

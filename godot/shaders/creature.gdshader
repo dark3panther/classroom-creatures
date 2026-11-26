@@ -6,9 +6,10 @@
 //  - lighting: a soft normal worked out from the painting's silhouette (blurred alpha), so stage lights shade it
 //  - evolution: the creature turns to light (silhouette) and dissolves into its next form (art_next)
 shader_type spatial;
-// shadows_disabled: it casts a shadow but never receives one (its shadow card turns toward the sun and would
-// cross its own middle)
-render_mode depth_prepass_alpha, cull_disabled, shadows_disabled;
+// The card casts no shadow (the shadow pass would draw the whole card, a rectangle on the ground: the creature has a
+// soft blob shadow instead) and receives none. No depth writes: creatures are sorted back to front like any
+// see-through object, which also saves the depth pre-pass.
+render_mode blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
 
 uniform sampler2D art : source_color, hint_default_transparent, filter_linear_mipmap, repeat_disable;     // transparent until the picture arrives
 uniform sampler2D art_next : source_color, hint_default_transparent, filter_linear_mipmap, repeat_disable;
@@ -91,14 +92,16 @@ void vertex() {
 	MODELVIEW_NORMAL_MATRIX = mat3(MODELVIEW_MATRIX);
 }
 
+// art_next is only read during an evolution (use_next is the same for the whole card, so the branch is cheap)
 vec4 paint(vec2 auv) {
 	if (auv.x < 0.0 || auv.x > 1.0 || auv.y < 0.0 || auv.y > 1.0) return vec4(0.0);
-	vec4 a = texture(art, auv), b = texture(art_next, auv);
-	return mix(a, b, use_next);
+	vec4 a = texture(art, auv);
+	return use_next > 0.0 ? mix(a, texture(art_next, auv), use_next) : a;
 }
 float soft(vec2 auv, float lod) {
 	vec2 c = clamp(auv, vec2(0.0), vec2(1.0));
-	float a = mix(textureLod(art, c, lod).a, textureLod(art_next, c, lod).a, use_next);
+	float a = textureLod(art, c, lod).a;
+	if (use_next > 0.0) a = mix(a, textureLod(art_next, c, lod).a, use_next);
 	// past the picture's edge the blur is only clamped, so a creature cropped close to its picture would smear its
 	// glow sideways into a band: let it die away over the blur's own radius instead
 	vec2 radius = exp2(lod) / max(vec2(textureSize(art, 0)), vec2(1.0));
@@ -116,16 +119,18 @@ void fragment() {
 	if (element == 0) auv.x += sin(auv.y * 34.0 - t * 9.0 + seed) * 0.0045 * glow * clamp(hf, 0.0, 1.0);
 	vec4 c = paint(auv);
 	float body = c.a;
-	// a soft roundness from the silhouette, so the stage lights shade the painting
-	float e = 0.03;
-	float hl = soft(auv - vec2(e, 0.0), 3.5), hr = soft(auv + vec2(e, 0.0), 3.5);
-	float hd = soft(auv + vec2(0.0, e), 3.5), hu = soft(auv - vec2(0.0, e), 3.5);
-	vec3 n = normalize(vec3((hl - hr) * 2.2, (hd - hu) * 2.2, 1.0));
-	if (facing < 0.0) n.x = -n.x;
-	NORMAL_MAP = n * 0.5 + 0.5;
-	NORMAL_MAP_DEPTH = 1.0;
+	// the blurred silhouette: a soft roundness from it, so the stage lights shade the painting (three reads; Pixel
+	// Pals stay flat, as pixel art should), and the halo just outside the outline
+	float wide = soft(auv, 3.5);
+	if (pixelated < 0.5) {
+		float e = 0.035;
+		float hr = soft(auv + vec2(e, 0.0), 3.5), hd = soft(auv + vec2(0.0, e), 3.5);
+		vec3 n = normalize(vec3((wide - hr) * 4.4, (hd - wide) * 4.4, 1.0));
+		if (facing < 0.0) n.x = -n.x;
+		NORMAL_MAP = n * 0.5 + 0.5;
+		NORMAL_MAP_DEPTH = 1.0;
+	}
 	// edge (just inside the outline) and halo (just outside)
-	float wide = soft(auv, 4.5);
 	float edge = clamp(body * (1.0 - soft(auv, 2.0)) * 3.0, 0.0, 1.0);
 	float halo = clamp(wide * 1.6 - body, 0.0, 1.0);
 	// the blurred picture runs on past the painting's edge (it is clamped there), so fade the halo out well before the

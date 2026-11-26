@@ -1,3 +1,4 @@
+import { PACK } from '../engine/cards';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { slidePill } from '../lib/motion';
 import { Modal, Toggle } from '../components/ui';
@@ -272,6 +273,15 @@ function ClassroomTab() {
           checked={!!settings.pixelMode} onChange={(v) => updateSettings({ pixelMode: v })} />
         <Toggle label="3D scenes" hint="The boss arena, the class world, the class games and evolutions play as 3D scenes (made in Godot): creatures breathe, hop and glow with their element, bosses turn to whoever hit them. Turn off for the 2D versions, for example on a very old computer. Pixel mode keeps its pixel arena."
           checked={settings.stage3d ?? true} onChange={(v) => updateSettings({ stage3d: v })} />
+        <Toggle label="Creature card packs" hint="Students spend coins on a pack of three creature cards and collect every form of every creature in their binder (Cards tab). The third card is always Rare or better, a copy they already have turns back into coins, and befriended bosses sometimes give a free pack."
+          checked={settings.cardPacks !== false} onChange={(v) => updateSettings({ cardPacks: v })} />
+        {settings.cardPacks !== false && (
+          <label className="flex items-center gap-4 py-2">
+            <span className="min-w-[140px]"><span className="block font-bold">Card pack price</span><span className="block text-sm text-ink-soft">coins for a pack of three</span></span>
+            <input type="number" min={0} max={500} className="input !w-28" value={settings.packPrice ?? PACK.price}
+              onChange={(e) => updateSettings({ packPrice: Math.max(0, Math.min(500, Math.round(Number(e.target.value) || 0))) })} data-pack-price />
+          </label>
+        )}
         <Toggle label="Illustrated creature art" hint="Painted creature artwork. Turn off for the classic drawn style (blinks and changes expression, lighter on very old computers)."
           checked={(settings.artStyle ?? 'illustrated') === 'illustrated'} onChange={(v) => updateSettings({ artStyle: v ? 'illustrated' : 'classic' })} />
         <Toggle label="Sound effects" hint="Award chimes, evolution, shop and creature sounds. Turn off to mute everything." checked={settings.soundEnabled} onChange={(v) => updateSettings({ soundEnabled: v })} />

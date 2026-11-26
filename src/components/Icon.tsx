@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
  * Emoji stay only where they are the teacher's own content (behaviour, prize and badge icons).
  */
 const PATHS: Record<string, ReactNode> = {
+  cards: <><rect x="8" y="3" width="12" height="16" rx="2" transform="rotate(10 14 11)" /><rect x="4" y="5" width="12" height="16" rx="2" /><path d="M10 10.2l.9 1.9 2.1.3-1.5 1.5.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.5 2.1-.3z" /></>,
   sparkle: <><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z" /><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z" /></>,
   select: <><rect x="3.5" y="3.5" width="17" height="17" rx="4" /><path d="M8 12.5l2.8 2.8L16.5 9" /></>,
   plus: <path d="M12 5v14M5 12h14" />,

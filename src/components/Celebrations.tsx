@@ -7,7 +7,7 @@ import { playAchievement, playBefriend, playClassCelebration, playEvolutionCharg
 import { ADVENTURE_ART, BOSSES_BY_ID, REGIONS_BY_ID } from '../data/adventure';
 import { navigate } from '../lib/router';
 import { ReadyPopup } from './Evolve';
-import { Glyph, Icon } from './Icon';
+import { CoinIcon, Glyph, Icon } from './Icon';
 import { PrizeWheel } from './PrizeWheel';
 import { Burst } from '../creatures/Burst';
 import { CreatureSvg } from '../creatures/CreatureSvg';
@@ -23,7 +23,7 @@ import { fieldNo, getSpecies } from '../data/species';
 import { displayStage } from '../engine/progression';
 import { firstName } from '../engine/util';
 import { type Celebration, useStore } from '../store/store';
-import type { Stage, Student } from '../types';
+import type { BossLoot, Stage, Student } from '../types';
 
 /** Shows queued celebrations one at a time. */
 export function CelebrationHost() {
@@ -111,8 +111,31 @@ function BossFriendOverlay({ c, onDone, sound }: { c: Extract<Celebration, { typ
       <motion.h2 className="gilt-text relative mt-6 font-display text-4xl font-extrabold tracking-[-0.02em] sm:text-6xl" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}>{boss?.name} is your friend{again ? ' again' : ''}!</motion.h2>
       <p className="relative mt-3 max-w-2xl text-xl font-bold text-white">{boss?.friendly}</p>
       {battle && (battle.reward.xp > 0 || battle.reward.coins > 0) && <p className="relative mt-2 text-lg font-bold text-[#ffd166]">Everyone gets {[battle.reward.xp ? `${battle.reward.xp} XP` : '', battle.reward.coins ? `${battle.reward.coins} coins` : ''].filter(Boolean).join(' and ')}.{again ? '' : ' A statue joins the Creature Sanctuary.'}</p>}
+      {battle?.loot && <LuckyFinds loot={battle.loot} />}
       <button className="btn btn-primary relative mt-8 px-10 py-4 text-xl" onClick={onDone} autoFocus>Hooray!</button>
     </motion.div>
+  );
+}
+
+const LOOT_ICON: Record<BossLoot['kind'], string> = { coins: 'coin', xp: 'sparkle', item: 'gift', pack: 'cards' };
+/** Each student's lucky find from the befriended boss (1.9), turned over one after another. */
+function LuckyFinds({ loot }: { loot: Record<string, BossLoot> }) {
+  const students = useStore((s) => s.data.students);
+  const list = Object.entries(loot).map(([id, l]) => ({ s: students.find((x) => x.id === id), l })).filter((x) => x.s);
+  if (!list.length) return null;
+  return (
+    <div className="relative mt-5 w-full max-w-4xl" data-lucky-finds>
+      <div className="text-sm font-extrabold uppercase tracking-[0.18em] text-[#ffd166]">Lucky finds</div>
+      <ul className="mt-2 flex flex-wrap justify-center gap-2">
+        {list.map(({ s, l }, i) => (
+          <motion.li key={s!.id} className="flex items-center gap-1.5 rounded-full bg-white/95 py-1 pl-1.5 pr-3 text-[15px] font-bold text-ink shadow"
+            initial={{ opacity: 0, y: 12, scale: 0.8 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: 0.6 + i * 0.07, type: 'spring', stiffness: 260, damping: 18 }}>
+            <span className={`grid h-7 w-7 place-items-center rounded-full ${l.kind === 'pack' ? 'bg-[#ffd166] text-[#5a3a00]' : 'bg-azure-pale text-azure-700'}`}>{l.kind === 'coins' ? <CoinIcon size={16} /> : <Icon name={LOOT_ICON[l.kind]} size={16} />}</span>
+            {firstName(s!.name)}: {l.label}
+          </motion.li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

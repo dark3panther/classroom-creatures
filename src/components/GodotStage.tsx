@@ -10,7 +10,7 @@ import { useStore } from '../store/store';
  * If the computer cannot run it (no WebGL 2) or it does not start within `timeoutMs`, `onFail` is called and the
  * caller shows its 2D version instead.
  */
-export type StageScene = 'arena' | 'world' | 'race' | 'stars' | 'memory' | 'evolution' | 'test';
+export type StageScene = 'arena' | 'world' | 'race' | 'stars' | 'memory' | 'quiz' | 'bubbles' | 'evolution' | 'test';
 export interface StageMessage { type: string; [k: string]: unknown }
 export interface GodotStageHandle {
   /** tell the stage something */
@@ -51,6 +51,8 @@ let nextId = 1;
 export const GodotStage = forwardRef<GodotStageHandle, Props>(function GodotStage({ scene, onReady, onMessage, onFail, className = '', title = '3D scene', timeoutMs = 20000, loading }, ref) {
   const frame = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
+  // Pixel mode: the stage draws its scene as pixel art (see godot/scripts/Main.gd)
+  const pixel = useStore((st) => !!st.data.settings.pixelMode);
   const [progress, setProgress] = useState(0);
   const waiting = useRef(new Map<number, { done: (m: StageMessage | null) => void; on?: (m: StageMessage) => void }>());
   const cbs = useRef({ onReady, onMessage, onFail });
@@ -95,7 +97,7 @@ export const GodotStage = forwardRef<GodotStageHandle, Props>(function GodotStag
 
   return (
     <div className={/\b(absolute|fixed)\b/.test(className) ? className : `relative ${className}`} data-stage={scene} data-stage-ready={ready || undefined}>
-      <iframe ref={frame} title={title} src={`${import.meta.env.BASE_URL}godot/stage.html?scene=${scene}`} className="absolute inset-0 h-full w-full border-0" allow="autoplay; fullscreen" />
+      <iframe ref={frame} title={title} src={`${import.meta.env.BASE_URL}godot/stage.html?scene=${scene}${pixel ? '&pixel=1' : ''}`} className="absolute inset-0 h-full w-full border-0" allow="autoplay; fullscreen" />
       {!ready && (loading ?? (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
           <div className="w-40 rounded-full bg-white/70 p-1 shadow"><div className="h-2 rounded-full bg-azure transition-[width]" style={{ width: `${Math.max(6, progress * 100)}%` }} /></div>
